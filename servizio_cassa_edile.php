@@ -104,6 +104,7 @@ if (!$is_user_logged_in) {
             transition: all 0.2s ease-in-out;
             text-decoration: none;
             color: #212529;
+            position: relative; /* Necessario per il posizionamento del badge */
             height: 100%;
         }
         .prestazione-card:hover {
@@ -130,6 +131,24 @@ if (!$is_user_logged_in) {
         }
         .modal-body strong {
             color: #d0112b; /* Usa il colore del tema */
+        }
+        /* Stile per le card attive */
+        .prestazione-card.attiva {
+            border-color: #d0112b;
+            border-width: 1.5px;
+            background-color: #fffafb;
+        }
+        .prestazione-card.attiva::after {
+            content: 'ONLINE';
+            position: absolute;
+            top: 5px;
+            right: 8px;
+            background-color: #d0112b;
+            color: white;
+            font-size: 0.6rem;
+            font-weight: bold;
+            padding: 2px 5px;
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -252,7 +271,7 @@ if (!$is_user_logged_in) {
             </div>
 
             <div class="col-6">
-                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_centriestivi">
+                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_centriestivi">
                     <div class="prestazione-icon"><i class="fa-solid fa-sun"></i></div>
                     <div class="prestazione-text">Bonus Centri Estivi</div>
                 </div>
@@ -280,35 +299,35 @@ if (!$is_user_logged_in) {
             </div>
 
             <div class="col-6">
-                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_nido">
+                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_nido">
                     <div class="prestazione-icon"><i class="fa-solid fa-child-reaching"></i></div>
                     <div class="prestazione-text">Contributi Asilo Nido</div>
                 </div>
             </div>
 
             <div class="col-6">
-                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_elementari">
+                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_elementari">
                     <div class="prestazione-icon"><i class="fa-solid fa-book-open-reader"></i></div>
                     <div class="prestazione-text">Contributi Studio Scuole Elementari</div>
                 </div>
             </div>
             
             <div class="col-6">
-                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_medie">
+                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_medie">
                     <div class="prestazione-icon"><i class="fa-solid fa-user-graduate"></i></div>
                     <div class="prestazione-text">Contributi Studio Scuole Medie</div>
                 </div>
             </div>
 
             <div class="col-6">
-                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_superiori">
+                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_superiori">
                     <div class="prestazione-icon"><i class="fa-solid fa-school-flag"></i></div>
                     <div class="prestazione-text">Contributi Studio Scuole Superiori</div>
                 </div>
             </div>
 
             <div class="col-6">
-                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_universita">
+                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_universita">
                     <div class="prestazione-icon"><i class="fa-solid fa-building-columns"></i></div>
                     <div class="prestazione-text">Contributi Studio Università</div>
                 </div>
@@ -365,7 +384,7 @@ if (!$is_user_logged_in) {
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modal_matrimonio_label">Premio Matrimoniale/Unioni Civili</h5>
+                <h5 class="modal-title" id="modal_matrimonio_label">Premio Matrimoniale / Unioni Civili</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
