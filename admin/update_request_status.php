@@ -1,5 +1,6 @@
 <?php
-session_start();
+include_once __DIR__ . '/../session_config.php'; // Includi la configurazione della sessione
+session_start(); // Avvia la sessione DOPO aver impostato i parametri
 
 // Includi l'autoloader di Composer per usare la libreria WebPush
 require_once __DIR__ . '/../vendor/autoload.php';

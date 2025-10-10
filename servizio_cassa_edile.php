@@ -1,5 +1,6 @@
 <?php
-session_start();
+include_once 'session_config.php'; // Includi la configurazione della sessione
+session_start(); // Avvia la sessione DOPO aver impostato i parametri
 
 // 1. Recupera e verifica il token per la sicurezza
 $token = $_GET['token'] ?? '';
