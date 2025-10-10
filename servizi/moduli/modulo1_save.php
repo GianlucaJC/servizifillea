@@ -68,20 +68,11 @@ $data = [
 
 
 // 4. Prepara il JSON per le prestazioni
+// La prestazione è ora singola e passata tramite un campo hidden
 $prestazioni_data = [];
-if (isset($_POST['prestazione']) && is_array($_POST['prestazione'])) {
-    foreach ($_POST['prestazione'] as $tipo) {
-        $key = '';
-        if ($tipo === 'asili_nido') $key = 'anno_asili';
-        if ($tipo === 'centri_estivi') $key = 'periodo_centri_estivi';
-        if ($tipo === 'scuole_obbligo') $key = 'anno_scuole_obbligo';
-        if ($tipo === 'superiori_iscrizione') $key = 'anno_superiori';
-        if ($tipo === 'universita_iscrizione') $key = 'anno_universita';
-        
-        if ($key && !empty($_POST[$key])) {
-            $prestazioni_data[$tipo] = $_POST[$key];
-        }
-    }
+if (isset($_POST['prestazione']) && !empty($_POST['prestazione'])) {
+    $tipo_prestazione = $_POST['prestazione'];
+    $prestazioni_data[$tipo_prestazione] = $tipo_prestazione; // Salviamo il tipo di prestazione nel JSON
 }
 $data['prestazioni'] = json_encode($prestazioni_data);
 
@@ -280,9 +271,9 @@ try {
 // 8. Reindirizza alla pagina del modulo con un messaggio di successo
 if ($is_admin_save) {
     // Se è un admin, il token non è necessario, ma user_id sì
-    header("Location: modulo1.php?form_name=$form_name&user_id=$user_id&status=saved&action=$action");
+    header("Location: modulo1.php?form_name=$form_name&user_id=$user_id&status=saved&action=$action&prestazione=" . urlencode($_POST['prestazione']));
 } else {
     // Se è un utente, usa il token
-    header("Location: modulo1.php?token=$token&form_name=$form_name&status=saved&action=$action");
+    header("Location: modulo1.php?token=$token&form_name=$form_name&status=saved&action=$action&prestazione=" . urlencode($_POST['prestazione']));
         }
 exit;

@@ -3,11 +3,23 @@ session_start();
 
 // 1. Inizializzazione e recupero token
 $token = $_GET['token'] ?? null;
+$prestazione_selezionata = $_GET['prestazione'] ?? null;
 $form_name = $_GET['form_name'] ?? null;
+$user_info = []; // Per contenere i dati dell'utente
 $user_id_from_admin = $_GET['user_id'] ?? null; // ID utente passato dall'admin
 $user_id = null;
 $saved_data = [];
 $is_admin_view = false;
+
+// Mappa delle prestazioni per il titolo della pagina
+$prestazioni_map = [
+    'asili_nido' => 'Contributi Asili Nido',
+    'centri_estivi' => 'Bonus Centri Estivi',
+    'scuole_obbligo' => 'Contributi Scuole Obbligo',
+    'superiori_iscrizione' => 'Contributo Iscrizione Scuole Superiori',
+    'universita_iscrizione' => 'Contributo Iscrizione Università',
+];
+$page_title = $prestazioni_map[$prestazione_selezionata] ?? 'Richiesta Contributi di Studio';
 
 // Il file database.php si trova due livelli sopra
 include_once("../../database.php");
@@ -28,11 +40,12 @@ if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true
 
 } elseif ($token) {
     // VISTA UTENTE: L'utente è loggato tramite token.
-    $sql_user = "SELECT id FROM `fillea-app`.users WHERE token = ? AND token_expiry > NOW() LIMIT 1";
+    $sql_user = "SELECT id, nome, cognome, email FROM `fillea-app`.users WHERE token = ? AND token_expiry > NOW() LIMIT 1";
     $stmt_user = $pdo1->prepare($sql_user);
     $stmt_user->execute([$token]);
     $user = $stmt_user->fetch(PDO::FETCH_ASSOC);
     if ($user) {
+        $user_info = $user;
         $user_id = $user['id'];
     }
 }
@@ -50,6 +63,14 @@ if ($user_id) {
             $saved_data = $result;
             // Decodifica il campo JSON delle prestazioni per un facile accesso
             $saved_data['prestazioni_decoded'] = !empty($saved_data['prestazioni']) ? json_decode($saved_data['prestazioni'], true) : [];
+
+            // Recupera gli allegati per questo form
+            $stmt_files = $pdo1->prepare("SELECT * FROM `fillea-app`.`richieste_allegati` WHERE user_id = ? AND form_name = ?");
+            $stmt_files->execute([$user_id, $form_name]);
+            $saved_data['allegati'] = [];
+            while ($file = $stmt_files->fetch(PDO::FETCH_ASSOC)) {
+                $saved_data['allegati'][$file['document_type']][] = $file;
+            }
         }
     }
 
@@ -160,6 +181,47 @@ function e($value) {
             border-radius: 0.5rem;
             border: 1px solid #e5e7eb;
         }
+        /* Stili per l'upload */
+        .upload-box {
+            border: 2px dashed #d1d5db;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .upload-box:hover, .upload-box.dragover {
+            background-color: #fef2f2;
+            border-color: #d0112b;
+        }
+        .progress-bar-container {
+            width: 100%;
+            background-color: #e5e7eb;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            height: 1rem;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0;
+            background-color: #16a34a; /* green-600 */
+            border-radius: 0.5rem;
+            transition: width 0.3s ease-in-out;
+            text-align: center;
+            color: white;
+            font-size: 0.75rem;
+            line-height: 1rem;
+        }
+        .file-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.375rem;
+            margin-top: 0.5rem;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -197,8 +259,8 @@ function e($value) {
 <div class="container mx-auto p-4 md:p-8 max-w-4xl">
 
     <header class="text-center mb-8">
-        <h1 class="text-3xl md:text-4xl font-bold text-primary">Modulo Richiesta Contributi di Studio</h1>
-        <p class="text-lg text-gray-600 mt-2">Bonus Centri Estivi / Prestazioni Scolastiche</p>
+        <h1 class="text-3xl md:text-4xl font-bold text-primary">Modulo Richiesta <?php echo htmlspecialchars($page_title); ?></h1>
+        <p class="text-lg text-gray-600 mt-2">Compila i campi richiesti e carica gli allegati necessari.</p>
     </header>
 
     <?php
@@ -218,7 +280,7 @@ function e($value) {
     <!-- Selezione Richiesta -->
     <div class="form-section">
         <label for="existing_form" class="form-label"><?php echo $form_name === null ? 'Inizia da qui: seleziona una richiesta o creane una nuova' : 'Puoi passare a un\'altra richiesta o crearne una nuova'; ?></label>
-        <select id="existing_form" name="existing_form" class="form-input mt-2" onchange="handleFormSelection(this.value)">
+        <select id="existing_form" name="existing_form" class="form-input mt-2" onchange="handleFormSelection(this.value, '<?php echo $prestazione_selezionata; ?>')">
             <option value="" <?php if ($form_name === null) echo 'selected'; ?> disabled>-- Scegli una opzione --</option>
             <option value="new">+ Crea una nuova richiesta</option>
             <?php foreach ($user_forms as $form): ?>
@@ -384,88 +446,64 @@ function e($value) {
             </div>
         </div>
 
-        <!-- Sezione Tipo di Prestazione -->
+        <!-- Sezione Allegati -->
         <div class="form-section">
-            <h2 class="form-section-title">Selezione Prestazione Richiesta</h2>
-            <p class="text-gray-600 mb-6">Seleziona una o più caselle per indicare la prestazione desiderata e ricorda di preparare i documenti richiesti.</p>
-            
-            <div class="space-y-6">
-                <!-- Asili Nido -->
-                <div class="checkbox-group">
-                    <label class="flex items-start space-x-3">
-                        <input type="checkbox" name="prestazione[]" value="asili_nido" class="mt-1 h-5 w-5 text-primary rounded border-gray-300 focus:ring-primary" <?php if (isset($saved_data['prestazioni_decoded']['asili_nido'])) echo 'checked'; ?>>
-                        <div>
-                            <span class="font-bold text-gray-800">Contributi Asili Nido</span>
-                            <div class="mt-2">
-                                <label for="anno_asili" class="text-sm font-medium text-gray-700">Anno Scolastico:</label>
-                                <input type="text" id="anno_asili" name="anno_asili" placeholder="es. 2023/2024" class="form-input mt-1 text-sm w-full md:w-auto" value="<?php e($saved_data['prestazioni_decoded']['asili_nido'] ?? ''); ?>">
-                            </div>
-                            <p class="text-xs text-gray-500 mt-2">Allegati richiesti: Autocertificazione stato di famiglia, Certificato di iscrizione.</p>
-                        </div>
-                    </label>
-                </div>
+            <h2 class="form-section-title">Allegati Richiesti</h2>
+            <p class="text-gray-600 mb-6">Carica qui i documenti necessari per le prestazioni che hai selezionato. I formati consentiti sono PDF, JPG, PNG. Dimensione massima 5MB.</p>
 
-                <!-- Centri Estivi -->
-                <div class="checkbox-group">
-                    <label class="flex items-start space-x-3">
-                        <input type="checkbox" name="prestazione[]" value="centri_estivi" class="mt-1 h-5 w-5 text-primary rounded border-gray-300 focus:ring-primary" <?php if (isset($saved_data['prestazioni_decoded']['centri_estivi'])) echo 'checked'; ?>>
-                        <div>
-                            <span class="font-bold text-gray-800">Bonus Centri Estivi</span>
-                             <div class="mt-2">
-                                <label for="periodo_centri_estivi" class="text-sm font-medium text-gray-700">Periodo:</label>
-                                <input type="text" id="periodo_centri_estivi" name="periodo_centri_estivi" placeholder="es. Giugno-Luglio 2024" class="form-input mt-1 text-sm w-full md:w-auto" value="<?php e($saved_data['prestazioni_decoded']['centri_estivi'] ?? ''); ?>">
-                            </div>
-                            <p class="text-xs text-gray-500 mt-2">Allegati richiesti: Autocertificazione stato di famiglia, Attestazione spesa con dati del partecipante.</p>
-                        </div>
-                    </label>
-                </div>
+            <div id="upload-container" class="space-y-8">
+                <!-- I box di upload verranno inseriti qui da JavaScript -->
+                <?php
+                function render_upload_box($doc_type, $title, $description, $saved_files = []) {
+                    ob_start();
+                ?>
+                <div id="upload-area-<?php echo $doc_type; ?>" class="upload-section hidden" data-doc-type="<?php echo $doc_type; ?>">
+                    <h3 class="font-semibold text-lg text-gray-800 mb-2"><?php echo $title; ?></h3>
+                    <p class="text-sm text-gray-500 mb-4"><?php echo $description; ?></p>
+                    
+                    <div class="upload-box">
+                        <input type="file" class="hidden file-input" multiple>
+                        <i class="fas fa-cloud-upload-alt text-4xl text-gray-400"></i>
+                        <p class="mt-2 text-gray-600">Trascina i file qui o <span class="text-primary font-semibold">clicca per selezionare</span></p>
+                    </div>
 
-                <!-- Scuole Elementari / Medie -->
-                <div class="checkbox-group">
-                    <label class="flex items-start space-x-3">
-                        <input type="checkbox" name="prestazione[]" value="scuole_obbligo" class="mt-1 h-5 w-5 text-primary rounded border-gray-300 focus:ring-primary" <?php if (isset($saved_data['prestazioni_decoded']['scuole_obbligo'])) echo 'checked'; ?>>
-                        <div>
-                            <span class="font-bold text-gray-800">Contributi Scuole Elementari / Medie Inferiori</span>
-                             <div class="mt-2">
-                                <label for="anno_scuole_obbligo" class="text-sm font-medium text-gray-700">Anno Scolastico:</label>
-                                <input type="text" id="anno_scuole_obbligo" name="anno_scuole_obbligo" placeholder="es. 2023/2024" class="form-input mt-1 text-sm w-full md:w-auto" value="<?php e($saved_data['prestazioni_decoded']['scuole_obbligo'] ?? ''); ?>">
-                            </div>
-                            <p class="text-xs text-gray-500 mt-2">Allegati richiesti: Autocertificazione stato di famiglia, Autocertificazione frequenza scolastica.</p>
+                    <div class="progress-container mt-4 hidden">
+                        <div class="progress-bar-container">
+                            <div class="progress-bar"></div>
                         </div>
-                    </label>
-                </div>
+                    </div>
 
-                <!-- Scuole Superiori -->
-                <div class="checkbox-group">
-                    <label class="flex items-start space-x-3">
-                        <input type="checkbox" name="prestazione[]" value="superiori_iscrizione" class="mt-1 h-5 w-5 text-primary rounded border-gray-300 focus:ring-primary" <?php if (isset($saved_data['prestazioni_decoded']['superiori_iscrizione'])) echo 'checked'; ?>>
-                        <div>
-                            <span class="font-bold text-gray-800">Contributo Iscrizione Scuole Medie Superiori</span>
-                             <div class="mt-2">
-                                <label for="anno_superiori" class="text-sm font-medium text-gray-700">Anno Scolastico:</label>
-                                <input type="text" id="anno_superiori" name="anno_superiori" placeholder="es. 2023/2024" class="form-input mt-1 text-sm w-full md:w-auto" value="<?php e($saved_data['prestazioni_decoded']['superiori_iscrizione'] ?? ''); ?>">
-                            </div>
-                            <p class="text-xs text-gray-500 mt-2">Allegati richiesti: Autocertificazione stato di famiglia, Autocertificazione frequenza.</p>
-                        </div>
-                    </label>
+                    <div class="file-list mt-4">
+                        <?php if (!empty($saved_files)): ?>
+                            <?php foreach ($saved_files as $file): ?>
+                                <div class="file-list-item" data-file-id="<?php echo $file['id']; ?>">
+                                    <span class="truncate" title="<?php echo htmlspecialchars($file['original_filename']); ?>"><i class="fas fa-file-alt text-gray-500 mr-2"></i><?php echo htmlspecialchars($file['original_filename']); ?></span>
+                                    <div class="flex items-center space-x-4 ml-2 flex-shrink-0">
+                                        <a href="view_file.php?id=<?php echo $file['id']; ?>&token=<?php echo htmlspecialchars($token); ?>" target="_blank" class="text-blue-500 hover:text-blue-700" title="Visualizza file">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <button type="button" class="delete-file-btn text-red-500 hover:text-red-700" title="Elimina file"><i class="fas fa-trash"></i></button>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
                 </div>
+                <?php
+                    return ob_get_clean();
+                }
 
-                <!-- Università -->
-                <div class="checkbox-group">
-                    <label class="flex items-start space-x-3">
-                        <input type="checkbox" name="prestazione[]" value="universita_iscrizione" class="mt-1 h-5 w-5 text-primary rounded border-gray-300 focus:ring-primary" <?php if (isset($saved_data['prestazioni_decoded']['universita_iscrizione'])) echo 'checked'; ?>>
-                        <div>
-                            <span class="font-bold text-gray-800">Contributo Iscrizione Università</span>
-                             <div class="mt-2">
-                                <label for="anno_universita" class="text-sm font-medium text-gray-700">Anno Accademico:</label>
-                                <input type="text" id="anno_universita" name="anno_universita" placeholder="es. 2023/2024" class="form-input mt-1 text-sm w-full md:w-auto" value="<?php e($saved_data['prestazioni_decoded']['universita_iscrizione'] ?? ''); ?>">
-                            </div>
-                            <p class="text-xs text-gray-500 mt-2">Allegati richiesti: Varia in base all'anno di corso (stato famiglia, superamento esami, piano di studio).</p>
-                        </div>
-                    </label>
-                </div>
+                $allegati = $saved_data['allegati'] ?? [];
+                echo render_upload_box('autocertificazione_famiglia', 'Autocertificazione Stato di Famiglia', 'Documento che attesta la composizione del nucleo familiare.', $allegati['autocertificazione_famiglia'] ?? []);
+                echo render_upload_box('certificato_iscrizione_nido', 'Certificato Iscrizione Asilo Nido', 'Certificato rilasciato dalla struttura.', $allegati['certificato_iscrizione_nido'] ?? []);
+                echo render_upload_box('attestazione_spesa_centri_estivi', 'Attestazione Spesa Centri Estivi', 'Fattura o ricevuta che comprovi la spesa sostenuta.', $allegati['attestazione_spesa_centri_estivi'] ?? []);
+                echo render_upload_box('autocertificazione_frequenza_obbligo', 'Autocertificazione Frequenza Scuola Obbligo', 'Autocertificazione per la frequenza di scuole elementari o medie.', $allegati['autocertificazione_frequenza_obbligo'] ?? []);
+                echo render_upload_box('autocertificazione_frequenza_superiori', 'Autocertificazione Frequenza Scuole Superiori', 'Autocertificazione per la frequenza delle scuole superiori.', $allegati['autocertificazione_frequenza_superiori'] ?? []);
+                echo render_upload_box('documentazione_universita', 'Documentazione Universitaria', 'Include certificato di iscrizione, piano di studi, superamento esami, ecc.', $allegati['documentazione_universita'] ?? []);
+                ?>
             </div>
         </div>
+
 
         <!-- Sezione Dati Pagamento -->
         <div class="form-section">
@@ -553,6 +591,7 @@ function e($value) {
         </div>
 
         <input type="hidden" name="form_name" value="<?php echo htmlspecialchars($form_name ?? uniqid()); ?>">
+        <input type="hidden" name="prestazione" value="<?php echo htmlspecialchars($prestazione_selezionata); ?>">
         <input type="hidden" name="firma_data" id="firma_data">
 
         <?php 
@@ -604,8 +643,10 @@ function e($value) {
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 <!-- Script di validazione custom -->
 <script src="modulo1.js?v=<?php echo time(); ?>"></script>
+<!-- Script per l'upload -->
+<script src="modulo1_upload.js?v=<?php echo time(); ?>"></script>
 <script>
-    function handleFormSelection(selectedValue) {
+    function handleFormSelection(selectedValue, prestazione) {
         const token = '<?php echo htmlspecialchars($token); ?>';
         const userId = '<?php echo $user_id; ?>'; // Recupera l'user_id per la generazione del nome
         let formName = '';
@@ -619,7 +660,7 @@ function e($value) {
 
         // Se è un admin, mantiene i parametri da admin, altrimenti usa il token
         const isAdmin = <?php echo json_encode($is_admin_view); ?>;
-        window.location.href = isAdmin ? `modulo1.php?user_id=${userId}&form_name=${formName}` : `modulo1.php?token=${token}&form_name=${formName}`;
+        window.location.href = isAdmin ? `modulo1.php?user_id=${userId}&form_name=${formName}&prestazione=${prestazione}` : `modulo1.php?token=${token}&form_name=${formName}&prestazione=${prestazione}`;
     }
 
     // Imposta la data odierna nel campo data firma

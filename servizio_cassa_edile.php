@@ -587,7 +587,7 @@ if (!$is_user_logged_in) {
                 </ul>
             </div>
             <div class="modal-footer">
-                <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>" class="btn btn-primary w-100">Compila Modulo Online</a>
+                <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>&prestazione=centri_estivi" class="btn btn-primary w-100">Compila Modulo Online</a>
             </div>
         </div>
     </div>
@@ -675,7 +675,7 @@ if (!$is_user_logged_in) {
                 </ul>
             </div>
             <div class="modal-footer">
-                <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>" class="btn btn-primary w-100">Compila Modulo Online</a>
+                <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>&prestazione=asili_nido" class="btn btn-primary w-100">Compila Modulo Online</a>
             </div>
         </div>
     </div>
@@ -699,7 +699,7 @@ if (!$is_user_logged_in) {
                 </ul>
             </div>
             <div class="modal-footer">
-                <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>" class="btn btn-primary w-100">Compila Modulo Online</a>
+                <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>&prestazione=scuole_obbligo" class="btn btn-primary w-100">Compila Modulo Online</a>
             </div>
         </div>
     </div>
@@ -723,7 +723,7 @@ if (!$is_user_logged_in) {
                 </ul>
             </div>
             <div class="modal-footer">
-                <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>" class="btn btn-primary w-100">Compila Modulo Online</a>
+                <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>&prestazione=scuole_obbligo" class="btn btn-primary w-100">Compila Modulo Online</a>
             </div>
         </div>
     </div>
@@ -747,7 +747,7 @@ if (!$is_user_logged_in) {
                 </ul>
             </div>
             <div class="modal-footer">
-                <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>" class="btn btn-primary w-100">Compila Modulo Online</a>
+                <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>&prestazione=superiori_iscrizione" class="btn btn-primary w-100">Compila Modulo Online</a>
             </div>
         </div>
     </div>
@@ -772,7 +772,7 @@ if (!$is_user_logged_in) {
                 </ul>
             </div>
             <div class="modal-footer">
-                <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>" class="btn btn-primary w-100">Compila Modulo Online</a>
+                <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>&prestazione=universita_iscrizione" class="btn btn-primary w-100">Compila Modulo Online</a>
             </div>
         </div>
     </div>
