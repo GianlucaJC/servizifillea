@@ -16,6 +16,7 @@ if (!empty($token)) {
 
     if ($stmt->fetch()) {
         $is_user_logged_in = true;
+        $_SESSION['user_token'] = $token; // Memorizza il token nella sessione per un accesso consistente
     }
     $pdo1 = null;
 }
@@ -209,49 +210,49 @@ if (!$is_user_logged_in) {
         <div class="row g-4">
 
             <div class="col-6">
-                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_matrimonio">
+                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_matrimonio">
                     <div class="prestazione-icon"><i class="fa-solid fa-ring"></i></div>
                     <div class="prestazione-text">Premio Matrimoniale / Unioni Civili</div>
                 </div>
             </div>
 
             <div class="col-6">
-                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_premiogiovani">
+                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_premiogiovani">
                     <div class="prestazione-icon"><i class="fa-solid fa-person-running"></i></div>
                     <div class="prestazione-text">Premio Giovani e Inserimento</div>
                 </div>
             </div>
 
             <div class="col-6">
-                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_nascita">
+                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_nascita">
                     <div class="prestazione-icon"><i class="fa-solid fa-baby"></i></div>
                     <div class="prestazione-text">Bonus Nascita o Adozione</div>
                 </div>
             </div>
 
             <div class="col-6">
-                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_donazioni">
+                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_donazioni">
                     <div class="prestazione-icon"><i class="fa-solid fa-pills"></i></div>
                     <div class="prestazione-text">Donazioni del Sangue</div>
                 </div>
             </div>
 
             <div class="col-6">
-                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_affitto">
+                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_affitto">
                     <div class="prestazione-icon"><i class="fa-solid fa-house-chimney"></i></div>
                     <div class="prestazione-text">Contributo Affitto Casa</div>
                 </div>
             </div>
 
             <div class="col-6">
-                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_sfratto">
+                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_sfratto">
                     <div class="prestazione-icon"><i class="fa-solid fa-gavel"></i></div>
                     <div class="prestazione-text">Contributo per Ingiunzione Sfratto</div>
                 </div>
             </div>
 
             <div class="col-6">
-                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_disabilita">
+                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_disabilita">
                     <div class="prestazione-icon"><i class="fa-solid fa-wheelchair"></i></div>
                     <div class="prestazione-text">Contributo Figli con Diversa Abilità</div>
                 </div>
@@ -265,7 +266,7 @@ if (!$is_user_logged_in) {
             </div>
 
             <div class="col-6">
-                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_licenziamento">
+                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_licenziamento">
                     <div class="prestazione-icon"><i class="fa-solid fa-briefcase"></i></div>
                     <div class="prestazione-text">Contributo Post Licenziamento</div>
                 </div>
@@ -279,7 +280,7 @@ if (!$is_user_logged_in) {
             </div>
 
             <div class="col-6">
-                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_soggiorno">
+                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_soggiorno">
                     <div class="prestazione-icon"><i class="fa-solid fa-passport"></i></div>
                     <div class="prestazione-text">Rimborso Permesso di Soggiorno</div>
                 </div>
@@ -293,7 +294,7 @@ if (!$is_user_logged_in) {
             </div>
 
             <div class="col-6">
-                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_sportive">
+                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_sportive">
                     <div class="prestazione-icon"><i class="fa-solid fa-futbol"></i></div>
                     <div class="prestazione-text">Attività Sportive e Ricreative</div>
                 </div>
@@ -397,6 +398,9 @@ if (!$is_user_logged_in) {
                     <li><strong>Autocertificazione</strong> di non aver percepito la prestazione per lo stesso titolo da altra Cassa Edile.</li>
                 </ul>
             </div>
+            <div class="modal-footer">
+                <a href="servizi/moduli/modulo2.php?token=<?php echo htmlspecialchars($token); ?>&prestazione=premio_matrimoniale" class="btn btn-primary w-100">Compila Modulo Online</a>
+            </div>
         </div>
     </div>
 </div>
@@ -417,6 +421,9 @@ if (!$is_user_logged_in) {
                     <li><strong>Autocertificazione</strong> comprovante il primo ingresso nel settore edile o la situazione di reingresso (se richiesto).</li>
                     <li><strong>Documento d'identità</strong> che attesti il requisito anagrafico.</li>
                 </ul>
+            </div>
+            <div class="modal-footer">
+                <a href="servizi/moduli/modulo2.php?token=<?php echo htmlspecialchars($token); ?>&prestazione=premio_giovani" class="btn btn-primary w-100">Compila Modulo Online</a>
             </div>
         </div>
     </div>
@@ -439,6 +446,9 @@ if (!$is_user_logged_in) {
                     <li><strong>Autocertificazione</strong> che attesti la paternità/maternità e l'eventuale carico fiscale del figlio.</li>
                 </ul>
             </div>
+            <div class="modal-footer">
+                <a href="servizi/moduli/modulo2.php?token=<?php echo htmlspecialchars($token); ?>&prestazione=bonus_nascita" class="btn btn-primary w-100">Compila Modulo Online</a>
+            </div>
         </div>
     </div>
 </div>
@@ -458,6 +468,9 @@ if (!$is_user_logged_in) {
                     <li><strong>Domanda</strong> su modulo Ente.</li>
                     <li><strong>Dichiarazione</strong> o <strong>Certificazione</strong> della struttura sanitaria (es. Centro Trasfusionale) che attesti la/le donazione/i avvenute.</li>
                 </ul>
+            </div>
+            <div class="modal-footer">
+                <a href="servizi/moduli/modulo2.php?token=<?php echo htmlspecialchars($token); ?>&prestazione=donazioni_sangue" class="btn btn-primary w-100">Compila Modulo Online</a>
             </div>
         </div>
     </div>
@@ -481,6 +494,9 @@ if (!$is_user_logged_in) {
                     <li><strong>Autocertificazione</strong> della composizione del nucleo familiare.</li>
                 </ul>
             </div>
+            <div class="modal-footer">
+                <a href="servizi/moduli/modulo2.php?token=<?php echo htmlspecialchars($token); ?>&prestazione=contributo_affitto" class="btn btn-primary w-100">Compila Modulo Online</a>
+            </div>
         </div>
     </div>
 </div>
@@ -502,6 +518,9 @@ if (!$is_user_logged_in) {
                     <li><strong>Stato di famiglia</strong> e documentazione reddituale che attesti lo stato di necessità.</li>
                 </ul>
             </div>
+            <div class="modal-footer">
+                <a href="servizi/moduli/modulo2.php?token=<?php echo htmlspecialchars($token); ?>&prestazione=contributo_sfratto" class="btn btn-primary w-100">Compila Modulo Online</a>
+            </div>
         </div>
     </div>
 </div>
@@ -522,6 +541,9 @@ if (!$is_user_logged_in) {
                     <li><strong>Stato di famiglia</strong> e autocertificazione del carico fiscale.</li>
                     <li><strong>Documentazione sanitaria</strong> (es. Certificazione ex L. 104/92 o verbale della Commissione Medica) che attesti la condizione e la percentuale d'invalidità.</li>
                 </ul>
+            </div>
+            <div class="modal-footer">
+                <a href="servizi/moduli/modulo2.php?token=<?php echo htmlspecialchars($token); ?>&prestazione=contributo_disabilita" class="btn btn-primary w-100">Compila Modulo Online</a>
             </div>
         </div>
     </div>
@@ -564,6 +586,9 @@ if (!$is_user_logged_in) {
                     <li><strong>Lettera di licenziamento</strong> con indicazione della causale.</li>
                     <li><strong>Documentazione medica</strong> (se il licenziamento è per superamento del comporto).</li>
                 </ul>
+            </div>
+            <div class="modal-footer">
+                <a href="servizi/moduli/modulo2.php?token=<?php echo htmlspecialchars($token); ?>&prestazione=post_licenziamento" class="btn btn-primary w-100">Compila Modulo Online</a>
             </div>
         </div>
     </div>
@@ -610,6 +635,9 @@ if (!$is_user_logged_in) {
                     <li><strong>Copia del documento</strong> (permesso/carta di soggiorno).</li>
                 </ul>
             </div>
+            <div class="modal-footer">
+                <a href="servizi/moduli/modulo2.php?token=<?php echo htmlspecialchars($token); ?>&prestazione=permesso_soggiorno" class="btn btn-primary w-100">Compila Modulo Online</a>
+            </div>
         </div>
     </div>
 </div>
@@ -651,6 +679,9 @@ if (!$is_user_logged_in) {
                     <li><strong>Fattura/ricevuta fiscale</strong> che attesti l'iscrizione e la spesa sostenuta.</li>
                     <li><strong>Autocertificazione</strong> del carico fiscale (se la prestazione è per i figli).</li>
                 </ul>
+            </div>
+            <div class="modal-footer">
+                <a href="servizi/moduli/modulo2.php?token=<?php echo htmlspecialchars($token); ?>&prestazione=attivita_sportive" class="btn btn-primary w-100">Compila Modulo Online</a>
             </div>
         </div>
     </div>

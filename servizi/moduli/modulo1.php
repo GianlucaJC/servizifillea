@@ -2,7 +2,8 @@
 session_start();
 
 // 1. Inizializzazione e recupero token
-$token = $_GET['token'] ?? null;
+$token = $_GET['token'] ?? ($_SESSION['user_token'] ?? null); // Preferisci il token da GET, altrimenti usa quello dalla sessione
+
 $prestazione_selezionata = $_GET['prestazione'] ?? null;
 $form_name = $_GET['form_name'] ?? null;
 $user_info = []; // Per contenere i dati dell'utente
