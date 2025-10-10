@@ -210,7 +210,7 @@ if (!$is_user_logged_in) {
             <div class="col-6">
                 <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_matrimonio">
                     <div class="prestazione-icon"><i class="fa-solid fa-ring"></i></div>
-                    <div class="prestazione-text">Premio Matrimoniale/Unioni Civili</div>
+                    <div class="prestazione-text">Premio Matrimoniale / Unioni Civili</div>
                 </div>
             </div>
 
