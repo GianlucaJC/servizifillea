@@ -50,6 +50,10 @@ if (!$is_user_logged_in) {
         .service-header {
             color: #d0112b;
         }
+        .modal-header {
+            background-color: #d0112b;
+            color: white;
+        }
         /* Stili per la nuova visualizzazione a card */
         .service-card-link {
             text-decoration: none;
@@ -105,12 +109,13 @@ if (!$is_user_logged_in) {
         .prestazione-card:hover {
             transform: translateY(-3px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            border-color: #d0112b;
+            border-color: #d0112b; /* Usa il colore del tema */
         }
         .prestazione-card.disabled {
             background-color: #f8f9fa;
             opacity: 0.6;
             cursor: not-allowed;
+            pointer-events: none; /* Disabilita i click */
         }
         .prestazione-icon {
             font-size: 1.5rem;
@@ -122,6 +127,9 @@ if (!$is_user_logged_in) {
         .prestazione-text {
             font-weight: 500;
             font-size: 0.875rem; /* Testo leggermente più piccolo per una migliore leggibilità */
+        }
+        .modal-body strong {
+            color: #d0112b; /* Usa il colore del tema */
         }
     </style>
 </head>
@@ -178,209 +186,132 @@ if (!$is_user_logged_in) {
     <div class="my-5">
         <p class="text-muted mb-4">Seleziona una delle prestazioni attive per compilare la richiesta online. Le altre prestazioni saranno rese disponibili a breve.</p>
         
-        <div class="row g-3">
+        <div class="row g-4">
 
-            <div class="col-6 col-md-6">
-                <a href="#" class="prestazione-card disabled">
+            <div class="col-6">
+                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_matrimonio">
                     <div class="prestazione-icon"><i class="fa-solid fa-ring"></i></div>
-                    <div class="prestazione-text">Premio Matrimoniale o Unione Civile</div>
-                </a>
+                    <div class="prestazione-text">Premio Matrimoniale/Unioni Civili</div>
+                </div>
             </div>
 
-            <div class="col-6 col-md-6">
-                <a href="#" class="prestazione-card disabled">
-                    <div class="prestazione-icon"><i class="fa-solid fa-graduation-cap"></i></div>
-                    <div class="prestazione-text">Premio Giovani</div>
-                </a>
+            <div class="col-6">
+                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_premiogiovani">
+                    <div class="prestazione-icon"><i class="fa-solid fa-person-running"></i></div>
+                    <div class="prestazione-text">Premio Giovani e Inserimento</div>
+                </div>
             </div>
 
-            <div class="col-6 col-md-6">
-                <a href="#" class="prestazione-card disabled">
+            <div class="col-6">
+                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_nascita">
                     <div class="prestazione-icon"><i class="fa-solid fa-baby"></i></div>
-                    <div class="prestazione-text">Bonus Nascita Figli o Adozione</div>
-                </a>
+                    <div class="prestazione-text">Bonus Nascita o Adozione</div>
+                </div>
             </div>
 
-            <div class="col-6 col-md-6">
-                <a href="#" class="prestazione-card disabled">
-                    <div class="prestazione-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
-                    <div class="prestazione-text">Contributo Affitto Casa</div>
-                </a>
-            </div>
-            
-            <div class="col-6 col-md-6">
-                <a href="#" class="prestazione-card disabled">
-                    <div class="prestazione-icon"><i class="fa-solid fa-bell"></i></div>
-                    <div class="prestazione-text">Contributo per Ingiunzione Sfratto</div>
-                </a>
-            </div>
-
-            <div class="col-6 col-md-6">
-                <a href="#" class="prestazione-card disabled">
-                    <div class="prestazione-icon"><i class="fa-solid fa-house-chimney"></i></div>
-                    <div class="prestazione-text">Contributo Mutuo 1° Casa</div>
-                </a>
-            </div>
-
-            <div class="col-6 col-md-6">
-                <a href="#" class="prestazione-card disabled">
+            <div class="col-6">
+                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_donazioni">
                     <div class="prestazione-icon"><i class="fa-solid fa-pills"></i></div>
-                    <div class="prestazione-text">Premio per Donazione Sangue</div>
-                </a>
+                    <div class="prestazione-text">Donazioni del Sangue</div>
+                </div>
             </div>
 
-            <div class="col-6 col-md-6">
-                <a href="#" class="prestazione-card disabled">
-                    <div class="prestazione-icon"><i class="fa-solid fa-wheelchair"></i></div>
-                    <div class="prestazione-text">Contributo per Figli con Diversa Abilità</div>
-                </a>
+            <div class="col-6">
+                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_affitto">
+                    <div class="prestazione-icon"><i class="fa-solid fa-house-chimney"></i></div>
+                    <div class="prestazione-text">Contributo Affitto Casa</div>
+                </div>
             </div>
 
-            <div class="col-6 col-md-6">
-                <a href="#" class="prestazione-card disabled">
+            <div class="col-6">
+                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_sfratto">
                     <div class="prestazione-icon"><i class="fa-solid fa-gavel"></i></div>
-                    <div class="prestazione-text">Insinuazione Stato Passivo Procedure Concorsuali</div>
-                </a>
+                    <div class="prestazione-text">Contributo per Ingiunzione Sfratto</div>
+                </div>
             </div>
 
-            <div class="col-6 col-md-6">
-                <a href="#" class="prestazione-card disabled">
-                    <div class="prestazione-icon"><i class="fa-solid fa-briefcase"></i></div>
-                    <div class="prestazione-text">Licenziamento per Superamento Periodo di Comporto</div>
-                </a>
+            <div class="col-6">
+                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_disabilita">
+                    <div class="prestazione-icon"><i class="fa-solid fa-wheelchair"></i></div>
+                    <div class="prestazione-text">Contributo Figli con Diversa Abilità</div>
+                </div>
             </div>
 
-            <div class="col-6 col-md-6">
-                <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>" class="prestazione-card">
-                    <div class="prestazione-icon"><i class="fa-solid fa-children"></i></div>
-                    <div class="prestazione-text">Contributo Centri Estivi per i Figli</div>
-                </a>
-            </div>
-
-            <div class="col-6 col-md-6">
-                <a href="#" class="prestazione-card disabled">
-                    <div class="prestazione-icon"><i class="fa-solid fa-plane-departure"></i></div>
-                    <div class="prestazione-text">Rimborso Permesso di Soggiorno</div>
-                </a>
-            </div>
-
-            <div class="col-6 col-md-6">
-                <a href="#" class="prestazione-card disabled">
-                    <div class="prestazione-icon"><i class="fa-solid fa-futbol"></i></div>
-                    <div class="prestazione-text">Contributo Attività Sportive</div>
-                </a>
-            </div>
-
-            <div class="col-6 col-md-6">
-                <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>" class="prestazione-card">
-                    <div class="prestazione-icon"><i class="fa-solid fa-school"></i></div>
-                    <div class="prestazione-text">Contributo per Asilo Nido</div>
-                </a>
-            </div>
-
-            <div class="col-6 col-md-6">
-                <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>" class="prestazione-card">
-                    <div class="prestazione-icon"><i class="fa-solid fa-book-open"></i></div>
-                    <div class="prestazione-text">Contributo Studio Scuole Elementari</div>
-                </a>
-            </div>
-
-            <div class="col-6 col-md-6">
-                <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>" class="prestazione-card">
-                    <div class="prestazione-icon"><i class="fa-solid fa-book"></i></div>
-                    <div class="prestazione-text">Contributo Studio Scuole Medie Inferiori</div>
-                </a>
-            </div>
-
-            <div class="col-6 col-md-6">
-                <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>" class="prestazione-card">
-                    <div class="prestazione-icon"><i class="fa-solid fa-school-flag"></i></div>
-                    <div class="prestazione-text">Contributo Iscrizione Scuole Medie Superiori</div>
-                </a>
-            </div>
-
-            <div class="col-6 col-md-6">
-                <a href="#" class="prestazione-card disabled">
-                    <div class="prestazione-icon"><i class="fa-solid fa-star"></i></div>
-                    <div class="prestazione-text">Contributo Profitto Scuole Medie Superiori</div>
-                </a>
-            </div>
-
-            <div class="col-6 col-md-6">
-                <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>" class="prestazione-card">
-                    <div class="prestazione-icon"><i class="fa-solid fa-building-columns"></i></div>
-                    <div class="prestazione-text">Contributo Iscrizione Università</div>
-                </a>
-            </div>
-
-            <div class="col-6 col-md-6">
-                <a href="#" class="prestazione-card disabled">
-                    <div class="prestazione-icon"><i class="fa-solid fa-award"></i></div>
-                    <div class="prestazione-text">Contributo Profitto Università</div>
-                </a>
-            </div>
-            
-            <div class="col-6 col-md-6">
-                <a href="#" class="prestazione-card disabled">
-                    <div class="prestazione-icon"><i class="fa-solid fa-bed"></i></div>
-                    <div class="prestazione-text">Contributo Malattia Superiore a 271 gg</div>
-                </a>
-            </div>
-
-            <div class="col-6 col-md-6">
-                <a href="#" class="prestazione-card disabled">
-                    <div class="prestazione-icon"><i class="fa-solid fa-suitcase-medical"></i></div>
-                    <div class="prestazione-text">Integrazione Malattia per Ricovero Ospedaliero</div>
-                </a>
-            </div>
-
-            <div class="col-6 col-md-6">
-                <a href="#" class="prestazione-card disabled">
+            <div class="col-6">
+                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_passivo">
                     <div class="prestazione-icon"><i class="fa-solid fa-file-invoice"></i></div>
-                    <div class="prestazione-text">Rimborso Spese per 730 presso CAF</div>
-                </a>
+                    <div class="prestazione-text">Insinuazioni al Passivo Procedure</div>
+                </div>
             </div>
 
-            <div class="col-6 col-md-6">
-                <a href="#" class="prestazione-card disabled">
-                    <div class="prestazione-icon"><i class="fa-solid fa-person-digging"></i></div>
-                    <div class="prestazione-text">Inabilità da Infortunio sul Lavoro (dal 91° gg)</div>
-                </a>
+            <div class="col-6">
+                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_licenziamento">
+                    <div class="prestazione-icon"><i class="fa-solid fa-briefcase"></i></div>
+                    <div class="prestazione-text">Contributo Post Licenziamento</div>
+                </div>
             </div>
 
-            <div class="col-6 col-md-6">
-                <a href="#" class="prestazione-card disabled">
-                    <div class="prestazione-icon"><i class="fa-solid fa-skull-crossbones"></i></div>
-                    <div class="prestazione-text">Morte da Infortunio o Malattia Professionale</div>
-                </a>
+            <div class="col-6">
+                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_centriestivi">
+                    <div class="prestazione-icon"><i class="fa-solid fa-sun"></i></div>
+                    <div class="prestazione-text">Bonus Centri Estivi</div>
+                </div>
             </div>
 
-            <div class="col-6 col-md-6">
-                <a href="#" class="prestazione-card disabled">
-                    <div class="prestazione-icon"><i class="fa-solid fa-person-falling-burst"></i></div>
-                    <div class="prestazione-text">Morte da Malattia e Infortunio Extra Professionale</div>
-                </a>
+            <div class="col-6">
+                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_soggiorno">
+                    <div class="prestazione-icon"><i class="fa-solid fa-passport"></i></div>
+                    <div class="prestazione-text">Rimborso Permesso di Soggiorno</div>
+                </div>
+            </div>
+
+            <div class="col-6">
+                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_fedelta">
+                    <div class="prestazione-icon"><i class="fa-solid fa-medal"></i></div>
+                    <div class="prestazione-text">Premio Fedeltà Una Tantum</div>
+                </div>
+            </div>
+
+            <div class="col-6">
+                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_sportive">
+                    <div class="prestazione-icon"><i class="fa-solid fa-futbol"></i></div>
+                    <div class="prestazione-text">Attività Sportive e Ricreative</div>
+                </div>
+            </div>
+
+            <div class="col-6">
+                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_nido">
+                    <div class="prestazione-icon"><i class="fa-solid fa-child-reaching"></i></div>
+                    <div class="prestazione-text">Contributi Asilo Nido</div>
+                </div>
+            </div>
+
+            <div class="col-6">
+                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_elementari">
+                    <div class="prestazione-icon"><i class="fa-solid fa-book-open-reader"></i></div>
+                    <div class="prestazione-text">Contributi Studio Scuole Elementari</div>
+                </div>
             </div>
             
-            <div class="col-6 col-md-6">
-                <a href="#" class="prestazione-card disabled">
-                    <div class="prestazione-icon"><i class="fa-solid fa-briefcase-medical"></i></div>
-                    <div class="prestazione-text">Contributo 6 Mensilità NASPI per Aspettativa</div>
-                </a>
-            </div>
-
-            <div class="col-6 col-md-6">
-                <a href="#" class="prestazione-card disabled">
+            <div class="col-6">
+                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_medie">
                     <div class="prestazione-icon"><i class="fa-solid fa-user-graduate"></i></div>
-                    <div class="prestazione-text">Retta Studio per Figli di Deceduti sul Lavoro</div>
-                </a>
+                    <div class="prestazione-text">Contributi Studio Scuole Medie</div>
+                </div>
             </div>
 
-            <div class="col-6 col-md-6">
-                <a href="#" class="prestazione-card disabled">
-                    <div class="prestazione-icon"><i class="fa-solid fa-credit-card"></i></div>
-                    <div class="prestazione-text">Comunicazione IBAN e Dati Anagrafici</div>
-                </a>
+            <div class="col-6">
+                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_superiori">
+                    <div class="prestazione-icon"><i class="fa-solid fa-school-flag"></i></div>
+                    <div class="prestazione-text">Contributi Studio Scuole Superiori</div>
+                </div>
+            </div>
+
+            <div class="col-6">
+                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_universita">
+                    <div class="prestazione-icon"><i class="fa-solid fa-building-columns"></i></div>
+                    <div class="prestazione-text">Contributi Studio Università</div>
+                </div>
             </div>
 
         </div>
@@ -426,6 +357,408 @@ if (!$is_user_logged_in) {
     </div>
 
 </div>
+
+<!-- INIZIO DEFINIZIONE MODALI -->
+
+<!-- Modal Matrimonio -->
+<div class="modal fade" id="modal_matrimonio" tabindex="-1" aria-labelledby="modal_matrimonio_label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal_matrimonio_label">Premio Matrimoniale/Unioni Civili</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Contributo erogato al lavoratore iscritto in occasione della contrazione di matrimonio o unione civile. L'importo e i requisiti in termini di ore lavorate sono specificati nel regolamento, e la domanda deve essere presentata entro un termine di decadenza dall'evento.</p>
+                <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
+                <ul>
+                    <li><strong>Domanda</strong> redatta sull'apposito modulo predisposto dall'Ente.</li>
+                    <li><strong>Certificato di matrimonio</strong> o di unione civile (o trascrizione se estero).</li>
+                    <li><strong>Autocertificazione</strong> di non aver percepito la prestazione per lo stesso titolo da altra Cassa Edile.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Premio Giovani -->
+<div class="modal fade" id="modal_premiogiovani" tabindex="-1" aria-labelledby="modal_premiogiovani_label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal_premiogiovani_label">Premio Giovani e Inserimento nel Settore</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Premio riservato ai giovani lavoratori che iniziano la loro attività o che rientrano nel settore edile, spesso legato a requisiti anagrafici (ad esempio, età inferiore a 25/29 anni) e di ore lavorate nel periodo precedente.</p>
+                <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
+                <ul>
+                    <li><strong>Domanda</strong> su modulo Ente.</li>
+                    <li><strong>Autocertificazione</strong> comprovante il primo ingresso nel settore edile o la situazione di reingresso (se richiesto).</li>
+                    <li><strong>Documento d'identità</strong> che attesti il requisito anagrafico.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nascita -->
+<div class="modal fade" id="modal_nascita" tabindex="-1" aria-labelledby="modal_nascita_label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal_nascita_label">Bonus Nascita o Adozione</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Contributo erogato al lavoratore in occasione della nascita o adozione di un figlio. La domanda deve essere presentata, a pena di decadenza, entro un termine specificato dall'evento (es. 90 o 180 giorni).</p>
+                <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
+                <ul>
+                    <li><strong>Domanda</strong> su modulo Ente.</li>
+                    <li><strong>Certificato</strong> (estratto) di nascita o provvedimento di adozione.</li>
+                    <li><strong>Autocertificazione</strong> che attesti la paternità/maternità e l'eventuale carico fiscale del figlio.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Donazioni -->
+<div class="modal fade" id="modal_donazioni" tabindex="-1" aria-labelledby="modal_donazioni_label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal_donazioni_label">Donazioni del Sangue</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Contributo erogato per ogni donazione di sangue effettuata dal lavoratore iscritto, come incentivo all'attività socialmente utile. La richiesta viene solitamente liquidata una volta all'anno.</p>
+                <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
+                <ul>
+                    <li><strong>Domanda</strong> su modulo Ente.</li>
+                    <li><strong>Dichiarazione</strong> o <strong>Certificazione</strong> della struttura sanitaria (es. Centro Trasfusionale) che attesti la/le donazione/i avvenute.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Affitto -->
+<div class="modal fade" id="modal_affitto" tabindex="-1" aria-labelledby="modal_affitto_label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal_affitto_label">Contributo Una Tantum Affitto Casa</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Contributo a sostegno del canone di locazione, spesso destinato a lavoratori con particolari requisiti (es. giovani o famiglie numerose). Richiede che il contratto sia registrato e intestato al lavoratore.</p>
+                <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
+                <ul>
+                    <li><strong>Domanda</strong> su modulo Ente.</li>
+                    <li><strong>Copia del Contratto di Affitto</strong> ad uso abitativo registrato presso l'Agenzia delle Entrate.</li>
+                    <li><strong>Modello ISEE</strong> valido per l'anno corrente (se il requisito è legato al reddito).</li>
+                    <li><strong>Autocertificazione</strong> della composizione del nucleo familiare.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Sfratto -->
+<div class="modal fade" id="modal_sfratto" tabindex="-1" aria-labelledby="modal_sfratto_label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal_sfratto_label">Contributo per Ingiunzione Sfratto</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Contributo straordinario concesso in situazioni di particolare disagio abitativo, in presenza di un'ingiunzione di sfratto esecutivo. Mira a coprire spese legali o canoni arretrati per evitare l'esecuzione.</p>
+                <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
+                <ul>
+                    <li><strong>Domanda</strong> su modulo Ente.</li>
+                    <li><strong>Documentazione</strong> ufficiale che attesti l'ingiunzione di sfratto esecutivo (es. ordinanza del Giudice).</li>
+                    <li><strong>Stato di famiglia</strong> e documentazione reddituale che attesti lo stato di necessità.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Disabilità -->
+<div class="modal fade" id="modal_disabilita" tabindex="-1" aria-labelledby="modal_disabilita_label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal_disabilita_label">Contributo Figli Portatori di Diversa Abilità</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Contributo annuo o una tantum per il sostegno dei figli a carico portatori di handicap o diversa abilità, con una percentuale d'invalidità riconosciuta superiore ad una soglia minima (es. 50% o 60%).</p>
+                <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
+                <ul>
+                    <li><strong>Domanda</strong> su modulo Ente.</li>
+                    <li><strong>Stato di famiglia</strong> e autocertificazione del carico fiscale.</li>
+                    <li><strong>Documentazione sanitaria</strong> (es. Certificazione ex L. 104/92 o verbale della Commissione Medica) che attesti la condizione e la percentuale d'invalidità.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Passivo -->
+<div class="modal fade" id="modal_passivo" tabindex="-1" aria-labelledby="modal_passivo_label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal_passivo_label">Contributo Insinuazioni al Passivo Procedure</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Contributo volto a coprire le spese sostenute dal lavoratore per l'insinuazione al passivo in caso di fallimento, liquidazione coatta o altre procedure concorsuali che coinvolgono l'impresa datrice di lavoro.</p>
+                <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
+                <ul>
+                    <li><strong>Domanda</strong> su modulo Ente.</li>
+                    <li><strong>Documentazione</strong> che attesti l'avvenuta insinuazione al passivo (es. ricevuta di deposito o atto dell'Avvocato/Curatore).</li>
+                    <li><strong>Documentazione</strong> che attesti l'apertura della procedura concorsuale per l'impresa.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Licenziamento -->
+<div class="modal fade" id="modal_licenziamento" tabindex="-1" aria-labelledby="modal_licenziamento_label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal_licenziamento_label">Contributo Una Tantum Post Licenziamento</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Contributo erogato in caso di licenziamento avvenuto per superamento del periodo di comporto per malattia (o infortunio), o per altre specifiche casistiche di cessazione del rapporto di lavoro definite nel regolamento.</p>
+                <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
+                <ul>
+                    <li><strong>Domanda</strong> su modulo Ente.</li>
+                    <li><strong>Lettera di licenziamento</strong> con indicazione della causale.</li>
+                    <li><strong>Documentazione medica</strong> (se il licenziamento è per superamento del comporto).</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Centri Estivi -->
+<div class="modal fade" id="modal_centriestivi" tabindex="-1" aria-labelledby="modal_centriestivi_label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal_centriestivi_label">Erogazione Bonus Centri Estivi</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Contributo per il rimborso parziale delle spese sostenute per l'iscrizione dei figli a carico a centri estivi, colonie o attività ricreative durante la stagione estiva.</p>
+                <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
+                <ul>
+                    <li><strong>Domanda</strong> su modulo Ente.</li>
+                    <li><strong>Fattura/ricevuta fiscale</strong> (intestata al lavoratore o coniuge) comprovante la spesa sostenuta e il periodo di frequenza.</li>
+                    <li><strong>Autocertificazione</strong> del carico fiscale dei figli.</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>" class="btn btn-primary w-100">Compila Modulo Online</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Soggiorno -->
+<div class="modal fade" id="modal_soggiorno" tabindex="-1" aria-labelledby="modal_soggiorno_label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal_soggiorno_label">Rimborso Permesso di Soggiorno</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Rimborso totale o parziale delle spese sostenute dal lavoratore straniero per il rilascio o il rinnovo del permesso o della carta di soggiorno o per l'ottenimento della cittadinanza italiana.</p>
+                <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
+                <ul>
+                    <li><strong>Domanda</strong> su modulo Ente.</li>
+                    <li><strong>Ricevute di pagamento</strong> (bollettini o ricevute postali/telematiche) che comprovino la spesa sostenuta.</li>
+                    <li><strong>Copia del documento</strong> (permesso/carta di soggiorno).</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Fedeltà -->
+<div class="modal fade" id="modal_fedelta" tabindex="-1" aria-labelledby="modal_fedelta_label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal_fedelta_label">Premio Fedeltà Una Tantum</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Premio riconosciuto ai lavoratori che raggiungono un determinato periodo di anzianità nel settore edile (es. 10, 15, 20 o 25 anni di iscrizione). L'Ente generalmente verifica il requisito d'ufficio.</p>
+                <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
+                <ul>
+                    <li><strong>Domanda</strong> su modulo Ente (spesso inviato d'ufficio).</li>
+                    <li><strong>Documento d'identità</strong>.</li>
+                    <li>Non è solitamente richiesta documentazione aggiuntiva, in quanto l'anzianità è verificata dagli archivi della Cassa Edile.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Sportive -->
+<div class="modal fade" id="modal_sportive" tabindex="-1" aria-labelledby="modal_sportive_label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal_sportive_label">Attività Sportive e Ricreative</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Contributo per il rimborso delle spese sostenute per l'iscrizione ad attività sportive, corsi o palestre del lavoratore stesso e/o dei figli a carico, fino a un massimale stabilito.</p>
+                <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
+                <ul>
+                    <li><strong>Domanda</strong> su modulo Ente.</li>
+                    <li><strong>Fattura/ricevuta fiscale</strong> che attesti l'iscrizione e la spesa sostenuta.</li>
+                    <li><strong>Autocertificazione</strong> del carico fiscale (se la prestazione è per i figli).</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Asilo Nido -->
+<div class="modal fade" id="modal_nido" tabindex="-1" aria-labelledby="modal_nido_label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal_nido_label">Contributi Asilo Nido</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Contributo erogato per il rimborso di una parte delle rette pagate per l'iscrizione dei figli a carico presso Asili Nido pubblici o privati accreditati.</p>
+                <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
+                <ul>
+                    <li><strong>Domanda</strong> su modulo Ente.</li>
+                    <li><strong>Certificato</strong> di iscrizione all'Asilo Nido.</li>
+                    <li><strong>Fatture/ricevute</strong> delle rette pagate (con indicazione del periodo).</li>
+                    <li><strong>Autocertificazione</strong> del carico fiscale.</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>" class="btn btn-primary w-100">Compila Modulo Online</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Elementari -->
+<div class="modal fade" id="modal_elementari" tabindex="-1" aria-labelledby="modal_elementari_label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal_elementari_label">Contributi di Studio Scuole Elementari</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Assegno di studio o contributo per l'acquisto di materiale scolastico per i figli a carico che frequentano la Scuola Primaria (Elementare), spesso basato sul requisito del merito o della frequenza.</p>
+                <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
+                <ul>
+                    <li><strong>Domanda</strong> su modulo Ente.</li>
+                    <li><strong>Certificato di frequenza</strong> o <strong>pagella</strong> (per attestare l'anno scolastico).</li>
+                    <li><strong>Autocertificazione</strong> del carico fiscale del figlio.</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>" class="btn btn-primary w-100">Compila Modulo Online</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Medie -->
+<div class="modal fade" id="modal_medie" tabindex="-1" aria-labelledby="modal_medie_label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal_medie_label">Contributi di Studio - Scuole Medie Inferiori</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Assegno di studio o contributo per l'acquisto di materiale scolastico per i figli a carico che frequentano la Scuola Secondaria di Primo Grado (Media Inferiore).</p>
+                <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
+                <ul>
+                    <li><strong>Domanda</strong> su modulo Ente.</li>
+                    <li><strong>Certificato di frequenza</strong> o <strong>pagella</strong> (per attestare l'anno scolastico).</li>
+                    <li><strong>Autocertificazione</strong> del carico fiscale del figlio.</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>" class="btn btn-primary w-100">Compila Modulo Online</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Superiori -->
+<div class="modal fade" id="modal_superiori" tabindex="-1" aria-labelledby="modal_superiori_label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal_superiori_label">Contributi di Studio - Scuole Superiori</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Assegno di studio per i figli a carico che frequentano la Scuola Secondaria di Secondo Grado (Superiore).</p>
+                <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
+                <ul>
+                    <li><strong>Domanda</strong> su modulo Ente.</li>
+                    <li><strong>Certificato di iscrizione e frequenza</strong>.</li>
+                    <li><strong>Autocertificazione</strong> del carico fiscale del figlio.</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>" class="btn btn-primary w-100">Compila Modulo Online</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Università -->
+<div class="modal fade" id="modal_universita" tabindex="-1" aria-labelledby="modal_universita_label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal_universita_label">Contributi di Studio - Università</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Contributo per il rimborso delle tasse di iscrizione all'università per i figli a carico.</p>
+                <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
+                <ul>
+                    <li><strong>Domanda</strong> su modulo Ente.</li>
+                    <li><strong>Certificato di iscrizione</strong> all'anno accademico.</li>
+                    <li><strong>Ricevute di pagamento</strong> delle tasse universitarie.</li>
+                    <li><strong>Autocertificazione</strong> del carico fiscale del figlio.</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>" class="btn btn-primary w-100">Compila Modulo Online</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FINE DEFINIZIONE MODALI -->
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
