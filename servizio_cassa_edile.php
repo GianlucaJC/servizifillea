@@ -121,6 +121,7 @@ if (!$is_user_logged_in) {
         }
         .prestazione-text {
             font-weight: 500;
+            font-size: 0.875rem; /* Testo leggermente più piccolo per una migliore leggibilità */
         }
     </style>
 </head>
@@ -182,203 +183,203 @@ if (!$is_user_logged_in) {
             <div class="col-6 col-md-6">
                 <a href="#" class="prestazione-card disabled">
                     <div class="prestazione-icon"><i class="fa-solid fa-ring"></i></div>
-                    <div class="prestazione-text">PREMIO MATRIMONIALE O UNIONE CIVILE</div>
+                    <div class="prestazione-text">Premio Matrimoniale o Unione Civile</div>
                 </a>
             </div>
 
             <div class="col-6 col-md-6">
                 <a href="#" class="prestazione-card disabled">
                     <div class="prestazione-icon"><i class="fa-solid fa-graduation-cap"></i></div>
-                    <div class="prestazione-text">PREMIO GIOVANI</div>
+                    <div class="prestazione-text">Premio Giovani</div>
                 </a>
             </div>
 
             <div class="col-6 col-md-6">
                 <a href="#" class="prestazione-card disabled">
                     <div class="prestazione-icon"><i class="fa-solid fa-baby"></i></div>
-                    <div class="prestazione-text">BONUS NASCITA FIGLI O ADOZIONE</div>
+                    <div class="prestazione-text">Bonus Nascita Figli o Adozione</div>
                 </a>
             </div>
 
             <div class="col-6 col-md-6">
                 <a href="#" class="prestazione-card disabled">
                     <div class="prestazione-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
-                    <div class="prestazione-text">CONTRIBUTO AFFITTO CASA</div>
+                    <div class="prestazione-text">Contributo Affitto Casa</div>
                 </a>
             </div>
             
             <div class="col-6 col-md-6">
                 <a href="#" class="prestazione-card disabled">
                     <div class="prestazione-icon"><i class="fa-solid fa-bell"></i></div>
-                    <div class="prestazione-text">CONTRIBUTO PER INGIUNZIONE SFATTO</div>
+                    <div class="prestazione-text">Contributo per Ingiunzione Sfratto</div>
                 </a>
             </div>
 
             <div class="col-6 col-md-6">
                 <a href="#" class="prestazione-card disabled">
                     <div class="prestazione-icon"><i class="fa-solid fa-house-chimney"></i></div>
-                    <div class="prestazione-text">CONTRIBUTO MUTUO 1^ CASA</div>
+                    <div class="prestazione-text">Contributo Mutuo 1° Casa</div>
                 </a>
             </div>
 
             <div class="col-6 col-md-6">
                 <a href="#" class="prestazione-card disabled">
                     <div class="prestazione-icon"><i class="fa-solid fa-pills"></i></div>
-                    <div class="prestazione-text">PREMIO PER DONAZIONE SANGUE</div>
+                    <div class="prestazione-text">Premio per Donazione Sangue</div>
                 </a>
             </div>
 
             <div class="col-6 col-md-6">
                 <a href="#" class="prestazione-card disabled">
                     <div class="prestazione-icon"><i class="fa-solid fa-wheelchair"></i></div>
-                    <div class="prestazione-text">CONTRIBUTO PER FIGLI PORTATORI DI DIVERSA ABILITA'</div>
+                    <div class="prestazione-text">Contributo per Figli con Diversa Abilità</div>
                 </a>
             </div>
 
             <div class="col-6 col-md-6">
                 <a href="#" class="prestazione-card disabled">
                     <div class="prestazione-icon"><i class="fa-solid fa-gavel"></i></div>
-                    <div class="prestazione-text">CONTRIBUTO PER INSINUAZIONE ALLO STATO PASSIVO DI PROCEDURE CONCORSUALI</div>
+                    <div class="prestazione-text">Insinuazione Stato Passivo Procedure Concorsuali</div>
                 </a>
             </div>
 
             <div class="col-6 col-md-6">
                 <a href="#" class="prestazione-card disabled">
                     <div class="prestazione-icon"><i class="fa-solid fa-briefcase"></i></div>
-                    <div class="prestazione-text">CONTRIBUTO LICENZIAMENTO PER SUPERAMENTO PERIODO DI COMPORTO</div>
+                    <div class="prestazione-text">Licenziamento per Superamento Periodo di Comporto</div>
                 </a>
             </div>
 
             <div class="col-6 col-md-6">
                 <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>" class="prestazione-card">
                     <div class="prestazione-icon"><i class="fa-solid fa-children"></i></div>
-                    <div class="prestazione-text">CONTRIBUTO PER CENTRI ESTIVI PER I FIGLI</div>
+                    <div class="prestazione-text">Contributo Centri Estivi per i Figli</div>
                 </a>
             </div>
 
             <div class="col-6 col-md-6">
                 <a href="#" class="prestazione-card disabled">
                     <div class="prestazione-icon"><i class="fa-solid fa-plane-departure"></i></div>
-                    <div class="prestazione-text">RIMBORSO PERMESSO DI SOGGIORNO</div>
+                    <div class="prestazione-text">Rimborso Permesso di Soggiorno</div>
                 </a>
             </div>
 
             <div class="col-6 col-md-6">
                 <a href="#" class="prestazione-card disabled">
                     <div class="prestazione-icon"><i class="fa-solid fa-futbol"></i></div>
-                    <div class="prestazione-text">CONTRIBUTO ATTIVITA' SPORTIVE</div>
+                    <div class="prestazione-text">Contributo Attività Sportive</div>
                 </a>
             </div>
 
             <div class="col-6 col-md-6">
                 <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>" class="prestazione-card">
                     <div class="prestazione-icon"><i class="fa-solid fa-school"></i></div>
-                    <div class="prestazione-text">CONTRIBUTO PER ASILO NIDO</div>
+                    <div class="prestazione-text">Contributo per Asilo Nido</div>
                 </a>
             </div>
 
             <div class="col-6 col-md-6">
                 <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>" class="prestazione-card">
                     <div class="prestazione-icon"><i class="fa-solid fa-book-open"></i></div>
-                    <div class="prestazione-text">CONTRIBUTO STUDIO SCUOLE ELEMENTARI</div>
+                    <div class="prestazione-text">Contributo Studio Scuole Elementari</div>
                 </a>
             </div>
 
             <div class="col-6 col-md-6">
                 <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>" class="prestazione-card">
                     <div class="prestazione-icon"><i class="fa-solid fa-book"></i></div>
-                    <div class="prestazione-text">CONTRIBUTO STUDIO SCUOLE MEDIE INFERIORI</div>
+                    <div class="prestazione-text">Contributo Studio Scuole Medie Inferiori</div>
                 </a>
             </div>
 
             <div class="col-6 col-md-6">
                 <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>" class="prestazione-card">
                     <div class="prestazione-icon"><i class="fa-solid fa-school-flag"></i></div>
-                    <div class="prestazione-text">CONTRIBUTO ISCRIZIONE SCUOLE MEDIE SUPERIORI</div>
+                    <div class="prestazione-text">Contributo Iscrizione Scuole Medie Superiori</div>
                 </a>
             </div>
 
             <div class="col-6 col-md-6">
                 <a href="#" class="prestazione-card disabled">
                     <div class="prestazione-icon"><i class="fa-solid fa-star"></i></div>
-                    <div class="prestazione-text">CONTRIBUTO PROFITTO SCUOLE MEDIE SUPERIORI</div>
+                    <div class="prestazione-text">Contributo Profitto Scuole Medie Superiori</div>
                 </a>
             </div>
 
             <div class="col-6 col-md-6">
                 <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>" class="prestazione-card">
                     <div class="prestazione-icon"><i class="fa-solid fa-building-columns"></i></div>
-                    <div class="prestazione-text">CONTRIBUTO ISCRIZIONE UNIVERSITA'</div>
+                    <div class="prestazione-text">Contributo Iscrizione Università</div>
                 </a>
             </div>
 
             <div class="col-6 col-md-6">
                 <a href="#" class="prestazione-card disabled">
                     <div class="prestazione-icon"><i class="fa-solid fa-award"></i></div>
-                    <div class="prestazione-text">CONTRIBUTO PROFITTO UNIVERSITA'</div>
+                    <div class="prestazione-text">Contributo Profitto Università</div>
                 </a>
             </div>
             
             <div class="col-6 col-md-6">
                 <a href="#" class="prestazione-card disabled">
                     <div class="prestazione-icon"><i class="fa-solid fa-bed"></i></div>
-                    <div class="prestazione-text">CONTRIBUTO GIORNALIERO PER MALATTIA SUPERIORE A 271 GG</div>
+                    <div class="prestazione-text">Contributo Malattia Superiore a 271 gg</div>
                 </a>
             </div>
 
             <div class="col-6 col-md-6">
                 <a href="#" class="prestazione-card disabled">
                     <div class="prestazione-icon"><i class="fa-solid fa-suitcase-medical"></i></div>
-                    <div class="prestazione-text">INTEGRAZIONE MALATTIA PER RICOVERO OSPEDALIERO</div>
+                    <div class="prestazione-text">Integrazione Malattia per Ricovero Ospedaliero</div>
                 </a>
             </div>
 
             <div class="col-6 col-md-6">
                 <a href="#" class="prestazione-card disabled">
                     <div class="prestazione-icon"><i class="fa-solid fa-file-invoice"></i></div>
-                    <div class="prestazione-text">RIMBORSO SPESE PER 730 PRESSO CAF CGIL-CISL-UIL</div>
+                    <div class="prestazione-text">Rimborso Spese per 730 presso CAF</div>
                 </a>
             </div>
 
             <div class="col-6 col-md-6">
                 <a href="#" class="prestazione-card disabled">
                     <div class="prestazione-icon"><i class="fa-solid fa-person-digging"></i></div>
-                    <div class="prestazione-text">CONTRIBUTO PER INABILITA' DA INFORTUNIO SUL LAVORO DAL 91° GG</div>
+                    <div class="prestazione-text">Inabilità da Infortunio sul Lavoro (dal 91° gg)</div>
                 </a>
             </div>
 
             <div class="col-6 col-md-6">
                 <a href="#" class="prestazione-card disabled">
                     <div class="prestazione-icon"><i class="fa-solid fa-skull-crossbones"></i></div>
-                    <div class="prestazione-text">CONTRIBUTO PER MORTE DA INFORTUNIO SUL LAVORO O PER MALATTIA PROFESSIONALE</div>
+                    <div class="prestazione-text">Morte da Infortunio o Malattia Professionale</div>
                 </a>
             </div>
 
             <div class="col-6 col-md-6">
                 <a href="#" class="prestazione-card disabled">
                     <div class="prestazione-icon"><i class="fa-solid fa-person-falling-burst"></i></div>
-                    <div class="prestazione-text">CONTRIBUTO PER MORTE DA MALATTIA E INFORTUNIO EXTRA PROFESSIONALE</div>
+                    <div class="prestazione-text">Morte da Malattia e Infortunio Extra Professionale</div>
                 </a>
             </div>
             
             <div class="col-6 col-md-6">
                 <a href="#" class="prestazione-card disabled">
                     <div class="prestazione-icon"><i class="fa-solid fa-briefcase-medical"></i></div>
-                    <div class="prestazione-text">CONTRIBUTO DI 6 MENSILITA' NASPI PER PERIODO ASPETTATIVA RETRIBUITA PER SUPERAMENTO PERIODO DI COMPORTO P</div>
+                    <div class="prestazione-text">Contributo 6 Mensilità NASPI per Aspettativa</div>
                 </a>
             </div>
 
             <div class="col-6 col-md-6">
                 <a href="#" class="prestazione-card disabled">
                     <div class="prestazione-icon"><i class="fa-solid fa-user-graduate"></i></div>
-                    <div class="prestazione-text">RETTA MENSILE PER ASSISTENZA ALLO STUDIO DEI FIGLI DEI DECEDUTI SUL LAVORO</div>
+                    <div class="prestazione-text">Retta Studio per Figli di Deceduti sul Lavoro</div>
                 </a>
             </div>
 
             <div class="col-6 col-md-6">
                 <a href="#" class="prestazione-card disabled">
                     <div class="prestazione-icon"><i class="fa-solid fa-credit-card"></i></div>
-                    <div class="prestazione-text">COMUNICAZIONE IBAN BANCARIO E CORRETTI DATI ANAGRAFICI</div>
+                    <div class="prestazione-text">Comunicazione IBAN e Dati Anagrafici</div>
                 </a>
             </div>
 
