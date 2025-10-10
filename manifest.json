@@ -1,0 +1,21 @@
+{
+  "name": "Fillea Service App",
+  "short_name": "Fillea",
+  "description": "Servizi online per i lavoratori iscritti a Fillea.",
+  "start_url": "/servizifillea/servizi.php",
+  "display": "standalone",
+  "background_color": "#d0112b",
+  "theme_color": "#d0112b",
+  "icons": [
+    {
+      "src": "https://placehold.co/192x192/d0112b/ffffff?text=F",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://placehold.co/512x512/d0112b/ffffff?text=F",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

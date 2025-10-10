@@ -1,0 +1,8 @@
+{
+    "require": {
+        "setasign/fpdi": "^2.6",
+        "setasign/fpdf": "^1.8",
+        "web-auth/webauthn-lib": "4.9.2",
+        "minishlink/web-push": "^8.0"
+    }
+}

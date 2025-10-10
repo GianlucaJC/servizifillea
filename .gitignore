@@ -1,0 +1,13 @@
+# File di configurazione con credenziali sensibili
+database.php
+push_config.php
+
+# Dipendenze di Composer
+/vendor/
+
+# Log di debug
+*.log
+
+# File temporanei o di sistema
+.DS_Store
+Thumbs.db
