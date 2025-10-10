@@ -1,35 +1,38 @@
 $(document).ready(function() {
     const formName = $('input[name="form_name"]').val();
-    const userIdForUpload = new URLSearchParams(window.location.search).get('user_id');
-    const isAdmin = !!userIdForUpload;
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const prestazione = params.get('prestazione');
+    const userIdForUpload = params.get('user_id'); // Per la vista admin
+    const isAdmin = !!userIdForUpload; // True se user_id è presente
 
-    // Mappa delle prestazioni e dei documenti richiesti per modulo2
-    const docMap = {
+    // Mappa delle prestazioni ai documenti richiesti (già presente in modulo2.php, la replichiamo qui per coerenza)
+    const uploadRequirements = {
         'premio_matrimoniale': ['certificato_matrimonio', 'documento_identita'],
+        'premio_giovani': ['documento_identita'],
         'bonus_nascita': ['certificato_nascita', 'documento_identita'],
-        'donazioni': ['attestazione_donazione', 'documento_identita'],
+        'donazioni_sangue': ['attestazione_donazione', 'documento_identita'],
+        'contributo_affitto': ['contratto_affitto', 'documento_identita'],
+        'contributo_sfratto': ['documentazione_sfratto', 'documento_identita'],
         'contributo_disabilita': ['certificazione_disabilita', 'documento_identita'],
         'post_licenziamento': ['lettera_licenziamento', 'documento_identita'],
         'permesso_soggiorno': ['ricevute_soggiorno', 'documento_identita'],
-        'attivita_sportive': ['ricevuta_attivita_sportiva', 'documento_identita'],
-        'affitto_casa': ['contratto_affitto', 'documento_identita'],
-        'sfratto': ['documentazione_sfratto', 'documento_identita']
-        // 'premio_giovani' non richiede allegati specifici in questo esempio
+        'attivita_sportive': ['ricevuta_attivita_sportiva', 'documento_identita']
     };
 
     function updateUploadSections() {
+        // Nascondi tutti i box di upload per sicurezza
         $('.upload-section').addClass('hidden');
-        $('input[name="prestazione[]"]:checked').each(function() {
-            const prestazione = $(this).val();
-            if (docMap[prestazione]) {
-                docMap[prestazione].forEach(docType => {
-                    $(`#upload-area-${docType}`).removeClass('hidden');
-                });
-            }
-        });
+
+        // Mostra i box corretti in base alla prestazione letta dall'URL
+        const requiredDocs = uploadRequirements[prestazione];
+        if (requiredDocs) {
+            requiredDocs.forEach(docType => {
+                $(`#upload-area-${docType}`).removeClass('hidden');
+            });
+        }
     }
 
-    $('input[name="prestazione[]"]').on('change', updateUploadSections);
     updateUploadSections();
 
     // --- Logica di Upload ---
@@ -59,6 +62,7 @@ $(document).ready(function() {
         formData.append('form_name', formName);
         formData.append('document_type', docType);
         if (isAdmin) formData.append('user_id', userIdForUpload);
+        else formData.append('token', token); // Aggiungi il token per l'utente normale
         
         for (let i = 0; i < files.length; i++) {
             formData.append('files[]', files[i]);
@@ -90,7 +94,7 @@ $(document).ready(function() {
                             <div class="file-list-item" data-file-id="${file.id}">
                                 <span class="truncate" title="${escapeHtml(file.original_filename)}"><i class="fas fa-file-alt text-gray-500 mr-2"></i>${escapeHtml(file.original_filename)}</span>
                                 <div class="flex items-center space-x-4 ml-2 flex-shrink-0">
-                                    <a href="view_file.php?id=${file.id}" target="_blank" class="text-blue-500 hover:text-blue-700" title="Visualizza file"><i class="fas fa-eye"></i></a>
+                                    <a href="view_file.php?id=${file.id}&token=${isAdmin ? '' : token}" target="_blank" class="text-blue-500 hover:text-blue-700" title="Visualizza file"><i class="fas fa-eye"></i></a>
                                     <button type="button" class="delete-file-btn text-red-500 hover:text-red-700" title="Elimina file"><i class="fas fa-trash"></i></button>
                                 </div>
                             </div>`;
@@ -115,8 +119,13 @@ $(document).ready(function() {
 
         if (!confirm('Sei sicuro di voler eliminare questo file?')) return;
 
-        const deleteData = { action: 'delete', file_id: fileId };
-        if (isAdmin) deleteData.user_id = userIdForUpload;
+        const deleteData = { 
+            action: 'delete', 
+            file_id: fileId 
+        };
+        // Aggiungi il token o l'user_id per l'autorizzazione
+        if (isAdmin) { deleteData.user_id = userIdForUpload; }
+        else { deleteData.token = token; }
 
         $.ajax({
             url: 'upload_handler.php',

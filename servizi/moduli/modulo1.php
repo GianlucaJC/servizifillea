@@ -455,7 +455,7 @@ function e($value) {
             <div id="upload-container" class="space-y-8">
                 <!-- I box di upload verranno inseriti qui da JavaScript -->
                 <?php
-                function render_upload_box($doc_type, $title, $description, $saved_files = []) {
+                function render_upload_box($doc_type, $title, $description, $token, $saved_files = []) {
                     ob_start();
                 ?>
                 <div id="upload-area-<?php echo $doc_type; ?>" class="upload-section hidden" data-doc-type="<?php echo $doc_type; ?>">
@@ -494,13 +494,13 @@ function e($value) {
                     return ob_get_clean();
                 }
 
-                $allegati = $saved_data['allegati'] ?? [];
-                echo render_upload_box('autocertificazione_famiglia', 'Autocertificazione Stato di Famiglia', 'Documento che attesta la composizione del nucleo familiare.', $allegati['autocertificazione_famiglia'] ?? []);
-                echo render_upload_box('certificato_iscrizione_nido', 'Certificato Iscrizione Asilo Nido', 'Certificato rilasciato dalla struttura.', $allegati['certificato_iscrizione_nido'] ?? []);
-                echo render_upload_box('attestazione_spesa_centri_estivi', 'Attestazione Spesa Centri Estivi', 'Fattura o ricevuta che comprovi la spesa sostenuta.', $allegati['attestazione_spesa_centri_estivi'] ?? []);
-                echo render_upload_box('autocertificazione_frequenza_obbligo', 'Autocertificazione Frequenza Scuola Obbligo', 'Autocertificazione per la frequenza di scuole elementari o medie.', $allegati['autocertificazione_frequenza_obbligo'] ?? []);
-                echo render_upload_box('autocertificazione_frequenza_superiori', 'Autocertificazione Frequenza Scuole Superiori', 'Autocertificazione per la frequenza delle scuole superiori.', $allegati['autocertificazione_frequenza_superiori'] ?? []);
-                echo render_upload_box('documentazione_universita', 'Documentazione Universitaria', 'Include certificato di iscrizione, piano di studi, superamento esami, ecc.', $allegati['documentazione_universita'] ?? []);
+                $allegati = $saved_data['allegati'] ?? []; // Recupera gli allegati salvati
+                echo render_upload_box('autocertificazione_famiglia', 'Autocertificazione Stato di Famiglia', 'Documento che attesta la composizione del nucleo familiare.', $token, $allegati['autocertificazione_famiglia'] ?? []);
+                echo render_upload_box('certificato_iscrizione_nido', 'Certificato Iscrizione Asilo Nido', 'Certificato rilasciato dalla struttura.', $token, $allegati['certificato_iscrizione_nido'] ?? []);
+                echo render_upload_box('attestazione_spesa_centri_estivi', 'Attestazione Spesa Centri Estivi', 'Fattura o ricevuta che comprovi la spesa sostenuta.', $token, $allegati['attestazione_spesa_centri_estivi'] ?? []);
+                echo render_upload_box('autocertificazione_frequenza_obbligo', 'Autocertificazione Frequenza Scuola Obbligo', 'Autocertificazione per la frequenza di scuole elementari o medie.', $token, $allegati['autocertificazione_frequenza_obbligo'] ?? []);
+                echo render_upload_box('autocertificazione_frequenza_superiori', 'Autocertificazione Frequenza Scuole Superiori', 'Autocertificazione per la frequenza delle scuole superiori.', $token, $allegati['autocertificazione_frequenza_superiori'] ?? []);
+                echo render_upload_box('documentazione_universita', 'Documentazione Universitaria', 'Include certificato di iscrizione, piano di studi, superamento esami, ecc.', $token, $allegati['documentazione_universita'] ?? []);
                 ?>
             </div>
         </div>

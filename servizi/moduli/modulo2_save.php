@@ -100,6 +100,7 @@ try {
     $pdo1->commit();
 
 } catch (Exception $e) {
+
     $pdo1->rollBack();
     error_log("Errore in modulo2_save.php: " . $e->getMessage());
     $error_message = urlencode($e->getMessage());

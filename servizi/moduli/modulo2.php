@@ -256,7 +256,7 @@ function e($value) {
             <p class="text-gray-600 mb-6">Carica qui i documenti necessari per le prestazioni che hai selezionato. I formati consentiti sono PDF, JPG, PNG. Dimensione massima 5MB.</p>
             <div id="upload-container" class="space-y-8">
                 <?php
-                function render_upload_box($doc_type, $title, $description, $saved_files = []) {
+                function render_upload_box($doc_type, $title, $description, $token_user, $saved_files = []) {
                     ob_start();
                 ?>
                 <div id="upload-area-<?php echo $doc_type; ?>" class="upload-section hidden" data-doc-type="<?php echo $doc_type; ?>">
@@ -283,18 +283,17 @@ function e($value) {
                 <?php
                     return ob_get_clean();
                 }
-
-                $allegati = $saved_data['allegati'] ?? [];
-                echo render_upload_box('certificato_matrimonio', 'Certificato di Matrimonio/Unione Civile', 'Certificato ufficiale o autocertificazione.', $allegati['certificato_matrimonio'] ?? []);
-                echo render_upload_box('documento_identita', 'Documento d\'Identità', 'Copia fronte/retro del documento del richiedente.', $allegati['documento_identita'] ?? []);
-                echo render_upload_box('certificato_nascita', 'Certificato di Nascita/Adozione', 'Estratto di nascita o provvedimento di adozione.', $allegati['certificato_nascita'] ?? []);
-                echo render_upload_box('attestazione_donazione', 'Attestazione Donazione', 'Certificato della struttura sanitaria che attesta la donazione.', $allegati['attestazione_donazione'] ?? []);
-                echo render_upload_box('certificazione_disabilita', 'Certificazione Disabilità', 'Documentazione sanitaria (es. L. 104/92) che attesti la condizione.', $allegati['certificazione_disabilita'] ?? []);
-                echo render_upload_box('lettera_licenziamento', 'Lettera di Licenziamento', 'Lettera con indicazione della causale di superamento comporto.', $allegati['lettera_licenziamento'] ?? []);
-                echo render_upload_box('ricevute_soggiorno', 'Ricevute Permesso di Soggiorno', 'Bollettini di pagamento per il rilascio/rinnovo.', $allegati['ricevute_soggiorno'] ?? []);
-                echo render_upload_box('ricevuta_attivita_sportiva', 'Ricevuta Attività Sportiva', 'Fattura o ricevuta che attesti l\'iscrizione e la spesa.', $allegati['ricevuta_attivita_sportiva'] ?? []);
-                echo render_upload_box('contratto_affitto', 'Contratto di Affitto', 'Copia del contratto registrato.', $allegati['contratto_affitto'] ?? []);
-                echo render_upload_box('documentazione_sfratto', 'Documentazione Sfratto', 'Ordinanza del giudice o altri documenti ufficiali.', $allegati['documentazione_sfratto'] ?? []);
+                $allegati = $saved_data['allegati'] ?? []; // Recupera gli allegati salvati
+                echo render_upload_box('certificato_matrimonio', 'Certificato di Matrimonio/Unione Civile', 'Certificato ufficiale o autocertificazione.', $token_user, $allegati['certificato_matrimonio'] ?? []);
+                echo render_upload_box('documento_identita', 'Documento d\'Identità', 'Copia fronte/retro del documento del richiedente.', $token_user, $allegati['documento_identita'] ?? []);
+                echo render_upload_box('certificato_nascita', 'Certificato di Nascita/Adozione', 'Estratto di nascita o provvedimento di adozione.', $token_user, $allegati['certificato_nascita'] ?? []);
+                echo render_upload_box('attestazione_donazione', 'Attestazione Donazione', 'Certificato della struttura sanitaria che attesta la donazione.', $token_user, $allegati['attestazione_donazione'] ?? []);
+                echo render_upload_box('certificazione_disabilita', 'Certificazione Disabilità', 'Documentazione sanitaria (es. L. 104/92) che attesti la condizione.', $token_user, $allegati['certificazione_disabilita'] ?? []);
+                echo render_upload_box('lettera_licenziamento', 'Lettera di Licenziamento', 'Lettera con indicazione della causale di superamento comporto.', $token_user, $allegati['lettera_licenziamento'] ?? []);
+                echo render_upload_box('ricevute_soggiorno', 'Ricevute Permesso di Soggiorno', 'Bollettini di pagamento per il rilascio/rinnovo.', $token_user, $allegati['ricevute_soggiorno'] ?? []);
+                echo render_upload_box('ricevuta_attivita_sportiva', 'Ricevuta Attività Sportiva', 'Fattura o ricevuta che attesti l\'iscrizione e la spesa.', $token_user, $allegati['ricevuta_attivita_sportiva'] ?? []);
+                echo render_upload_box('contratto_affitto', 'Contratto di Affitto', 'Copia del contratto registrato.', $token_user, $allegati['contratto_affitto'] ?? []);
+                echo render_upload_box('documentazione_sfratto', 'Documentazione Sfratto', 'Ordinanza del giudice o altri documenti ufficiali.', $token_user, $allegati['documentazione_sfratto'] ?? []);
                 ?>
             </div>
         </div>
@@ -373,28 +372,11 @@ function e($value) {
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <!-- Signature Pad Library -->
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
-<!-- Script di validazione custom -->
-<script src="modulo2.js?v=<?php echo time(); ?>"></script>
-<!-- Script per l'upload -->
-<script src="modulo2_upload.js?v=<?php echo time(); ?>"></script>
+
+<!-- Logica di visualizzazione dinamica (spostata qui) -->
 <script>
-    function handleFormSelection(selectedValue) {
-        const userId = '<?php echo htmlspecialchars($user_id); ?>';
-        const prestazione = '<?php echo htmlspecialchars($prestazione_selezionata); ?>';
-        let formName = '';
-
-        if (selectedValue === 'new') {
-            formName = `form2_${userId}_${Date.now()}`; 
-        } else {
-            formName = selectedValue;
-        }
-
-        const isAdmin = <?php echo json_encode($is_admin_view); ?>;
-        const userToken = '<?php echo htmlspecialchars($token_user); ?>';
-        window.location.href = isAdmin ? `modulo2.php?user_id=${userId}&form_name=${formName}&prestazione=${prestazione}` : `modulo2.php?token=${userToken}&form_name=${formName}&prestazione=${prestazione}`;
-    }
-
     document.addEventListener('DOMContentLoaded', function() {
+        // --- Inizializzazione Data Firma ---
         const dataFirmaInput = document.getElementById('data_firma');
         if (!dataFirmaInput.value) {
             dataFirmaInput.value = new Date().toISOString().split('T')[0];
@@ -418,11 +400,6 @@ function e($value) {
         };
 
         function showRequiredUploads(prestazione) {
-            // Nascondi tutti i box di upload per sicurezza
-            document.querySelectorAll('.upload-section').forEach(box => {
-                box.classList.add('hidden');
-            });
-
             const requiredDocs = uploadRequirements[prestazione];
             if (requiredDocs) {
                 requiredDocs.forEach(docType => {
@@ -437,8 +414,30 @@ function e($value) {
         // Mostra i box corretti al caricamento della pagina
         if (prestazioneSelezionata) {
             showRequiredUploads(prestazioneSelezionata);
-        }
+        }        
     });
+</script>
+
+<!-- Script di validazione custom -->
+<script src="modulo2.js?v=<?php echo time(); ?>"></script>
+<!-- Script per l'upload -->
+<script src="modulo2_upload.js?v=<?php echo time(); ?>"></script>
+<script>
+    function handleFormSelection(selectedValue) {
+        const userId = '<?php echo htmlspecialchars($user_id); ?>';
+        const prestazione = '<?php echo htmlspecialchars($prestazione_selezionata); ?>';
+        let formName = '';
+
+        if (selectedValue === 'new') {
+            formName = `form2_${userId}_${Date.now()}`; 
+        } else {
+            formName = selectedValue;
+        }
+
+        const isAdmin = <?php echo json_encode($is_admin_view); ?>;
+        const userToken = '<?php echo htmlspecialchars($token_user); ?>';
+        window.location.href = isAdmin ? `modulo2.php?user_id=${userId}&form_name=${formName}&prestazione=${prestazione}` : `modulo2.php?token=${userToken}&form_name=${formName}&prestazione=${prestazione}`;
+    }
 </script>
 
 </body>

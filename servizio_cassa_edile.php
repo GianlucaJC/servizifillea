@@ -339,43 +339,8 @@ if (!$is_user_logged_in) {
     </div>    
     <!-- fine lista !-->
 
-    <!-- Regolamenti Precedenti -->
-    <h4 class="mt-5 service-header">REGOLAMENTI PRESTAZIONI PERIODI PRECEDENTI NON PIU’ IN VIGORE</h4>
-    <div class="list-group mt-3">
-        <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
-            <div class="icon"><i class="fas fa-history fa-fw"></i></div>
-            <span class="ms-3">Regolamento prestazioni da Gennaio 2021 a Settembre 2022</span>
-        </a>
-        <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
-            <div class="icon"><i class="fas fa-history fa-fw"></i></div>
-            <span class="ms-3">Regolamento prestazioni dal 01 Gennaio 2018</span>
-        </a>
-        <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
-            <div class="icon"><i class="fas fa-history fa-fw"></i></div>
-            <span class="ms-3">Regolamento prestazioni dal 1° luglio 2012</span>
-        </a>
-        <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
-            <div class="icon"><i class="fas fa-history fa-fw"></i></div>
-            <span class="ms-3">Regolamento prestazioni dal 1° gennaio 2006</span>
-        </a>
-        <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
-            <div class="icon"><i class="fas fa-university fa-fw"></i></div>
-            <span class="ms-3">Integrazioni regolamento prestazioni contributo università</span>
-        </a>
-    </div>
 
-    <!-- Fornitura Vestiario -->
-    <h4 class="mt-5 service-header">FORNITURA ESTIVA E INVERNALE VESTIARIO E SCARPE DA LAVORO</h4>
-    <div class="list-group mt-3">
-        <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
-            <div class="icon"><i class="fas fa-tshirt fa-fw"></i></div>
-            <span class="ms-3">Visualizza Fornitura Invernale 2022</span>
-        </a>
-        <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
-            <div class="icon"><i class="fas fa-sun fa-fw"></i></div>
-            <span class="ms-3">Visualizza Fornitura Estiva 2021</span>
-        </a>
-    </div>
+
 
 </div>
 
