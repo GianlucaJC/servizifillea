@@ -63,6 +63,8 @@ try {
     $status = $existing_record['status'] ?? 'bozza';
     if ($action === 'submit_official') {
         $status = 'inviato';
+    } elseif ($action === 'unlock') {
+        $status = 'bozza';
     }
     $data['status'] = $status;
 
@@ -70,9 +72,11 @@ try {
         // UPDATE
         $data['id'] = $existing_record['id'];
         $firma_sql_part = !empty($data['firma_data']) ? ", firma_data = :firma_data" : "";
+        $admin_notification_sql = ($action === 'submit_official') ? ", admin_notification = NULL" : "";
+
         $sql = "UPDATE `fillea-app`.`modulo2_richieste` SET 
                     nome_completo=:nome_completo, pos_cassa_edile=:pos_cassa_edile, data_nascita=:data_nascita, codice_fiscale=:codice_fiscale, via_piazza=:via_piazza, domicilio_a=:domicilio_a, cap=:cap, telefono=:telefono, impresa_occupazione=:impresa_occupazione, 
-                    prestazioni=:prestazioni, luogo_firma=:luogo_firma, data_firma=:data_firma, privacy_consent=:privacy_consent, status=:status, last_update=NOW()
+                    prestazioni=:prestazioni, luogo_firma=:luogo_firma, data_firma=:data_firma, privacy_consent=:privacy_consent, status=:status, last_update=NOW() {$admin_notification_sql}
                     {$firma_sql_part}
                 WHERE id = :id";
         if (empty($data['firma_data'])) unset($data['firma_data']);
@@ -81,11 +85,20 @@ try {
         $data['user_id'] = $user_id;
         $data['form_name'] = $form_name;
         $sql = "INSERT INTO `fillea-app`.`modulo2_richieste` 
-                    (user_id, form_name, status, nome_completo, pos_cassa_edile, data_nascita, codice_fiscale, via_piazza, domicilio_a, cap, telefono, impresa_occupazione, prestazioni, luogo_firma, data_firma, privacy_consent, firma_data) 
+                    (user_id, form_name, status, nome_completo, pos_cassa_edile, data_nascita, codice_fiscale, via_piazza, domicilio_a, cap, telefono, impresa_occupazione, prestazioni, luogo_firma, data_firma, privacy_consent, firma_data, admin_notification) 
                 VALUES 
-                    (:user_id, :form_name, :status, :nome_completo, :pos_cassa_edile, :data_nascita, :codice_fiscale, :via_piazza, :domicilio_a, :cap, :telefono, :impresa_occupazione, :prestazioni, :luogo_firma, :data_firma, :privacy_consent, :firma_data)";
+                    (:user_id, :form_name, :status, :nome_completo, :pos_cassa_edile, :data_nascita, :codice_fiscale, :via_piazza, :domicilio_a, :cap, :telefono, :impresa_occupazione, :prestazioni, :luogo_firma, :data_firma, :privacy_consent, :firma_data, NULL)";
     }
     
+    if ($is_admin_save && $action === 'unlock') {
+        $admin_notification = $_POST['admin_notification'] ?? 'La tua richiesta è stata sbloccata per modifiche.';
+        if (empty($admin_notification)) {
+            $admin_notification = 'La tua richiesta è stata sbloccata per modifiche.';
+        }
+        $stmt_unlock = $pdo1->prepare("UPDATE `fillea-app`.`modulo2_richieste` SET status = 'bozza', admin_notification = ? WHERE form_name = ? AND user_id = ?");
+        $stmt_unlock->execute([$admin_notification, $form_name, $user_id]);
+    }
+
     $stmt = $pdo1->prepare($sql);
     $stmt->execute($data);
 
@@ -95,6 +108,11 @@ try {
                        ON DUPLICATE KEY UPDATE data_invio = NOW(), status = 'inviato', is_new = 1, id_funzionario = (SELECT id_funzionario FROM `fillea-app`.users WHERE id = ?)";
         $stmt_master = $pdo1->prepare($sql_master);
         $stmt_master->execute([$user_id, $user_id, $form_name, $user_id]);
+    } elseif ($action === 'unlock') {
+        // Se l'admin sblocca, aggiorna lo stato anche nella tabella master
+        $sql_master_unlock = "UPDATE `fillea-app`.`richieste_master` SET status = 'bozza' WHERE form_name = ? AND user_id = ?";
+        $stmt_master_unlock = $pdo1->prepare($sql_master_unlock);
+        $stmt_master_unlock->execute([$form_name, $user_id]);
     }
 
     $pdo1->commit();

@@ -76,9 +76,10 @@ if ($user_id) {
     }
 
     // Recupera tutti i form compilati dall'utente per popolare il menu a tendina
-    $sql_forms = "SELECT form_name, studente_nome_cognome FROM `fillea-app`.`modulo1_richieste` WHERE user_id = ? AND status != 'abbandonato' ORDER BY last_update DESC";
+    // Modifica: filtra per la prestazione corrente
+    $sql_forms = "SELECT form_name, studente_nome_cognome FROM `fillea-app`.`modulo1_richieste` WHERE user_id = ? AND status != 'abbandonato' AND prestazioni LIKE ? ORDER BY last_update DESC";
     $stmt_forms = $pdo1->prepare($sql_forms);
-    $stmt_forms->execute([$user_id]);
+    $stmt_forms->execute([$user_id, '%"'.$prestazione_selezionata.'"%']);
     $user_forms = $stmt_forms->fetchAll(PDO::FETCH_ASSOC);
 
     // Recupera il numero di telefono del funzionario per il link WhatsApp

@@ -96,9 +96,10 @@ if ($user_id) {
     }
 
     // Recupera tutti i form di tipo modulo2 compilati dall'utente
-    $sql_forms = "SELECT form_name, nome_completo FROM `fillea-app`.`modulo2_richieste` WHERE user_id = ? AND status != 'abbandonato' ORDER BY last_update DESC";
+    // Modifica: filtra per la prestazione corrente
+    $sql_forms = "SELECT form_name, nome_completo FROM `fillea-app`.`modulo2_richieste` WHERE user_id = ? AND status != 'abbandonato' AND prestazioni LIKE ? ORDER BY last_update DESC";
     $stmt_forms = $pdo1->prepare($sql_forms);
-    $stmt_forms->execute([$user_id]);
+    $stmt_forms->execute([$user_id, '%"'.$prestazione_selezionata.'"%']);
     $user_forms = $stmt_forms->fetchAll(PDO::FETCH_ASSOC);
 
     // Recupera il numero di telefono del funzionario per il link WhatsApp
@@ -205,7 +206,77 @@ function e($value) {
     <!-- Contenitore per il resto del form, visibile solo dopo la selezione -->
     <div id="form-content" class="<?php if ($form_name === null) echo 'hidden'; ?>">
 
+    <?php if (isset($_GET['status']) && $_GET['status'] === 'saved'): ?>
+    <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-lg shadow-md" role="alert">
+        <p class="font-bold text-lg">Operazione completata!</p>
+        <p>I tuoi dati sono stati salvati con successo.</p>
+        <?php if (isset($_GET['action']) && $_GET['action'] === 'submit_official' && $funzionario_telefono): ?>
+            <?php
+                // Prepara il numero di telefono
+                $whatsapp_number = preg_replace('/[^0-9]/', '', $funzionario_telefono);
+                if (substr($whatsapp_number, 0, 2) !== '39') {
+                    $whatsapp_number = '39' . ltrim($whatsapp_number, '0');
+                }
+                // Prepara il messaggio
+                $whatsapp_message = urlencode("Ciao, ti ho appena inviato la pratica per le prestazioni varie. Nome pratica: $form_name");
+                $whatsapp_link = "https://wa.me/{$whatsapp_number}?text={$whatsapp_message}";
+            ?>
+            <div class="mt-4">
+                <a href="<?php echo $whatsapp_link; ?>" target="_blank" class="inline-flex items-center bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition-colors">
+                    <i class="fab fa-whatsapp mr-2"></i>Contatta il Funzionario su WhatsApp
+                </a>
+            </div>
+        <?php endif; ?>
+    </div>
+    <?php endif; ?>
+
+    <?php
+        $status = $saved_data['status'] ?? 'bozza';
+        $is_submitted = $status === 'inviato';
+
+        // Mostra la notifica dell'admin all'utente, se presente.
+        if (!$is_admin_view && !empty($saved_data['admin_notification'])):
+    ?>
+    <div id="admin-notification-banner" class="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-6 rounded-md shadow-md flex justify-between items-center" role="alert">
+        <div>
+            <p class="font-bold text-yellow-800"><i class="fas fa-info-circle mr-2"></i>Notifica dal Funzionario</p>
+            <p class="text-yellow-700"><?php echo htmlspecialchars($saved_data['admin_notification']); ?></p>
+        </div>
+        <button onclick="document.getElementById('admin-notification-banner').style.display='none'" class="text-yellow-800 hover:text-yellow-900 text-2xl ml-4">&times;</button>
+    </div>
+    <?php endif; ?>
+
     <form id="modulo2-form" action="modulo2_save.php?token=<?php echo htmlspecialchars($token_user); ?>" method="POST" autocomplete="off">
+
+    <?php
+        // Se è un admin, mostra sempre la sezione delle azioni admin.
+        if ($is_admin_view):
+    ?>
+        <div class="form-section">
+            <h2 class="form-section-title">Azioni Amministratore</h2>
+            <?php if ($is_submitted): // Se la richiesta è stata inviata, l'admin può sbloccare ?>
+                <p class="text-gray-600 mb-4">Questa richiesta è stata inviata dall'utente. Puoi sbloccarla per consentire ulteriori modifiche.</p>
+                <div class="mb-4">
+                    <label for="admin_notification" class="form-label">Aggiungi una notifica per l'utente (opzionale)</label>
+                    <textarea id="admin_notification" name="admin_notification" rows="2" class="form-input" placeholder="Es: Sbloccato. Per favore, carica il documento mancante."></textarea>
+                </div>
+                <button type="submit" id="unlock-for-user-btn" class="w-full md:w-auto bg-yellow-500 text-black font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-yellow-600 transition-colors duration-300" name="action" value="unlock">
+                    <i class="fas fa-unlock mr-2"></i> Sblocca Modifiche per l'Utente
+                </button>
+            <?php else: // Se la richiesta è in bozza, l'admin non può fare nulla ?>
+                <p class="text-gray-600 mb-4 bg-gray-100 p-3 rounded-md">
+                    <i class="fas fa-info-circle me-2"></i>Questa richiesta è in stato di "Bozza". L'utente sta ancora compilando i dati.
+                </p>
+            <?php endif; ?> 
+        </div>
+    <?php elseif ($is_submitted && !$is_admin_view): // Se l'utente visualizza una richiesta inviata ?>
+        <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-6 rounded-md" role="alert">
+            <p class="font-bold">In attesa di riscontro</p>
+            <p>Questa richiesta è stata inviata al funzionario e non è più modificabile.</p>
+        </div>
+    <?php elseif (!empty($saved_data) && !$is_admin_view): // Se l'utente sta compilando (non è admin) ?>
+        <!-- Il pulsante di invio è ora gestito tramite la modale, come nel modulo1 -->
+    <?php endif; ?>
 
         <!-- Sezione Dati Lavoratore -->
         <div class="form-section">
@@ -355,14 +426,22 @@ function e($value) {
         <input type="hidden" name="prestazione" value="<?php echo htmlspecialchars($prestazione_selezionata); ?>">
         <input type="hidden" name="firma_data" id="firma_data">
 
+        <?php
+            $can_edit = false;
+            if (!$is_admin_view && $status === 'bozza') $can_edit = true;
+            if ($is_admin_view && $status === 'inviato') $can_edit = true;
+
+            if ($can_edit):
+        ?>
         <div class="mt-8 text-center">
             <button type="submit" id="save-btn" class="w-full md:w-auto bg-primary text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-red-700 transition-colors duration-300" name="action" value="save">
                 <i class="fas fa-save mr-2"></i> Salva Dati
             </button>
-            <button type="submit" id="submit-official-btn" class="w-full md:w-auto bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-green-700 transition-colors duration-300 mt-4 md:mt-0 md:ml-4" name="action" value="submit_official">
-                <i class="fas fa-paper-plane mr-2"></i> Invia la Domanda di Prestazione
+            <button type="button" id="submit-official-btn" class="w-full md:w-auto bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-green-700 transition-colors duration-300 mt-4 md:mt-0 md:ml-4">
+                <i class="fas fa-paper-plane mr-2"></i> Invia dati al funzionario
             </button>
         </div>
+        <?php endif; ?>
 
     </form>
     </div>
@@ -373,6 +452,27 @@ function e($value) {
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <!-- Signature Pad Library -->
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+
+<!-- Finestra Modale di Conferma (come in modulo1) -->
+<div id="confirmation-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-gray-800">Conferma Invio</h3>
+            <button id="modal-close-btn" class="text-gray-500 hover:text-gray-800">&times;</button>
+        </div>
+        <p class="text-gray-600 mb-6">
+            Sei sicuro di voler inviare la richiesta al funzionario? Una volta inviata, non potrai più modificarla.
+        </p>
+        <div class="flex justify-end space-x-4">
+            <button id="modal-cancel-btn" class="py-2 px-4 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">
+                Annulla
+            </button>
+            <button id="modal-confirm-btn" class="py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                Sì, invia
+            </button>
+        </div>
+    </div>
+</div>
 
 <!-- Logica di visualizzazione dinamica (spostata qui) -->
 <script>
@@ -424,21 +524,34 @@ function e($value) {
 <!-- Script per l'upload -->
 <script src="modulo2_upload.js?v=<?php echo time(); ?>"></script>
 <script>
-    function handleFormSelection(selectedValue) {
-        const userId = '<?php echo htmlspecialchars($user_id); ?>';
-        const prestazione = '<?php echo htmlspecialchars($prestazione_selezionata); ?>';
-        let formName = '';
+    // La funzione deve essere globale per essere chiamata da onchange
+function handleFormSelection(selectedValue) {
+    const userId = '<?php echo htmlspecialchars($user_id); ?>';
+    const prestazione = '<?php echo htmlspecialchars($prestazione_selezionata); ?>';
+    let formName = '';
 
-        if (selectedValue === 'new') {
-            formName = `form2_${userId}_${Date.now()}`; 
-        } else {
-            formName = selectedValue;
-        }
-
-        const isAdmin = <?php echo json_encode($is_admin_view); ?>;
-        const userToken = '<?php echo htmlspecialchars($token_user); ?>';
-        window.location.href = isAdmin ? `modulo2.php?user_id=${userId}&form_name=${formName}&prestazione=${prestazione}` : `modulo2.php?token=${userToken}&form_name=${formName}&prestazione=${prestazione}`;
+    if (selectedValue === 'new') {
+        formName = `form2_${userId}_${Date.now()}`; 
+    } else {
+        formName = selectedValue;
     }
+
+    const isAdmin = <?php echo json_encode($is_admin_view); ?>;
+    const userToken = '<?php echo htmlspecialchars($token_user); ?>';
+    window.location.href = isAdmin ? `modulo2.php?user_id=${userId}&form_name=${formName}&prestazione=${prestazione}` : `modulo2.php?token=${userToken}&form_name=${formName}&prestazione=${prestazione}`;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+        <?php
+            $can_edit = false;
+            if (!$is_admin_view && ($saved_data['status'] ?? 'bozza') === 'bozza') $can_edit = true;
+            if ($is_admin_view && ($saved_data['status'] ?? 'bozza') === 'inviato') $can_edit = true;
+
+            if (!$can_edit && $form_name !== null):
+        ?>
+            $('#modulo2-form :input').not('#existing_form, #unlock-for-user-btn, #admin_notification').prop('disabled', true);
+        <?php endif; ?>
+});
 </script>
 
 </body>

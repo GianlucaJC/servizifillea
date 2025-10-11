@@ -49,13 +49,26 @@ document.addEventListener('DOMContentLoaded', function() {
     if (submitOfficialBtn) {
         submitOfficialBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            // Ora la validazione è gestita nell'evento 'submit' del form.
-            // Questo pulsante ora serve solo a mostrare la modale di conferma,
-            // ma l'invio effettivo avverrà tramite il pulsante nella modale,
-            // che a sua volta scatenerà l'evento 'submit' del form.
-            // Mostriamo la modale solo se il form è valido.
-            if (form.checkValidity()) { // Usa la validazione nativa del browser per eventuali campi required
+            
+            // Eseguiamo la validazione manualmente prima di mostrare la modale.
+            let isValid = true;
+            const cfInput = document.getElementById('codice_fiscale');
+            if (cfInput.value) {
+                const cfResult = validaCodiceFiscale(cfInput.value);
+                if (cfResult !== true) {
+                    isValid = false;
+                    toggleError('codice_fiscale', cfResult);
+                } else {
+                    toggleError('codice_fiscale', null);
+                }
+            }
+
+            if (isValid) {
                 if (confirmationModal) confirmationModal.classList.remove('hidden');
+            } else {
+                // Se non è valido, scrolla al campo con errore
+                const firstErrorField = form.querySelector('.border-red-500');
+                if (firstErrorField) firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         });
     }
