@@ -205,7 +205,7 @@ function e($value) {
     <!-- Contenitore per il resto del form, visibile solo dopo la selezione -->
     <div id="form-content" class="<?php if ($form_name === null) echo 'hidden'; ?>">
 
-    <form id="modulo2-form" action="modulo2_save.php?token=<?php echo htmlspecialchars($token_user); ?>" method="POST">
+    <form id="modulo2-form" action="modulo2_save.php?token=<?php echo htmlspecialchars($token_user); ?>" method="POST" autocomplete="off">
 
         <!-- Sezione Dati Lavoratore -->
         <div class="form-section">
@@ -226,6 +226,7 @@ function e($value) {
                 <div class="md:col-span-2">
                     <label for="codice_fiscale" class="form-label">Codice Fiscale</label>
                     <input type="text" id="codice_fiscale" name="codice_fiscale" class="form-input uppercase" maxlength="16" value="<?php e($saved_data['codice_fiscale'] ?? ''); ?>">
+                    <p id="error-codice_fiscale" class="text-red-500 text-xs mt-1 hidden"></p>
                 </div>
                 <div>
                     <label for="via_piazza" class="form-label">Via/Piazza</label>

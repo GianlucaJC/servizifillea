@@ -1,62 +1,62 @@
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('modulo2-form');
-    const ibanInput = document.getElementById('iban');
-    const cfStudenteInput = document.getElementById('codice_fiscale');
     const submitOfficialBtn = document.getElementById('submit-official-btn');
-    const confirmationModal = document.getElementById('confirmation-modal');
-    const modalConfirmBtn = document.getElementById('modal-confirm-btn');
     const modalCancelBtn = document.getElementById('modal-cancel-btn');
     const modalCloseBtn = document.getElementById('modal-close-btn');
 
-    // --- Validazione IBAN ---
-    if (ibanInput) {
-        ibanInput.addEventListener('input', function() {
-            this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-            validateIBAN(this.value);
-        });
-    }
+    // Funzione per mostrare/nascondere errori
+    function toggleError(fieldId, message) {
+        const errorElement = document.getElementById(`error-${fieldId}`);
+        const fieldElement = document.getElementById(fieldId);
+        if (!errorElement || !fieldElement) return;
 
-    function validateIBAN(iban) {
-        const errorEl = document.getElementById('error-iban');
-        if (!iban) {
-            errorEl.classList.add('hidden');
-            return;
-        }
-        if (iban.length !== 27 || !/^[A-Z]{2}[0-9]{2}[A-Z]{1}[0-9]{22}$/.test(iban)) {
-            errorEl.textContent = 'Formato IBAN non valido. Deve essere di 27 caratteri (es. IT60X0542811101000000123456).';
-            errorEl.classList.remove('hidden');
+        if (message) {
+            errorElement.textContent = message;
+            errorElement.classList.remove('hidden');
+            fieldElement.classList.add('border-red-500', 'focus:border-red-500', 'focus:ring-red-200');
         } else {
-            errorEl.classList.add('hidden');
+            errorElement.textContent = '';
+            errorElement.classList.add('hidden');
+            fieldElement.classList.remove('border-red-500', 'focus:border-red-500', 'focus:ring-red-200');
         }
     }
 
-    // --- Validazione Codice Fiscale ---
-    if (cfStudenteInput) {
-        cfStudenteInput.addEventListener('input', function() {
-            this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-            validateCF(this.value, 'studente_codice_fiscale');
-        });
-    }
-
-    function validateCF(cf, elementId) {
-        const errorEl = document.getElementById('error-' + elementId);
+    // Funzione per validare il Codice Fiscale italiano
+    function validaCodiceFiscale(cf) {
+        // Il campo non è obbligatorio, quindi se è vuoto, è valido.
         if (!cf) {
-            errorEl.classList.add('hidden');
-            return;
+            return true;
         }
-        if (!/^[A-Z]{6}[0-9]{2}[A-Z]{1}[0-9]{2}[A-Z]{1}[0-9]{3}[A-Z]{1}$/.test(cf)) {
-            errorEl.textContent = 'Formato Codice Fiscale non valido.';
-            errorEl.classList.remove('hidden');
-        } else {
-            errorEl.classList.add('hidden');
+
+        if (cf.length !== 16) {
+            return "Il codice fiscale deve essere di 16 caratteri.";
         }
+
+        cf = cf.toUpperCase();
+
+        // Regex più precisa per la struttura del codice fiscale
+        if (!/^[A-Z]{6}[0-9LMNPQRSTUV]{2}[A-EHLMPR-T][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]$/.test(cf)) {
+            return "Il formato del codice fiscale non è valido.";
+        }
+
+        return true; // Per ora solo controllo formale come richiesto
     }
 
     // --- Gestione Modale di Conferma Invio ---
+    const confirmationModal = document.getElementById('confirmation-modal');
+    const modalConfirmBtn = document.getElementById('modal-confirm-btn');
+
     if (submitOfficialBtn) {
         submitOfficialBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            confirmationModal.classList.remove('hidden');
+            // Ora la validazione è gestita nell'evento 'submit' del form.
+            // Questo pulsante ora serve solo a mostrare la modale di conferma,
+            // ma l'invio effettivo avverrà tramite il pulsante nella modale,
+            // che a sua volta scatenerà l'evento 'submit' del form.
+            // Mostriamo la modale solo se il form è valido.
+            if (form.checkValidity()) { // Usa la validazione nativa del browser per eventuali campi required
+                if (confirmationModal) confirmationModal.classList.remove('hidden');
+            }
         });
     }
 
@@ -77,6 +77,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (modalCancelBtn) modalCancelBtn.addEventListener('click', closeModal);
     if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeModal);
+
+    // Rimuovi l'errore mentre l'utente digita
+    const cfInput = document.getElementById('codice_fiscale');
+    if (cfInput) {
+        cfInput.addEventListener('input', function() {
+            // Converte in maiuscolo e rimuove caratteri non validi
+            this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            const cfResult = validaCodiceFiscale(this.value);
+            toggleError('codice_fiscale', cfResult === true ? null : cfResult);
+        });
+    }
 
     // --- Logica per la firma digitale ---
     const canvas = document.getElementById('signature-pad');
@@ -134,7 +145,36 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (form) {
-        form.addEventListener('submit', function() {
+        form.addEventListener('submit', function(event) {
+            let isValid = true;
+
+            // Validazione Codice Fiscale (se compilato)
+            const cfInput = document.getElementById('codice_fiscale');
+            const cfValue = cfInput.value;
+            if (cfValue) { // Valida solo se il campo non è vuoto
+                const cfResult = validaCodiceFiscale(cfValue);
+                if (cfResult !== true) {
+                    isValid = false;
+                    toggleError('codice_fiscale', cfResult);
+                } else {
+                    toggleError('codice_fiscale', null); // Pulisce l'errore se valido
+                }
+            } else {
+                toggleError('codice_fiscale', null); // Pulisce l'errore se vuoto
+            }
+
+            if (!isValid) {
+                event.preventDefault(); // Blocca il salvataggio/invio se il CF non è valido
+
+                // Scrolla fino al primo campo con errore per attirare l'attenzione dell'utente.
+                const firstErrorField = form.querySelector('.border-red-500');
+                if (firstErrorField) {
+                    firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+
+                return;
+            }
+
             if (signaturePad && !signaturePad.isEmpty()) {
                 document.getElementById('firma_data').value = signaturePad.toDataURL('image/png');
             }

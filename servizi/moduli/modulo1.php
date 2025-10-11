@@ -338,7 +338,7 @@ function e($value) {
     </div>
 
     <!-- Aggiunto ID al form per il targeting con jQuery -->
-    <form id="modulo1-form" action="modulo1_save.php?token=<?php echo htmlspecialchars($token); ?>" method="POST">
+    <form id="modulo1-form" action="modulo1_save.php?token=<?php echo htmlspecialchars($token); ?>" method="POST" autocomplete="off">
 
     <?php
         $status = $saved_data['status'] ?? 'bozza';
