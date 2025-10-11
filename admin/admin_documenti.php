@@ -348,17 +348,27 @@ function get_sort_link($column, $current_sort_by, $current_sort_dir, $label) {
         <div class="container-fluid">
             <h1 class="mb-4">Gestione Documenti Ricevuti</h1>
 
-            <?php if (isset($_GET['error'])): ?>
+            <?php if (isset($_GET['error'])):
+                $error_reason = $_GET['reason'] ?? 'Nessun dettaglio disponibile. Controllare la configurazione.';
+                $error_message = 'Si è verificato un errore imprevisto.';
+                if ($_GET['error'] === 'mail_failed') {
+                    $error_message = "L'invio della mail non è riuscito.";
+                } elseif ($_GET['error'] === 'no_attachments') {
+                    $error_message = "Nessun allegato trovato per la pratica selezionata.";
+                } elseif ($_GET['error'] === 'no_recipients') {
+                    $error_message = "Nessun destinatario valido specificato.";
+                } else {
+                    $error_message = "Operazione non completata. Motivo: " . htmlspecialchars($_GET['error']);
+                }
+            ?>
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <strong><i class="fas fa-exclamation-triangle me-2"></i>Errore!</strong>
-                    <?php
-                        $reason = $_GET['reason'] ?? 'Si è verificato un errore imprevisto.';
-                        if ($_GET['error'] === 'mail_failed') {
-                            echo "L'invio della mail non è riuscito. Dettagli: " . htmlspecialchars($reason);
-                        } else {
-                            echo "Operazione non completata. Motivo: " . htmlspecialchars($_GET['error']);
-                        }
-                    ?>
+                    <strong><i class="fas fa-exclamation-triangle me-2"></i>Errore!</strong> <?php echo $error_message; ?>
+                    <button type="button" class="btn btn-sm btn-outline-danger ms-3" data-bs-toggle="collapse" data-bs-target="#errorDetails" aria-expanded="false" aria-controls="errorDetails">
+                        Dettagli
+                    </button>
+                    <div class="collapse mt-2" id="errorDetails">
+                        <div class="card card-body bg-light p-2 text-monospace small"><?php echo htmlspecialchars($error_reason); ?></div>
+                    </div>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             <?php endif; ?>
@@ -557,6 +567,10 @@ function get_sort_link($column, $current_sort_by, $current_sort_dir, $label) {
             <label for="additionalRecipients" class="form-label">Altri destinatari (separati da virgola)</label>
             <input type="text" class="form-control" id="additionalRecipients" name="additional_recipients" placeholder="es. email1@esempio.com, email2@esempio.com">
           </div>
+          <div id="attachmentWarning" class="alert alert-warning p-2 small hidden" role="alert">
+            <i class="fas fa-exclamation-triangle me-1"></i>
+            <strong>Attenzione:</strong> Nessun allegato trovato per questa pratica.
+          </div>
           <p class="text-muted small">La pratica, comprensiva di tutti gli allegati e del modulo compilato, verrà inviata come file ZIP ai destinatari selezionati.</p>
         </div>
         <div class="modal-footer">
@@ -607,6 +621,17 @@ function get_sort_link($column, $current_sort_by, $current_sort_dir, $label) {
             const formName = $(this).data('form-name');
             $('#modal_form_name').val(formName);
             $('#cassaEdileModalLabel').text('Invia Pratica: ' + formName);
+
+            // Controlla la presenza di allegati
+            const warningDiv = $('#attachmentWarning');
+            warningDiv.addClass('hidden'); // Nascondi l'avviso precedente
+
+            $.get('check_attachments.php', { form_name: formName })
+                .done(function(response) {
+                    if (response && !response.has_attachments) {
+                        warningDiv.removeClass('hidden');
+                    }
+                });
         });
 
         // Gestione invio form modale con feedback visivo

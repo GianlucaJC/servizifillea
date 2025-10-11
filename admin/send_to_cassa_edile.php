@@ -6,13 +6,6 @@ session_start();
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-// Funzione di logging per il debug
-function write_log($message) {
-    $log_file = __DIR__ . '/send_to_cassa_edile.log';
-    $timestamp = date('Y-m-d H:i:s');
-    file_put_contents($log_file, "[$timestamp] - $message\n", FILE_APPEND | LOCK_EX);
-}
-
 // 1. Proteggi lo script: solo gli admin possono accedervi.
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
     header('HTTP/1.0 403 Forbidden');
@@ -21,16 +14,12 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
 
 // 2. Verifica che i dati necessari siano stati inviati tramite POST.
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['form_name'])) {
-    write_log("ERRORE: Richiesta non valida (non POST o form_name mancante).");
     header('Location: admin_documenti.php?error=invalid_request');
     exit;
 }
 
 $form_name = $_POST['form_name'];
 $funzionario_id = $_SESSION['funzionario_id'] ?? 0;
-
-write_log("--- INIZIO PROCESSO INVIO ---");
-write_log("Pratica: {$form_name}, Funzionario ID: {$funzionario_id}");
 
 // 3. Recupera i destinatari
 $recipients = [];
@@ -44,15 +33,12 @@ if (isset($_POST['additional_recipients']) && !empty($_POST['additional_recipien
 $recipients = array_unique(array_filter($recipients, 'filter_var', FILTER_VALIDATE_EMAIL));
 
 if (empty($recipients)) {
-    write_log("ERRORE: Nessun destinatario valido trovato. Uscita.");
     header('Location: admin_documenti.php?error=no_recipients');
     exit;
 }
-write_log("Destinatari validati: " . implode(', ', $recipients));
 
 include_once('../database.php');
 $pdo1 = Database::getInstance('fillea');
-write_log("Connessione al database stabilita.");
 
 // 4. Recupera gli allegati dal database
 $stmt_files = $pdo1->prepare("
@@ -64,45 +50,40 @@ $stmt_files = $pdo1->prepare("
 $stmt_files->execute([$form_name, $funzionario_id]);
 $files_to_zip = $stmt_files->fetchAll(PDO::FETCH_ASSOC);
 
-write_log("Trovati " . count($files_to_zip) . " file allegati nel database.");
+// 5. Crea il file ZIP
+$downloads_dir = __DIR__ . '/downloads';
+if (!is_dir($downloads_dir)) {
+    mkdir($downloads_dir, 0755, true);
+}
+$zip_filename = $downloads_dir . '/' . $form_name . '_' . time() . '.zip';
+$zip = new ZipArchive();
 
-if (empty($files_to_zip)) {
-    write_log("ERRORE: Nessun allegato trovato per questa pratica. Uscita.");
-    header('Location: admin_documenti.php?error=no_attachments');
+if ($zip->open($zip_filename, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== TRUE) {
+    header('Location: admin_documenti.php?error=zip_creation_failed');
     exit;
 }
 
-// // 5. Crea il file ZIP (TEMPORANEAMENTE DISABILITATO PER TEST)
-// $zip_filename = sys_get_temp_dir() . '/' . $form_name . '.zip';
-// $zip = new ZipArchive();
-// 
-// if ($zip->open($zip_filename, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== TRUE) {
-//     header('Location: admin_documenti.php?error=zip_creation_failed');
-//     exit;
-// }
-// 
-// // Aggiungi gli allegati caricati dall'utente
-// foreach ($files_to_zip as $file) {
-//     $file_path_on_server = __DIR__ . '/../servizi/moduli/' . $file['file_path'];
-//     if (file_exists($file_path_on_server)) {
-//         $zip->addFile($file_path_on_server, $file['original_filename']);
-//     }
-// }
-// 
-// // Aggiungi il PDF statico (per ora)
-// $static_pdf_path = __DIR__ . '/../modulo.pdf';
-// if (file_exists($static_pdf_path)) {
-//     $zip->addFile($static_pdf_path, 'modulo_riepilogativo.pdf');
-// }
-// 
-// $zip->close();
+// Aggiungi gli allegati caricati dall'utente
+foreach ($files_to_zip as $file) {
+    $file_path_on_server = __DIR__ . '/../servizi/moduli/' . $file['file_path'];
+    if (file_exists($file_path_on_server)) {
+        $zip->addFile($file_path_on_server, $file['original_filename']);
+    }
+}
+
+// Aggiungi il PDF statico (per ora)
+$static_pdf_path = __DIR__ . '/../modulo.pdf';
+if (file_exists($static_pdf_path)) {
+    $zip->addFile($static_pdf_path, 'modulo_riepilogativo.pdf');
+}
+
+$zip->close();
 // 6. Invia l'email con PHPMailer
 $mail = new PHPMailer(true);
 
 try {
     // Includi e utilizza la configurazione centralizzata
-    require_once __DIR__ . '/config_mail.php';
-    write_log("Configurazione PHPMailer caricata. Host: " . SMTP_HOST . ", Porta: " . SMTP_PORT);
+    require_once __DIR__ . '/../config_mail.php';
 
     $mail->isSMTP();
     $mail->Host = SMTP_HOST;
@@ -121,13 +102,6 @@ try {
     $mail->SMTPSecure = false;
     $mail->SMTPAutoTLS = false;
     
-    // DEBUG SMTP AVANZATO: Cattura l'output di debug e lo scrive nel file di log.
-    $mail->SMTPDebug = 2; // Livello 2: mostra i comandi e le risposte del server.
-    $mail->Debugoutput = function($str, $level) {
-        // Scriviamo l'output di PHPMailer nel log per analizzare la conversazione SMTP.
-        write_log("SMTP -> " . trim($str));
-    };
-
     // Mittente
     $mail->setFrom(SMTP_FROM_ADDRESS, SMTP_FROM_NAME);
 
@@ -136,46 +110,47 @@ try {
         $mail->addAddress($recipient);
     }
 
-    // // Allegato (TEMPORANEAMENTE DISABILITATO PER TEST)
-    // $mail->addAttachment($zip_filename);
+    // 6a. Genera un link di download sicuro
+    $download_token = bin2hex(random_bytes(32));
+    $expires_at = date('Y-m-d H:i:s', strtotime('+7 days'));
+    $stmt_link = $pdo1->prepare("INSERT INTO `fillea-app`.`download_links` (token, file_path, expires_at) VALUES (?, ?, ?)");
+    $stmt_link->execute([$download_token, $zip_filename, $expires_at]);
+
+    // Assicurati di usare il protocollo corretto (http o https) e il nome host
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+    $host = $_SERVER['HTTP_HOST'];
+    $download_link = $protocol . $host . dirname($_SERVER['PHP_SELF']) . '/download.php?token=' . $download_token;
 
     // Contenuto
     $mail->isHTML(true);
     $mail->Subject = 'Invio Pratica Cassa Edile: ' . $form_name;
-    $mail->Body    = "È stata inviata la pratica <strong>{$form_name}</strong>. I documenti sono disponibili sulla piattaforma.";
-    $mail->AltBody = "È stata inviata la pratica {$form_name}. I documenti sono disponibili sulla piattaforma.";
+    $mail->Body    = "È stata inviata la pratica <strong>{$form_name}</strong>.<br><br>" .
+                     "Puoi scaricare tutta la documentazione cliccando sul seguente link. Il link scadrà tra 7 giorni.<br><br>" .
+                     "<a href='{$download_link}'>Scarica Documenti</a>";
+    $mail->AltBody = "È stata inviata la pratica {$form_name}.\n\n" .
+                     "Puoi scaricare tutta la documentazione visitando il seguente link. Il link scadrà tra 7 giorni.\n" .
+                     $download_link;
 
-    write_log("Tentativo di invio email...");
+
     $mail->send();
-    write_log("Email inviata con successo.");
 
     // 7. Aggiorna lo stato della pratica nel database
-    write_log("Inizio aggiornamento stato nel database.");
     $stmt_master = $pdo1->prepare("UPDATE `fillea-app`.`richieste_master` SET status = 'inviato_in_cassa_edile' WHERE form_name = ?");
     $stmt_master->execute([$form_name]);
 
     // Determina la tabella del modulo specifico (modulo1 o modulo2)
     $table_name = strpos($form_name, 'form2_') === 0 ? 'modulo2_richieste' : 'modulo1_richieste';
-    write_log("Aggiornamento stato per la tabella specifica: {$table_name}.");
     $stmt_modulo = $pdo1->prepare("UPDATE `fillea-app`.`{$table_name}` SET status = 'inviato_in_cassa_edile' WHERE form_name = ?");
     $stmt_modulo->execute([$form_name]);
-    write_log("Stato aggiornato con successo. Reindirizzamento in corso.");
 
     // Reindirizza con successo
-    write_log("--- PROCESSO COMPLETATO CON SUCCESSO ---");
     header('Location: admin_documenti.php?status_updated=true&mail_sent=true');
 
 } catch (Exception $e) {
     // Log dell'errore e reindirizzamento
     $error_message = "PHPMailer Error: {$mail->ErrorInfo} | Exception: {$e->getMessage()}";
-    write_log("ERRORE CRITICO: " . $error_message);
     header('Location: admin_documenti.php?error=mail_failed&reason=' . urlencode($mail->ErrorInfo));
 
-} finally {
-    // 8. Pulisci il file ZIP temporaneo
-    // if (isset($zip_filename) && file_exists($zip_filename)) {
-    //     unlink($zip_filename);
-    // }
 }
 
 exit;
