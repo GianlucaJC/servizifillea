@@ -25,8 +25,8 @@ $funzionario_id = $_SESSION['funzionario_id'] ?? 0;
 $stmt_files = $pdo1->prepare("
     SELECT COUNT(ra.id)
     FROM `fillea-app`.richieste_allegati ra
-    JOIN `fillea-app`.richieste_master rm ON ra.form_name = rm.form_name COLLATE utf8mb4_unicode_ci
-    WHERE ra.form_name = ? AND rm.id_funzionario = ?
+    JOIN `fillea-app`.richieste_master rm ON ra.form_name = rm.form_name AND ra.user_id = rm.user_id
+    WHERE ra.form_name = ? AND rm.id_funzionario = ? COLLATE utf8mb4_unicode_ci
 ");
 $stmt_files->execute([$form_name, $funzionario_id]);
 $count = $stmt_files->fetchColumn();
