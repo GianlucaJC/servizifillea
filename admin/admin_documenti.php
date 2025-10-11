@@ -348,6 +348,21 @@ function get_sort_link($column, $current_sort_by, $current_sort_dir, $label) {
         <div class="container-fluid">
             <h1 class="mb-4">Gestione Documenti Ricevuti</h1>
 
+            <?php if (isset($_GET['error'])): ?>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong><i class="fas fa-exclamation-triangle me-2"></i>Errore!</strong>
+                    <?php
+                        $reason = $_GET['reason'] ?? 'Si è verificato un errore imprevisto.';
+                        if ($_GET['error'] === 'mail_failed') {
+                            echo "L'invio della mail non è riuscito. Dettagli: " . htmlspecialchars($reason);
+                        } else {
+                            echo "Operazione non completata. Motivo: " . htmlspecialchars($_GET['error']);
+                        }
+                    ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
+
             <!-- Filtri -->
             <div class="card mb-4">
                 <div class="card-header bg-primary text-white">
