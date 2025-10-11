@@ -50,6 +50,12 @@ $stmt_files = $pdo1->prepare("
 $stmt_files->execute([$form_name, $funzionario_id]);
 $files_to_zip = $stmt_files->fetchAll(PDO::FETCH_ASSOC);
 
+if (empty($files_to_zip)) {
+    // Anche se l'avviso è già nella modale, questo è un controllo di sicurezza lato server.
+    // Non blocchiamo l'invio ma procediamo senza creare uno ZIP vuoto.
+    // La logica di creazione dello ZIP e del link verrà saltata.
+}
+
 // 5. Crea il file ZIP
 $downloads_dir = __DIR__ . '/downloads';
 if (!is_dir($downloads_dir)) {
@@ -83,7 +89,7 @@ $mail = new PHPMailer(true);
 
 try {
     // Includi e utilizza la configurazione centralizzata
-    require_once __DIR__ . '/../config_mail.php';
+    require_once __DIR__ . '/config_mail.php';
 
     $mail->isSMTP();
     $mail->Host = SMTP_HOST;
@@ -110,26 +116,31 @@ try {
         $mail->addAddress($recipient);
     }
 
-    // 6a. Genera un link di download sicuro
-    $download_token = bin2hex(random_bytes(32));
-    $expires_at = date('Y-m-d H:i:s', strtotime('+7 days'));
-    $stmt_link = $pdo1->prepare("INSERT INTO `fillea-app`.`download_links` (token, file_path, expires_at) VALUES (?, ?, ?)");
-    $stmt_link->execute([$download_token, $zip_filename, $expires_at]);
-
-    // Assicurati di usare il protocollo corretto (http o https) e il nome host
-    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
-    $host = $_SERVER['HTTP_HOST'];
-    $download_link = $protocol . $host . dirname($_SERVER['PHP_SELF']) . '/download.php?token=' . $download_token;
-
     // Contenuto
     $mail->isHTML(true);
     $mail->Subject = 'Invio Pratica Cassa Edile: ' . $form_name;
-    $mail->Body    = "È stata inviata la pratica <strong>{$form_name}</strong>.<br><br>" .
-                     "Puoi scaricare tutta la documentazione cliccando sul seguente link. Il link scadrà tra 7 giorni.<br><br>" .
-                     "<a href='{$download_link}'>Scarica Documenti</a>";
-    $mail->AltBody = "È stata inviata la pratica {$form_name}.\n\n" .
-                     "Puoi scaricare tutta la documentazione visitando il seguente link. Il link scadrà tra 7 giorni.\n" .
-                     $download_link;
+
+    if (!empty($files_to_zip)) {
+        // 6a. Genera un link di download sicuro solo se ci sono file
+        $download_token = bin2hex(random_bytes(32));
+        $expires_at = date('Y-m-d H:i:s', strtotime('+7 days'));
+        $stmt_link = $pdo1->prepare("INSERT INTO `fillea-app`.`download_links` (token, file_path, expires_at) VALUES (?, ?, ?)");
+        $stmt_link->execute([$download_token, $zip_filename, $expires_at]);
+
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+        $host = $_SERVER['HTTP_HOST'];
+        $download_link = $protocol . $host . dirname($_SERVER['PHP_SELF']) . '/download.php?token=' . $download_token;
+
+        $mail->Body    = "È stata inviata la pratica <strong>{$form_name}</strong>.<br><br>" .
+                         "Puoi scaricare tutta la documentazione cliccando sul seguente link. Il link scadrà tra 7 giorni.<br><br>" .
+                         "<a href='{$download_link}'>Scarica Documenti</a>";
+        $mail->AltBody = "È stata inviata la pratica {$form_name}.\n\n" .
+                         "Puoi scaricare tutta la documentazione visitando il seguente link. Il link scadrà tra 7 giorni.\n" .
+                         $download_link;
+    } else {
+        $mail->Body    = "È stata inviata la pratica <strong>{$form_name}</strong>.<br><br>Non sono stati allegati nuovi documenti a questo invio.";
+        $mail->AltBody = "È stata inviata la pratica {$form_name}.\n\nNon sono stati allegati nuovi documenti a questo invio.";
+    }
 
 
     $mail->send();
