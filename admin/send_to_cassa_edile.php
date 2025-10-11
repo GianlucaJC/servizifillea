@@ -121,8 +121,12 @@ try {
     $mail->SMTPSecure = false;
     $mail->SMTPAutoTLS = false;
     
-    // Aggiungi debug SMTP
-    // $mail->SMTPDebug = 2; // 2 per output dettagliato, da usare solo per debug
+    // DEBUG SMTP AVANZATO: Cattura l'output di debug e lo scrive nel file di log.
+    $mail->SMTPDebug = 2; // Livello 2: mostra i comandi e le risposte del server.
+    $mail->Debugoutput = function($str, $level) {
+        // Scriviamo l'output di PHPMailer nel log per analizzare la conversazione SMTP.
+        write_log("SMTP -> " . trim($str));
+    };
 
     // Mittente
     $mail->setFrom(SMTP_FROM_ADDRESS, SMTP_FROM_NAME);
