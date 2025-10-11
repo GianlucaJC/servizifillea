@@ -376,7 +376,7 @@ function e($value) {
             <p class="font-bold">Richiesta Archiviata</p>
             <p>Questa richiesta è stata archiviata e non è più accessibile o modificabile.</p>
         </div>
-    <?php elseif (!empty($saved_data) && !$is_admin_view): // Se l'utente sta compilando (non è admin) ?>
+    <?php elseif ($status === 'bozza' && !$is_admin_view): // Se l'utente sta compilando (non è admin) e la pratica è in bozza ?>
         <div class="form-section text-center">
              <button type="submit" id="submit-official-btn" class="w-full md:w-auto bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-green-700 transition-colors duration-300" name="action" value="submit_official">
                 <i class="fas fa-paper-plane mr-2"></i> Invia dati al funzionario

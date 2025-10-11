@@ -437,9 +437,11 @@ function e($value) {
             <button type="submit" id="save-btn" class="w-full md:w-auto bg-primary text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-red-700 transition-colors duration-300" name="action" value="save">
                 <i class="fas fa-save mr-2"></i> Salva Dati
             </button>
+            <?php if (!$is_admin_view): // Il pulsante di invio è solo per l'utente ?>
             <button type="button" id="submit-official-btn" class="w-full md:w-auto bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-green-700 transition-colors duration-300 mt-4 md:mt-0 md:ml-4">
                 <i class="fas fa-paper-plane mr-2"></i> Invia dati al funzionario
             </button>
+            <?php endif; ?>
         </div>
         <?php endif; ?>
 
