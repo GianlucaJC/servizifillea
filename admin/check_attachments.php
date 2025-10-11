@@ -25,22 +25,9 @@ $funzionario_id = $_SESSION['funzionario_id'] ?? 0;
 $stmt_files = $pdo1->prepare("
     SELECT COUNT(ra.id)
     FROM `fillea-app`.richieste_allegati ra
-    JOIN `fillea-app`.richieste_master rm ON ra.form_name = rm.form_name COLLATE utf8mb4_unicode_ci AND ra.user_id = rm.user_id
-    WHERE ra.form_name = ? AND rm.id_funzionario = ?
+    JOIN `fillea-app`.richieste_master rm ON ra.form_name = rm.form_name AND ra.user_id = rm.user_id
+    WHERE ra.form_name = ? AND rm.id_funzionario = ? COLLATE utf8mb4_unicode_ci
 ");
-
-// Se viene richiesto il debug, stampa la query e i parametri
-if (isset($_GET['debug']) && $_GET['debug'] == '1') {
-    header('Content-Type: text/plain');
-    echo "--- DEBUG QUERY ---\n\n";
-    $interpolated_query = "SELECT COUNT(ra.id) FROM `fillea-app`.richieste_allegati ra JOIN `fillea-app`.richieste_master rm ON ra.form_name = rm.form_name COLLATE utf8mb4_unicode_ci AND ra.user_id = rm.user_id WHERE ra.form_name = '{$form_name}' AND rm.id_funzionario = {$funzionario_id};";
-    echo "Query da eseguire in phpMyAdmin:\n";
-    echo $interpolated_query . "\n\n";
-    echo "Parametri usati:\n";
-    echo "1. form_name: " . $form_name . "\n";
-    echo "2. funzionario_id: " . $funzionario_id . "\n";
-    exit;
-}
 
 $stmt_files->execute([$form_name, $funzionario_id]);
 $count = $stmt_files->fetchColumn();
