@@ -7,6 +7,8 @@ push_config.php
 
 # Log di debug
 *.log
+# File di configurazione con credenziali
+config_mail.php
 
 # File temporanei o di sistema
 .DS_Store

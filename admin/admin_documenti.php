@@ -474,11 +474,7 @@ function get_sort_link($column, $current_sort_by, $current_sort_dir, $label) {
                                                         <li><a class="dropdown-item" href="<?php echo $view_link; ?>"><i class="fas fa-eye me-2"></i>Visualizza Dettagli</a></li>
                                                         <li><hr class="dropdown-divider"></li>
                                                         <?php if ($req['status'] !== 'bozza'): ?>
-                                                            <form action="update_request_status.php" method="POST" class="d-inline">
-                                                                <input type="hidden" name="form_name" value="<?php echo htmlspecialchars($req['form_name']); ?>">
-                                                                <input type="hidden" name="new_status" value="inviato_in_cassa_edile">
-                                                                <li><button type="submit" class="dropdown-item"><i class="fas fa-university me-2"></i>Invia a Cassa Edile</button></li>
-                                                            </form>
+                                                            <li><button type="button" class="dropdown-item send-to-cassa-btn" data-bs-toggle="modal" data-bs-target="#cassaEdileModal" data-form-name="<?php echo htmlspecialchars($req['form_name']); ?>"><i class="fas fa-university me-2"></i>Invia a Cassa Edile</button></li>
                                                             <form action="update_request_status.php" method="POST" class="d-inline">
                                                                 <input type="hidden" name="form_name" value="<?php echo htmlspecialchars($req['form_name']); ?>">
                                                                 <input type="hidden" name="new_status" value="abbandonato">
@@ -527,6 +523,36 @@ function get_sort_link($column, $current_sort_by, $current_sort_dir, $label) {
     </main>
 </div>
 
+<!-- Modal Invia a Cassa Edile -->
+<div class="modal fade" id="cassaEdileModal" tabindex="-1" aria-labelledby="cassaEdileModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="cassaEdileModalLabel">Invia Pratica a Cassa Edile</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="cassaEdileForm" action="send_to_cassa_edile.php" method="POST">
+        <div class="modal-body">
+          <input type="hidden" id="modal_form_name" name="form_name" value="">
+          <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="sendToCassaEdile" name="send_to_cassa_edile" value="filleaoffice@gmail.com" checked>
+            <label class="form-check-label" for="sendToCassaEdile">Invia a Cassa Edile (filleaoffice@gmail.com)</label>
+          </div>
+          <div class="mb-3">
+            <label for="additionalRecipients" class="form-label">Altri destinatari (separati da virgola)</label>
+            <input type="text" class="form-control" id="additionalRecipients" name="additional_recipients" placeholder="es. email1@esempio.com, email2@esempio.com">
+          </div>
+          <p class="text-muted small">La pratica, comprensiva di tutti gli allegati e del modulo compilato, verrà inviata come file ZIP ai destinatari selezionati.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+          <button type="submit" id="cassaEdileSubmitBtn" class="btn btn-primary" style="background-color: var(--admin-primary); border-color: var(--admin-primary);"><i class="fas fa-paper-plane me-2"></i>Invia Email</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
@@ -559,6 +585,20 @@ function get_sort_link($column, $current_sort_by, $current_sort_dir, $label) {
                         }
                     });
             }
+        });
+
+        // Logica per popolare la modale "Invia a Cassa Edile"
+        $('.send-to-cassa-btn').on('click', function() {
+            const formName = $(this).data('form-name');
+            $('#modal_form_name').val(formName);
+            $('#cassaEdileModalLabel').text('Invia Pratica: ' + formName);
+        });
+
+        // Gestione invio form modale con feedback visivo
+        $('#cassaEdileForm').on('submit', function() {
+            const submitBtn = $('#cassaEdileSubmitBtn');
+            submitBtn.prop('disabled', true);
+            submitBtn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Invio in corso...');
         });
     });
 </script>

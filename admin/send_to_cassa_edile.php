@@ -1,0 +1,147 @@
+<?php
+require_once dirname(__DIR__) . '/vendor/autoload.php';
+
+session_start();
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+// 1. Proteggi lo script: solo gli admin possono accedervi.
+if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+    header('HTTP/1.0 403 Forbidden');
+    die('Accesso non autorizzato.');
+}
+
+// 2. Verifica che i dati necessari siano stati inviati tramite POST.
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['form_name'])) {
+    header('Location: admin_documenti.php?error=invalid_request');
+    exit;
+}
+
+$form_name = $_POST['form_name'];
+$funzionario_id = $_SESSION['funzionario_id'] ?? 0;
+
+// 3. Recupera i destinatari
+$recipients = [];
+if (isset($_POST['send_to_cassa_edile']) && !empty($_POST['send_to_cassa_edile'])) {
+    $recipients[] = trim($_POST['send_to_cassa_edile']);
+}
+if (isset($_POST['additional_recipients']) && !empty($_POST['additional_recipients'])) {
+    $additional = array_map('trim', explode(',', $_POST['additional_recipients']));
+    $recipients = array_merge($recipients, $additional);
+}
+$recipients = array_unique(array_filter($recipients, 'filter_var', FILTER_VALIDATE_EMAIL));
+
+if (empty($recipients)) {
+    header('Location: admin_documenti.php?error=no_recipients');
+    exit;
+}
+
+include_once('../database.php');
+$pdo1 = Database::getInstance('fillea');
+
+// 4. Recupera gli allegati dal database
+$stmt_files = $pdo1->prepare("
+    SELECT ra.file_path, ra.original_filename
+    FROM `fillea-app`.richieste_allegati ra
+    JOIN `fillea-app`.richieste_master rm ON ra.form_name = rm.form_name COLLATE utf8mb4_unicode_ci
+    WHERE ra.form_name = ? AND rm.id_funzionario = ?
+");
+$stmt_files->execute([$form_name, $funzionario_id]);
+$files_to_zip = $stmt_files->fetchAll(PDO::FETCH_ASSOC);
+
+if (empty($files_to_zip)) {
+    header('Location: admin_documenti.php?error=no_attachments');
+    exit;
+}
+
+// 5. Crea il file ZIP
+$zip_filename = sys_get_temp_dir() . '/' . $form_name . '.zip';
+$zip = new ZipArchive();
+
+if ($zip->open($zip_filename, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== TRUE) {
+    header('Location: admin_documenti.php?error=zip_creation_failed');
+    exit;
+}
+
+// Aggiungi gli allegati caricati dall'utente
+foreach ($files_to_zip as $file) {
+    $file_path_on_server = __DIR__ . '/../servizi/moduli/' . $file['file_path'];
+    if (file_exists($file_path_on_server)) {
+        $zip->addFile($file_path_on_server, $file['original_filename']);
+    }
+}
+
+// Aggiungi il PDF statico (per ora)
+$static_pdf_path = __DIR__ . '/../modulo.pdf';
+if (file_exists($static_pdf_path)) {
+    $zip->addFile($static_pdf_path, 'modulo_riepilogativo.pdf');
+}
+
+$zip->close();
+
+// 6. Invia l'email con PHPMailer
+$mail = new PHPMailer(true);
+
+try {
+    // Includi e utilizza la configurazione centralizzata
+    require_once __DIR__ . '/config_mail.php';
+
+    $mail->isSMTP();
+    $mail->Host = SMTP_HOST;
+    $mail->SMTPAuth = true;
+    $mail->Username = SMTP_USERNAME;
+    $mail->Password = SMTP_PASSWORD;
+    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+    $mail->Port = SMTP_PORT;
+
+    // Mittente
+    $mail->setFrom(SMTP_FROM_ADDRESS, SMTP_FROM_NAME);
+
+    // Destinatari
+    foreach ($recipients as $recipient) {
+        $mail->addAddress($recipient);
+    }
+
+    // Allegato
+    $mail->addAttachment($zip_filename);
+
+    // Contenuto
+    $mail->isHTML(true);
+    $mail->Subject = 'Invio Pratica Cassa Edile: ' . $form_name;
+    $mail->Body    = "In allegato la documentazione completa per la pratica <strong>{$form_name}</strong>.";
+    $mail->AltBody = "In allegato la documentazione completa per la pratica {$form_name}.";
+
+    $mail->send();
+
+    // 7. Aggiorna lo stato della pratica nel database
+    $pdo1->beginTransaction();
+    $stmt_master = $pdo1->prepare("UPDATE `fillea-app`.`richieste_master` SET status = 'inviato_in_cassa_edile' WHERE form_name = ?");
+    $stmt_master->execute([$form_name]);
+
+    // Determina la tabella del modulo specifico (modulo1 o modulo2)
+    $table_name = strpos($form_name, 'form2_') === 0 ? 'modulo2_richieste' : 'modulo1_richieste';
+    $stmt_modulo = $pdo1->prepare("UPDATE `fillea-app`.`{$table_name}` SET status = 'inviato_in_cassa_edile' WHERE form_name = ?");
+    $stmt_modulo->execute([$form_name]);
+    $pdo1->commit();
+
+    // Reindirizza con successo
+    header('Location: admin_documenti.php?status_updated=true&mail_sent=true');
+
+} catch (Exception $e) {
+    if ($pdo1->inTransaction()) {
+        $pdo1->rollBack();
+    }
+    // Log dell'errore e reindirizzamento
+    error_log("PHPMailer Error: {$mail->ErrorInfo}");
+    header('Location: admin_documenti.php?error=mail_failed&reason=' . urlencode($mail->ErrorInfo));
+
+} finally {
+    // 8. Pulisci il file ZIP temporaneo
+    if (file_exists($zip_filename)) {
+        unlink($zip_filename);
+    }
+}
+
+exit;
+?>
