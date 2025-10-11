@@ -112,11 +112,20 @@ try {
     write_log("Configurazione PHPMailer caricata. Host: " . SMTP_HOST . ", Porta: " . SMTP_PORT);
     $mail->isSMTP();
     $mail->Host = SMTP_HOST;
-    $mail->SMTPAuth = true;
-    $mail->Username = SMTP_USERNAME;
-    $mail->Password = SMTP_PASSWORD;
-    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
     $mail->Port = SMTP_PORT;
+
+    // Se ci sono username e password, abilita l'autenticazione.
+    if (!empty(SMTP_USERNAME) && !empty(SMTP_PASSWORD)) {
+        $mail->SMTPAuth = true;
+        $mail->Username = SMTP_USERNAME;
+        $mail->Password = SMTP_PASSWORD;
+    } else {
+        $mail->SMTPAuth = false;
+    }
+
+    // Disabilita STARTTLS esplicitamente. Il tuo server sulla porta 25 non sembra supportarlo.
+    $mail->SMTPSecure = false;
+    $mail->SMTPAutoTLS = false;
     
     // Aggiungi debug SMTP
     // $mail->SMTPDebug = 2; // 2 per output dettagliato, da usare solo per debug
