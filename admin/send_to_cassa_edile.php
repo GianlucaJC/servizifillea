@@ -6,6 +6,13 @@ session_start();
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
+// Funzione di logging per il debug
+function write_log($message) {
+    $log_file = __DIR__ . '/send_to_cassa_edile.log';
+    $timestamp = date('Y-m-d H:i:s');
+    file_put_contents($log_file, "[$timestamp] - $message\n", FILE_APPEND | LOCK_EX);
+}
+
 // 1. Proteggi lo script: solo gli admin possono accedervi.
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
     header('HTTP/1.0 403 Forbidden');
@@ -14,12 +21,16 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
 
 // 2. Verifica che i dati necessari siano stati inviati tramite POST.
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['form_name'])) {
+    write_log("ERRORE: Richiesta non valida (non POST o form_name mancante).");
     header('Location: admin_documenti.php?error=invalid_request');
     exit;
 }
 
 $form_name = $_POST['form_name'];
 $funzionario_id = $_SESSION['funzionario_id'] ?? 0;
+
+write_log("--- INIZIO PROCESSO INVIO ---");
+write_log("Pratica: {$form_name}, Funzionario ID: {$funzionario_id}");
 
 // 3. Recupera i destinatari
 $recipients = [];
@@ -33,12 +44,15 @@ if (isset($_POST['additional_recipients']) && !empty($_POST['additional_recipien
 $recipients = array_unique(array_filter($recipients, 'filter_var', FILTER_VALIDATE_EMAIL));
 
 if (empty($recipients)) {
+    write_log("ERRORE: Nessun destinatario valido trovato. Uscita.");
     header('Location: admin_documenti.php?error=no_recipients');
     exit;
 }
+write_log("Destinatari validati: " . implode(', ', $recipients));
 
 include_once('../database.php');
 $pdo1 = Database::getInstance('fillea');
+write_log("Connessione al database stabilita.");
 
 // 4. Recupera gli allegati dal database
 $stmt_files = $pdo1->prepare("
@@ -50,7 +64,10 @@ $stmt_files = $pdo1->prepare("
 $stmt_files->execute([$form_name, $funzionario_id]);
 $files_to_zip = $stmt_files->fetchAll(PDO::FETCH_ASSOC);
 
+write_log("Trovati " . count($files_to_zip) . " file allegati nel database.");
+
 if (empty($files_to_zip)) {
+    write_log("ERRORE: Nessun allegato trovato per questa pratica. Uscita.");
     header('Location: admin_documenti.php?error=no_attachments');
     exit;
 }
@@ -85,6 +102,7 @@ $mail = new PHPMailer(true);
 try {
     // Includi e utilizza la configurazione centralizzata
     require_once __DIR__ . '/config_mail.php';
+    write_log("Configurazione PHPMailer caricata. Host: " . SMTP_HOST . ", Porta: " . SMTP_PORT);
 
     $mail->isSMTP();
     $mail->Host = SMTP_HOST;
@@ -123,23 +141,30 @@ try {
     $mail->Body    = "È stata inviata la pratica <strong>{$form_name}</strong>. I documenti sono disponibili sulla piattaforma.";
     $mail->AltBody = "È stata inviata la pratica {$form_name}. I documenti sono disponibili sulla piattaforma.";
 
+    write_log("Tentativo di invio email...");
     $mail->send();
+    write_log("Email inviata con successo.");
 
     // 7. Aggiorna lo stato della pratica nel database
+    write_log("Inizio aggiornamento stato nel database.");
     $stmt_master = $pdo1->prepare("UPDATE `fillea-app`.`richieste_master` SET status = 'inviato_in_cassa_edile' WHERE form_name = ?");
     $stmt_master->execute([$form_name]);
 
     // Determina la tabella del modulo specifico (modulo1 o modulo2)
     $table_name = strpos($form_name, 'form2_') === 0 ? 'modulo2_richieste' : 'modulo1_richieste';
+    write_log("Aggiornamento stato per la tabella specifica: {$table_name}.");
     $stmt_modulo = $pdo1->prepare("UPDATE `fillea-app`.`{$table_name}` SET status = 'inviato_in_cassa_edile' WHERE form_name = ?");
     $stmt_modulo->execute([$form_name]);
+    write_log("Stato aggiornato con successo. Reindirizzamento in corso.");
 
     // Reindirizza con successo
+    write_log("--- PROCESSO COMPLETATO CON SUCCESSO ---");
     header('Location: admin_documenti.php?status_updated=true&mail_sent=true');
 
 } catch (Exception $e) {
     // Log dell'errore e reindirizzamento
     $error_message = "PHPMailer Error: {$mail->ErrorInfo} | Exception: {$e->getMessage()}";
+    write_log("ERRORE CRITICO: " . $error_message);
     header('Location: admin_documenti.php?error=mail_failed&reason=' . urlencode($mail->ErrorInfo));
 
 } finally {
