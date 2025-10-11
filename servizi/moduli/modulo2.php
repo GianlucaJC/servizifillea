@@ -549,8 +549,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (!$can_edit && $form_name !== null):
         ?>
-            $('#modulo2-form :input').not('#existing_form, #unlock-for-user-btn, #admin_notification').prop('disabled', true);
+            // Disabilita tutti i campi tranne quelli necessari per la navigazione e le azioni admin
+            $('#modulo2-form :input').not('#existing_form, #unlock-for-user-btn, #admin_notification, [name="action"]').prop('disabled', true);
         <?php endif; ?>
+      
 });
 </script>
 

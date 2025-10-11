@@ -33,11 +33,15 @@ $offset = ($page - 1) * ITEMS_PER_PAGE;
 
 // --- FINE GESTIONE ---
 
-// Elenco dei servizi per il filtro
-$servizi = [
-    'Contributi di Studio' => "Contributi di Studio",
-    // Aggiungi qui altri nomi di moduli quando saranno disponibili
-];
+// Elenco dei servizi per il filtro (recuperato dinamicamente)
+$sql_services = "SELECT DISTINCT modulo_nome FROM `fillea-app`.richieste_master ORDER BY modulo_nome";
+$stmt_services = $pdo1->prepare($sql_services);
+$stmt_services->execute();
+$servizi_results = $stmt_services->fetchAll(PDO::FETCH_COLUMN);
+$servizi = [];
+foreach ($servizi_results as $service_name) {
+    $servizi[$service_name] = $service_name;
+}
 
 // Elenco degli stati per il filtro
 $stati = [
@@ -443,8 +447,29 @@ function get_sort_link($column, $current_sort_by, $current_sort_dir, $label) {
                                                     </button>
                                                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="action-dropdown-<?php echo $req['id']; ?>">
                                                         <?php
-                                                            $module_path = '../servizi/moduli/modulo1.php';
-                                                            $view_link = "{$module_path}?form_name=" . urlencode($req['form_name']) . "&user_id=" . urlencode($req['user_id']);
+                                                            // Logica dinamica per determinare il modulo e la prestazione
+                                                            $module_file = '';
+                                                            $prestazione = '';
+                                                            
+                                                            if ($req['modulo_nome'] === 'Contributi di Studio') {
+                                                                $module_file = 'modulo1.php';
+                                                                $stmt_prestazione = $pdo1->prepare("SELECT prestazioni FROM `fillea-app`.modulo1_richieste WHERE form_name = ?");
+                                                            } elseif ($req['modulo_nome'] === 'Prestazioni Varie') {
+                                                                $module_file = 'modulo2.php';
+                                                                $stmt_prestazione = $pdo1->prepare("SELECT prestazioni FROM `fillea-app`.modulo2_richieste WHERE form_name = ?");
+                                                            }
+
+                                                            if (!empty($module_file)) {
+                                                                $stmt_prestazione->execute([$req['form_name']]);
+                                                                $prestazioni_json = $stmt_prestazione->fetchColumn();
+                                                                if ($prestazioni_json) {
+                                                                    $prestazioni_array = json_decode($prestazioni_json, true);
+                                                                    // Estrai la prima (e unica) chiave dall'array delle prestazioni
+                                                                    $prestazione = key($prestazioni_array);
+                                                                }
+                                                            }
+
+                                                            $view_link = "../servizi/moduli/{$module_file}?form_name=" . urlencode($req['form_name']) . "&user_id=" . urlencode($req['user_id']) . "&prestazione=" . urlencode($prestazione);
                                                         ?>
                                                         <li><a class="dropdown-item" href="<?php echo $view_link; ?>"><i class="fas fa-eye me-2"></i>Visualizza Dettagli</a></li>
                                                         <li><hr class="dropdown-divider"></li>

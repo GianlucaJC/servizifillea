@@ -692,17 +692,17 @@ function e($value) {
         }
         // Logica per disabilitare i campi in base allo stato e al ruolo
         <?php
-            // Logica di modifica semplificata:
+            // Logica di modifica corretta:
             // L'utente può modificare solo se lo stato è 'bozza'.
             // L'admin può modificare solo se lo stato è 'inviato'.
             $can_edit = false;
             if (!$is_admin_view && $status === 'bozza') $can_edit = true;
             if ($is_admin_view && $status === 'inviato') $can_edit = true;
-            if ($status === 'abbandonato') $can_edit = false; // Non si può mai modificare una richiesta abbandonata
 
             if (!$can_edit):
         ?>
-            $('#modulo1-form :input').not('#existing_form').prop('disabled', true);
+            // Disabilita tutti i campi tranne quelli necessari per la navigazione e le azioni admin
+            $('#modulo1-form :input').not('#existing_form, #unlock-for-user-btn, #admin_notification, [name="action"]').prop('disabled', true);
         <?php endif; ?>
 
         // --- Logica per la firma digitale ---
