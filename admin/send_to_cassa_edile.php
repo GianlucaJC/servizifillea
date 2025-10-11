@@ -116,12 +116,29 @@ try {
         $mail->addAddress($recipient);
     }
 
-    // Contenuto
-    $mail->isHTML(true);
-    $mail->Subject = 'Invio Pratica Cassa Edile: ' . $form_name;
+    // --- Creazione del corpo dell'email in HTML ---
+    $email_title = 'Invio Pratica Cassa Edile';
+    $primary_color = '#d0112b'; // Colore primario della piattaforma
+    $bg_color = '#f4f6f9';
+    $text_color = '#333333';
+
+    $htmlBody = '
+    <body style="margin: 0; padding: 0; background-color: '.$bg_color.'; font-family: Inter, Arial, sans-serif;">
+        <table border="0" cellpadding="0" cellspacing="0" width="100%">
+            <tr><td style="padding: 20px 0;">
+                <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse: collapse; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                    <tr>
+                        <td align="center" style="background-color: '.$primary_color.'; padding: 20px; border-top-left-radius: 8px; border-top-right-radius: 8px;">
+                            <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: bold;">Fillea Service App</h1>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 40px 30px; color: '.$text_color.'; font-size: 16px; line-height: 1.5;">
+                            <h2 style="margin-top: 0; color: '.$primary_color.';">'.$email_title.'</h2>
+                            <p>È stata inviata la pratica: <strong>'.$form_name.'</strong>.</p>';
 
     if (!empty($files_to_zip)) {
-        // 6a. Genera un link di download sicuro solo se ci sono file
+        // Genera un link di download sicuro solo se ci sono file
         $download_token = bin2hex(random_bytes(32));
         $expires_at = date('Y-m-d H:i:s', strtotime('+7 days'));
         $stmt_link = $pdo1->prepare("INSERT INTO `fillea-app`.`download_links` (token, file_path, expires_at) VALUES (?, ?, ?)");
@@ -131,17 +148,33 @@ try {
         $host = $_SERVER['HTTP_HOST'];
         $download_link = $protocol . $host . dirname($_SERVER['PHP_SELF']) . '/download.php?token=' . $download_token;
 
-        $mail->Body    = "È stata inviata la pratica <strong>{$form_name}</strong>.<br><br>" .
-                         "Puoi scaricare tutta la documentazione cliccando sul seguente link. Il link scadrà tra 7 giorni.<br><br>" .
-                         "<a href='{$download_link}'>Scarica Documenti</a>";
-        $mail->AltBody = "È stata inviata la pratica {$form_name}.\n\n" .
-                         "Puoi scaricare tutta la documentazione visitando il seguente link. Il link scadrà tra 7 giorni.\n" .
-                         $download_link;
+        $htmlBody .= '
+                            <p>Puoi scaricare tutta la documentazione cliccando sul pulsante qui sotto. Il link scadrà tra 7 giorni.</p>
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                <tr><td align="center" style="padding: 20px 0;">
+                                    <a href="'.$download_link.'" style="background-color: '.$primary_color.'; color: #ffffff; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Scarica Documenti</a>
+                                </td></tr>
+                            </table>';
+        $altBody = "È stata inviata la pratica {$form_name}.\n\nPuoi scaricare tutta la documentazione visitando il seguente link (scade tra 7 giorni):\n{$download_link}";
     } else {
-        $mail->Body    = "È stata inviata la pratica <strong>{$form_name}</strong>.<br><br>Non sono stati allegati nuovi documenti a questo invio.";
-        $mail->AltBody = "È stata inviata la pratica {$form_name}.\n\nNon sono stati allegati nuovi documenti a questo invio.";
+        $htmlBody .= '<p>Non sono stati allegati nuovi documenti a questo invio.</p>';
+        $altBody = "È stata inviata la pratica {$form_name}.\n\nNon sono stati allegati nuovi documenti a questo invio.";
     }
 
+    $htmlBody .= '
+                            <p style="margin-top: 30px; font-size: 12px; color: #888888;">Questa è una mail generata automaticamente. Per favore, non rispondere.</p>
+                        </td>
+                    </tr>
+                </table>
+            </td></tr>
+        </table>
+    </body>';
+
+    // Imposta il contenuto dell'email
+    $mail->isHTML(true);
+    $mail->Subject = 'Invio Pratica Cassa Edile: ' . $form_name;
+    $mail->Body    = $htmlBody;
+    $mail->AltBody = $altBody;
 
     $mail->send();
 
