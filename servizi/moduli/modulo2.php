@@ -232,7 +232,7 @@ function e($value) {
 
     <?php
         $status = $saved_data['status'] ?? 'bozza';
-        $is_submitted = $status === 'inviato';
+        $is_submitted = ($status === 'inviato' || $status === 'inviato_in_cassa_edile');
 
         // Mostra la notifica dell'admin all'utente, se presente.
         if (!$is_admin_view && !empty($saved_data['admin_notification'])):
@@ -254,7 +254,7 @@ function e($value) {
     ?>
         <div class="form-section">
             <h2 class="form-section-title">Azioni Amministratore</h2>
-            <?php if ($is_submitted): // Se la richiesta è stata inviata, l'admin può sbloccare ?>
+            <?php if ($is_submitted): // Se la richiesta è stata inviata (o inoltrata), l'admin può sbloccare ?>
                 <p class="text-gray-600 mb-4">Questa richiesta è stata inviata dall'utente. Puoi sbloccarla per consentire ulteriori modifiche.</p>
                 <div class="mb-4">
                     <label for="admin_notification" class="form-label">Aggiungi una notifica per l'utente (opzionale)</label>
@@ -546,8 +546,8 @@ function handleFormSelection(selectedValue) {
 document.addEventListener('DOMContentLoaded', function() {
         <?php
             $can_edit = false;
-            if (!$is_admin_view && ($saved_data['status'] ?? 'bozza') === 'bozza') $can_edit = true;
-            if ($is_admin_view && ($saved_data['status'] ?? 'bozza') === 'inviato') $can_edit = true;
+            if (!$is_admin_view && $status === 'bozza') $can_edit = true;
+            if ($is_admin_view && ($status === 'inviato' || $status === 'inviato_in_cassa_edile')) $can_edit = true;
 
             if (!$can_edit && $form_name !== null):
         ?>

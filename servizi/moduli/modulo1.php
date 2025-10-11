@@ -343,14 +343,14 @@ function e($value) {
 
     <?php
         $status = $saved_data['status'] ?? 'bozza';
-        $is_submitted = $status === 'inviato';
+        $is_submitted = ($status === 'inviato' || $status === 'inviato_in_cassa_edile');
 
         // Se è un admin, mostra sempre la sezione delle azioni admin.
         if ($is_admin_view):
     ?>
         <div class="form-section">
             <h2 class="form-section-title">Azioni Amministratore</h2>
-            <?php if ($is_submitted): // Se la richiesta è stata inviata, l'admin può modificare e sbloccare ?>
+            <?php if ($is_submitted): // Se la richiesta è stata inviata (o inoltrata), l'admin può modificare e sbloccare ?>
                 <p class="text-gray-600 mb-4">Questa richiesta è stata inviata dall'utente. Puoi sbloccarla per consentire ulteriori modifiche.</p>
                 <div class="mb-4">
                     <label for="admin_notification" class="form-label">Aggiungi una notifica per l'utente (opzionale)</label>
@@ -697,7 +697,7 @@ function e($value) {
             // L'admin può modificare solo se lo stato è 'inviato'.
             $can_edit = false;
             if (!$is_admin_view && $status === 'bozza') $can_edit = true;
-            if ($is_admin_view && $status === 'inviato') $can_edit = true;
+            if ($is_admin_view && ($status === 'inviato' || $status === 'inviato_in_cassa_edile')) $can_edit = true;
 
             if (!$can_edit):
         ?>
