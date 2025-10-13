@@ -4,7 +4,8 @@ push_config.php
 
 # Dipendenze di Composer
 /vendor/
-
+/admin/downloads
+/uploads
 # Log di debug
 *.log
 # File di configurazione con credenziali
