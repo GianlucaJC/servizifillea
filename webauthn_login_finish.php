@@ -142,6 +142,7 @@ try {
     $stmt = $pdo1->prepare("UPDATE `fillea-app`.users SET token = ?, token_expiry = ? WHERE id = ?");
     $stmt->execute([$token, $expiry, $userId]);
 
+    $_SESSION['user_token'] = $token; // Salva il nuovo token nella sessione
     // Per evitare conflitti, se un utente si logga, distruggiamo qualsiasi sessione admin attiva.
     if (isset($_SESSION['admin_logged_in'])) {
         unset($_SESSION['admin_logged_in']);

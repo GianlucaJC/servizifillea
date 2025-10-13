@@ -1,14 +1,20 @@
 <?php
 session_start();
 
-// 1. Inizializzazione e recupero token
-$token = $_GET['token'] ?? ($_SESSION['user_token'] ?? null); // Preferisci il token da GET, altrimenti usa quello dalla sessione
+// 1. Inizializzazione e recupero token (dà priorità alla sessione)
+$token = $_SESSION['user_token'] ?? ($_GET['token'] ?? null);
+
+// Se il token è nell'URL, assicurati che sia salvato anche in sessione per coerenza
+if (isset($_GET['token'])) {
+    $_SESSION['user_token'] = $_GET['token'];
+}
 
 $prestazione_selezionata = $_GET['prestazione'] ?? null;
 $form_name = $_GET['form_name'] ?? null;
 $user_info = []; // Per contenere i dati dell'utente
 $user_id_from_admin = $_GET['user_id'] ?? null; // ID utente passato dall'admin
 $user_id = null;
+$default_funzionario_id = null;
 $saved_data = [];
 $is_admin_view = false;
 
@@ -41,13 +47,14 @@ if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true
 
 } elseif ($token) {
     // VISTA UTENTE: L'utente è loggato tramite token.
-    $sql_user = "SELECT id, nome, cognome, email FROM `fillea-app`.users WHERE token = ? AND token_expiry > NOW() LIMIT 1";
+    $sql_user = "SELECT id, nome, cognome, email, id_funzionario FROM `fillea-app`.users WHERE token = ? AND token_expiry > NOW() LIMIT 1";
     $stmt_user = $pdo1->prepare($sql_user);
     $stmt_user->execute([$token]);
     $user = $stmt_user->fetch(PDO::FETCH_ASSOC);
     if ($user) {
         $user_info = $user;
         $user_id = $user['id'];
+        $default_funzionario_id = $user['id_funzionario'];
     }
 }
 
@@ -94,6 +101,12 @@ if ($user_id) {
         $stmt_funz->execute([$user_id]);
         $funzionario_telefono = $stmt_funz->fetchColumn();
     }
+
+    // Recupera l'elenco di tutti i funzionari per il dropdown
+    $stmt_funzionari = $pdo1->prepare("SELECT id, funzionario FROM `fillea-app`.funzionari ORDER BY funzionario ASC");
+    $stmt_funzionari->execute();
+    $funzionari_list = $stmt_funzionari->fetchAll(PDO::FETCH_ASSOC);
+
 }
 
 // 4. Se non è stato possibile identificare un utente valido, reindirizza al login.
@@ -376,17 +389,32 @@ function e($value) {
             <p class="font-bold">Richiesta Archiviata</p>
             <p>Questa richiesta è stata archiviata e non è più accessibile o modificabile.</p>
         </div>
-    <?php elseif ($status === 'bozza' && !$is_admin_view): // Se l'utente sta compilando (non è admin) e la pratica è in bozza ?>
-        <div class="form-section text-center">
-             <button type="submit" id="submit-official-btn" class="w-full md:w-auto bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-green-700 transition-colors duration-300" name="action" value="submit_official">
-                <i class="fas fa-paper-plane mr-2"></i> Invia dati al funzionario
-            </button>
-        </div>
     <?php endif; ?>
 
 
         <!-- Sezione Dati Studente -->
         <div class="form-section">
+            <?php if (!$is_admin_view): // Sezione visibile solo all'utente ?>
+                <div class="mb-6">
+                    <label for="id_funzionario" class="form-label">Funzionario di Riferimento</label>
+                    <select id="id_funzionario" name="id_funzionario" class="form-input" <?php if (!empty($saved_data)) echo 'disabled'; ?>>
+                        <?php foreach ($funzionari_list as $funzionario): ?>
+                            <option value="<?php echo $funzionario['id']; ?>" 
+                                <?php 
+                                    // Se è una pratica salvata, seleziona il funzionario salvato.
+                                    // Altrimenti, seleziona il funzionario di default dell'utente.
+                                    $selected_funzionario_id = $saved_data['id_funzionario'] ?? $default_funzionario_id;
+                                    if ($funzionario['id'] == $selected_funzionario_id) echo 'selected'; 
+                                ?>>
+                                <?php echo htmlspecialchars($funzionario['funzionario']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <?php if (!empty($saved_data)): ?>
+                        <p class="text-sm text-gray-500 mt-1">Il funzionario non può essere modificato per una pratica già salvata.</p>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
             <h2 class="form-section-title">Dati dello Studente Richiedente</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -610,6 +638,11 @@ function e($value) {
                 <button type="submit" id="save-btn" class="w-full md:w-auto bg-primary text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-red-700 transition-colors duration-300" name="action" value="save">
                     <i class="fas fa-save mr-2"></i> Salva Dati
                 </button>
+                <?php if (!$is_admin_view && $status === 'bozza'): // Il pulsante di invio è solo per l'utente in stato di bozza ?>
+                <button type="button" id="submit-official-btn" class="w-full md:w-auto bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-green-700 transition-colors duration-300 mt-4 md:mt-0 md:ml-4">
+                    <i class="fas fa-paper-plane mr-2"></i> Invia dati al funzionario
+                </button>
+                <?php endif; ?>
             </div>
         <?php endif; ?>
     </form>
@@ -655,7 +688,7 @@ function e($value) {
 
         if (selectedValue === 'new') {
             // Crea un ID univoco per il nuovo form, specifico per l'utente
-            formName = `new_${userId}_${Date.now()}`; 
+        formName = `form1_${userId}_${Date.now()}`; 
         } else {
             formName = selectedValue;
         }

@@ -2,7 +2,7 @@
 session_start();
 
 // 1. Inizializzazione e recupero dati
-$token = $_GET['token'] ?? null;
+$token = $_SESSION['user_token'] ?? null; // Leggi il token dalla sessione, non dall'URL
 $action = $_POST['action'] ?? 'save'; // 'save' o 'submit_official'
 $form_name = $_POST['form_name'] ?? null;
 $user_id = null;
@@ -60,36 +60,6 @@ $existing_record = $stmt_check->fetch(PDO::FETCH_ASSOC);
 
 $pdo1->beginTransaction();
 try {
-    $status = $existing_record['status'] ?? 'bozza';
-    if ($action === 'submit_official') {
-        $status = 'inviato';
-    } elseif ($action === 'unlock') {
-        $status = 'bozza';
-    }
-    $data['status'] = $status;
-
-    if ($existing_record) {
-        // UPDATE
-        $data['id'] = $existing_record['id'];
-        $firma_sql_part = !empty($data['firma_data']) ? ", firma_data = :firma_data" : "";
-        $admin_notification_sql = ($action === 'submit_official') ? ", admin_notification = NULL" : "";
-
-        $sql = "UPDATE `fillea-app`.`modulo2_richieste` SET 
-                    nome_completo=:nome_completo, pos_cassa_edile=:pos_cassa_edile, data_nascita=:data_nascita, codice_fiscale=:codice_fiscale, via_piazza=:via_piazza, domicilio_a=:domicilio_a, cap=:cap, telefono=:telefono, impresa_occupazione=:impresa_occupazione, 
-                    prestazioni=:prestazioni, luogo_firma=:luogo_firma, data_firma=:data_firma, privacy_consent=:privacy_consent, status=:status, last_update=NOW() {$admin_notification_sql}
-                    {$firma_sql_part}
-                WHERE id = :id";
-        if (empty($data['firma_data'])) unset($data['firma_data']);
-    } else {
-        // INSERT
-        $data['user_id'] = $user_id;
-        $data['form_name'] = $form_name;
-        $sql = "INSERT INTO `fillea-app`.`modulo2_richieste` 
-                    (user_id, form_name, status, nome_completo, pos_cassa_edile, data_nascita, codice_fiscale, via_piazza, domicilio_a, cap, telefono, impresa_occupazione, prestazioni, luogo_firma, data_firma, privacy_consent, firma_data, admin_notification) 
-                VALUES 
-                    (:user_id, :form_name, :status, :nome_completo, :pos_cassa_edile, :data_nascita, :codice_fiscale, :via_piazza, :domicilio_a, :cap, :telefono, :impresa_occupazione, :prestazioni, :luogo_firma, :data_firma, :privacy_consent, :firma_data, NULL)";
-    }
-    
     if ($is_admin_save && $action === 'unlock') {
         $admin_notification = $_POST['admin_notification'] ?? 'La tua richiesta è stata sbloccata per modifiche.';
         if (empty($admin_notification)) {
@@ -97,17 +67,48 @@ try {
         }
         $stmt_unlock = $pdo1->prepare("UPDATE `fillea-app`.`modulo2_richieste` SET status = 'bozza', admin_notification = ? WHERE form_name = ? AND user_id = ?");
         $stmt_unlock->execute([$admin_notification, $form_name, $user_id]);
+    } else if ($action === 'save' || $action === 'submit_official') {
+        $status = $existing_record['status'] ?? 'bozza';
+        if ($action === 'submit_official') {
+            $status = 'inviato';
+        }
+        $data['status'] = $status;
+
+        if ($existing_record) {
+            // UPDATE
+            $data['id'] = $existing_record['id'];
+            $firma_sql_part = !empty($data['firma_data']) ? ", firma_data = :firma_data" : "";
+            $admin_notification_sql = ($action === 'submit_official') ? ", admin_notification = NULL" : "";
+
+            $sql = "UPDATE `fillea-app`.`modulo2_richieste` SET 
+                        nome_completo=:nome_completo, pos_cassa_edile=:pos_cassa_edile, data_nascita=:data_nascita, codice_fiscale=:codice_fiscale, via_piazza=:via_piazza, domicilio_a=:domicilio_a, cap=:cap, telefono=:telefono, impresa_occupazione=:impresa_occupazione, 
+                        prestazioni=:prestazioni, luogo_firma=:luogo_firma, data_firma=:data_firma, privacy_consent=:privacy_consent, status=:status, last_update=NOW() {$admin_notification_sql}
+                        {$firma_sql_part}
+                    WHERE id = :id";
+            if (empty($data['firma_data'])) unset($data['firma_data']);
+        } else {
+            // INSERT
+            $data['user_id'] = $user_id;
+            $data['form_name'] = $form_name;
+            $sql = "INSERT INTO `fillea-app`.`modulo2_richieste` 
+                        (user_id, form_name, status, nome_completo, pos_cassa_edile, data_nascita, codice_fiscale, via_piazza, domicilio_a, cap, telefono, impresa_occupazione, prestazioni, luogo_firma, data_firma, privacy_consent, firma_data, admin_notification, last_update) 
+                    VALUES 
+                        (:user_id, :form_name, :status, :nome_completo, :pos_cassa_edile, :data_nascita, :codice_fiscale, :via_piazza, :domicilio_a, :cap, :telefono, :impresa_occupazione, :prestazioni, :luogo_firma, :data_firma, :privacy_consent, :firma_data, NULL, NOW())";
+        }
+        
+        $stmt = $pdo1->prepare($sql);
+        $stmt->execute($data);
     }
 
-    $stmt = $pdo1->prepare($sql);
-    $stmt->execute($data);
-
     if ($action === 'submit_official') {
+        // Se l'utente ha selezionato un funzionario dal dropdown, usa quello.
+        $id_funzionario_scelto = $_POST['id_funzionario'] ?? null;
+
         $sql_master = "INSERT INTO `fillea-app`.`richieste_master` (user_id, id_funzionario, modulo_nome, form_name, data_invio, status, is_new) 
-                       VALUES (?, (SELECT id_funzionario FROM `fillea-app`.users WHERE id = ?), 'Prestazioni Varie', ?, NOW(), 'inviato', 1) 
-                       ON DUPLICATE KEY UPDATE data_invio = NOW(), status = 'inviato', is_new = 1, id_funzionario = (SELECT id_funzionario FROM `fillea-app`.users WHERE id = ?)";
+                       VALUES (:user_id, :id_funzionario, 'Prestazioni Varie', :form_name, NOW(), 'inviato', 1) 
+                       ON DUPLICATE KEY UPDATE data_invio = NOW(), status = 'inviato', is_new = 1, id_funzionario = :id_funzionario_upd";
         $stmt_master = $pdo1->prepare($sql_master);
-        $stmt_master->execute([$user_id, $user_id, $form_name, $user_id]);
+        $stmt_master->execute(['user_id' => $user_id, 'id_funzionario' => $id_funzionario_scelto, 'form_name' => $form_name, 'id_funzionario_upd' => $id_funzionario_scelto]);
     } elseif ($action === 'unlock') {
         // Se l'admin sblocca, aggiorna lo stato anche nella tabella master
         $sql_master_unlock = "UPDATE `fillea-app`.`richieste_master` SET status = 'bozza' WHERE form_name = ? AND user_id = ?";

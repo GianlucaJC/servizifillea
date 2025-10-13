@@ -1,18 +1,19 @@
 <?php
 session_start();
+
 // Pulisci le informazioni di debug precedenti all'inizio di ogni richiesta
 require_once __DIR__ . '/../../vendor/autoload.php'; // Corretto per raggiungere la root
 use Minishlink\WebPush\WebPush;
 use Minishlink\WebPush\Subscription;
  
 // 1. Inizializzazione e recupero dati
-$token = $_GET['token'] ?? null;
+$token = $_SESSION['user_token'] ?? null; // Leggi il token dalla sessione, non dall'URL
 $action = $_POST['action'] ?? 'save'; // 'save' o 'submit_official'
 $form_name = $_POST['form_name'] ?? null;
 $is_admin_save = false;
 
 if (empty($token) || empty($form_name)) {
-    // Se è un admin, il token non è necessario, quindi controlliamo la sessione
+    // Se è un admin, il token utente non è presente, quindi controlliamo la sessione admin
     if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
         die("Accesso non autorizzato o dati mancanti.");
     }
@@ -176,9 +177,9 @@ try {
             $data['user_id'] = $user_id;
             $data['form_name'] = $form_name;
             $sql = "INSERT INTO `fillea-app`.`modulo1_richieste` 
-                        (user_id, form_name, status, studente_nome_cognome, studente_data_nascita, studente_luogo_nascita, studente_codice_fiscale, studente_indirizzo, studente_cap, studente_comune, lavoratore_nome_cognome, lavoratore_data_nascita, lavoratore_codice_cassa, lavoratore_telefono, lavoratore_impresa, prestazioni, iban, intestatario_conto, altri_redditi, luogo_firma, data_firma, privacy_consent, last_update, admin_notification) 
+                        (user_id, form_name, status, studente_nome_cognome, studente_data_nascita, studente_luogo_nascita, studente_codice_fiscale, studente_indirizzo, studente_cap, studente_comune, lavoratore_nome_cognome, lavoratore_data_nascita, lavoratore_codice_cassa, lavoratore_telefono, lavoratore_impresa, prestazioni, iban, intestatario_conto, altri_redditi, luogo_firma, data_firma, privacy_consent, firma_data, last_update, admin_notification) 
                     VALUES 
-                        (:user_id, :form_name, :status, :studente_nome_cognome, :studente_data_nascita, :studente_luogo_nascita, :studente_codice_fiscale, :studente_indirizzo, :studente_cap, :studente_comune, :lavoratore_nome_cognome, :lavoratore_data_nascita, :lavoratore_codice_cassa, :lavoratore_telefono, :lavoratore_impresa, :prestazioni, :iban, :intestatario_conto, :altri_redditi, :luogo_firma, :data_firma, :privacy_consent, NOW(), NULL, :firma_data)";
+                        (:user_id, :form_name, :status, :studente_nome_cognome, :studente_data_nascita, :studente_luogo_nascita, :studente_codice_fiscale, :studente_indirizzo, :studente_cap, :studente_comune, :lavoratore_nome_cognome, :lavoratore_data_nascita, :lavoratore_codice_cassa, :lavoratore_telefono, :lavoratore_impresa, :prestazioni, :iban, :intestatario_conto, :altri_redditi, :luogo_firma, :data_firma, :privacy_consent, :firma_data, NOW(), NULL)";
         }
         
         $stmt = $pdo1->prepare($sql);
@@ -187,11 +188,15 @@ try {
     
     // 7. Aggiorna la tabella master delle richieste
     if ($action === 'submit_official') {
+        // Se l'utente ha selezionato un funzionario dal dropdown, usa quello.
+        // Altrimenti, recupera quello di default associato all'utente.
+        $id_funzionario_scelto = $_POST['id_funzionario'] ?? null;
+
         $sql_master = "INSERT INTO `fillea-app`.`richieste_master` (user_id, id_funzionario, modulo_nome, form_name, data_invio, status, is_new) 
-                       VALUES (?, (SELECT id_funzionario FROM `fillea-app`.users WHERE id = ?), 'Contributi di Studio', ?, NOW(), 'inviato', 1) 
-                       ON DUPLICATE KEY UPDATE data_invio = NOW(), status = 'inviato', is_new = 1, id_funzionario = (SELECT id_funzionario FROM `fillea-app`.users WHERE id = ?)";
+                       VALUES (:user_id, :id_funzionario, 'Contributi di Studio', :form_name, NOW(), 'inviato', 1) 
+                       ON DUPLICATE KEY UPDATE data_invio = NOW(), status = 'inviato', is_new = 1, id_funzionario = :id_funzionario_upd";
         $stmt_master = $pdo1->prepare($sql_master);
-        $stmt_master->execute([$user_id, $user_id, $form_name, $user_id]);
+        $stmt_master->execute(['user_id' => $user_id, 'id_funzionario' => $id_funzionario_scelto, 'form_name' => $form_name, 'id_funzionario_upd' => $id_funzionario_scelto]);
 
         // --- INVIA NOTIFICA PUSH AL FUNZIONARIO ---
         try {

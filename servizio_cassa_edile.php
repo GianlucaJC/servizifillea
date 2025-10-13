@@ -356,9 +356,12 @@ if (!$is_user_logged_in) {
             </div>
             <div class="modal-body">
                 <p>Contributo erogato al lavoratore iscritto in occasione della contrazione di matrimonio o unione civile. L'importo e i requisiti in termini di ore lavorate sono specificati nel regolamento, e la domanda deve essere presentata entro un termine di decadenza dall'evento.</p>
+                <div class="alert alert-warning mt-3" role="alert">
+                    <h6 class="alert-heading mb-1"><i class="fas fa-exclamation-triangle me-2"></i>Attenzione!</h6>
+                    <p class="mb-0 small">Per tutte le richieste è sempre necessario allegare copia del <strong>documento di riconoscimento</strong> in corso di <strong>validità</strong> e del <strong>codice fiscale</strong>.</p>
+                </div>
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
-                    <li><strong>Domanda</strong> redatta sull'apposito modulo predisposto dall'Ente.</li>
                     <li><strong>Certificato di matrimonio</strong> o di unione civile (o trascrizione se estero).</li>
                     <li><strong>Autocertificazione</strong> di non aver percepito la prestazione per lo stesso titolo da altra Cassa Edile.</li>
                 </ul>
@@ -380,9 +383,12 @@ if (!$is_user_logged_in) {
             </div>
             <div class="modal-body">
                 <p>Premio riservato ai giovani lavoratori che iniziano la loro attività o che rientrano nel settore edile, spesso legato a requisiti anagrafici (ad esempio, età inferiore a 25/29 anni) e di ore lavorate nel periodo precedente.</p>
+                <div class="alert alert-warning mt-3" role="alert">
+                    <h6 class="alert-heading mb-1"><i class="fas fa-exclamation-triangle me-2"></i>Attenzione!</h6>
+                    <p class="mb-0 small">Per tutte le richieste è sempre necessario allegare copia del <strong>documento di riconoscimento</strong> in corso di <strong>validità</strong> e del <strong>codice fiscale</strong>.</p>
+                </div>
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
-                    <li><strong>Domanda</strong> su modulo Ente.</li>
                     <li><strong>Autocertificazione</strong> comprovante il primo ingresso nel settore edile o la situazione di reingresso (se richiesto).</li>
                     <li><strong>Documento d'identità</strong> che attesti il requisito anagrafico.</li>
                 </ul>
@@ -404,9 +410,12 @@ if (!$is_user_logged_in) {
             </div>
             <div class="modal-body">
                 <p>Contributo erogato al lavoratore in occasione della nascita o adozione di un figlio. La domanda deve essere presentata, a pena di decadenza, entro un termine specificato dall'evento (es. 90 o 180 giorni).</p>
+                <div class="alert alert-warning mt-3" role="alert">
+                    <h6 class="alert-heading mb-1"><i class="fas fa-exclamation-triangle me-2"></i>Attenzione!</h6>
+                    <p class="mb-0 small">Per tutte le richieste è sempre necessario allegare copia del <strong>documento di riconoscimento</strong> in corso di <strong>validità</strong> e del <strong>codice fiscale</strong>.</p>
+                </div>
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
-                    <li><strong>Domanda</strong> su modulo Ente.</li>
                     <li><strong>Certificato</strong> (estratto) di nascita o provvedimento di adozione.</li>
                     <li><strong>Autocertificazione</strong> che attesti la paternità/maternità e l'eventuale carico fiscale del figlio.</li>
                 </ul>
@@ -428,9 +437,12 @@ if (!$is_user_logged_in) {
             </div>
             <div class="modal-body">
                 <p>Contributo erogato per ogni donazione di sangue effettuata dal lavoratore iscritto, come incentivo all'attività socialmente utile. La richiesta viene solitamente liquidata una volta all'anno.</p>
+                <div class="alert alert-warning mt-3" role="alert">
+                    <h6 class="alert-heading mb-1"><i class="fas fa-exclamation-triangle me-2"></i>Attenzione!</h6>
+                    <p class="mb-0 small">Per tutte le richieste è sempre necessario allegare copia del <strong>documento di riconoscimento</strong> in corso di <strong>validità</strong> e del <strong>codice fiscale</strong>.</p>
+                </div>
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
-                    <li><strong>Domanda</strong> su modulo Ente.</li>
                     <li><strong>Dichiarazione</strong> o <strong>Certificazione</strong> della struttura sanitaria (es. Centro Trasfusionale) che attesti la/le donazione/i avvenute.</li>
                 </ul>
             </div>
@@ -451,9 +463,12 @@ if (!$is_user_logged_in) {
             </div>
             <div class="modal-body">
                 <p>Contributo a sostegno del canone di locazione, spesso destinato a lavoratori con particolari requisiti (es. giovani o famiglie numerose). Richiede che il contratto sia registrato e intestato al lavoratore.</p>
+                <div class="alert alert-warning mt-3" role="alert">
+                    <h6 class="alert-heading mb-1"><i class="fas fa-exclamation-triangle me-2"></i>Attenzione!</h6>
+                    <p class="mb-0 small">Per tutte le richieste è sempre necessario allegare copia del <strong>documento di riconoscimento</strong> in corso di <strong>validità</strong> e del <strong>codice fiscale</strong>.</p>
+                </div>
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
-                    <li><strong>Domanda</strong> su modulo Ente.</li>
                     <li><strong>Copia del Contratto di Affitto</strong> ad uso abitativo registrato presso l'Agenzia delle Entrate.</li>
                     <li><strong>Modello ISEE</strong> valido per l'anno corrente (se il requisito è legato al reddito).</li>
                     <li><strong>Autocertificazione</strong> della composizione del nucleo familiare.</li>
@@ -476,9 +491,12 @@ if (!$is_user_logged_in) {
             </div>
             <div class="modal-body">
                 <p>Contributo straordinario concesso in situazioni di particolare disagio abitativo, in presenza di un'ingiunzione di sfratto esecutivo. Mira a coprire spese legali o canoni arretrati per evitare l'esecuzione.</p>
+                <div class="alert alert-warning mt-3" role="alert">
+                    <h6 class="alert-heading mb-1"><i class="fas fa-exclamation-triangle me-2"></i>Attenzione!</h6>
+                    <p class="mb-0 small">Per tutte le richieste è sempre necessario allegare copia del <strong>documento di riconoscimento</strong> in corso di <strong>validità</strong> e del <strong>codice fiscale</strong>.</p>
+                </div>
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
-                    <li><strong>Domanda</strong> su modulo Ente.</li>
                     <li><strong>Documentazione</strong> ufficiale che attesti l'ingiunzione di sfratto esecutivo (es. ordinanza del Giudice).</li>
                     <li><strong>Stato di famiglia</strong> e documentazione reddituale che attesti lo stato di necessità.</li>
                 </ul>
@@ -500,9 +518,12 @@ if (!$is_user_logged_in) {
             </div>
             <div class="modal-body">
                 <p>Contributo annuo o una tantum per il sostegno dei figli a carico portatori di handicap o diversa abilità, con una percentuale d'invalidità riconosciuta superiore ad una soglia minima (es. 50% o 60%).</p>
+                <div class="alert alert-warning mt-3" role="alert">
+                    <h6 class="alert-heading mb-1"><i class="fas fa-exclamation-triangle me-2"></i>Attenzione!</h6>
+                    <p class="mb-0 small">Per tutte le richieste è sempre necessario allegare copia del <strong>documento di riconoscimento</strong> in corso di <strong>validità</strong> e del <strong>codice fiscale</strong>.</p>
+                </div>
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
-                    <li><strong>Domanda</strong> su modulo Ente.</li>
                     <li><strong>Stato di famiglia</strong> e autocertificazione del carico fiscale.</li>
                     <li><strong>Documentazione sanitaria</strong> (es. Certificazione ex L. 104/92 o verbale della Commissione Medica) che attesti la condizione e la percentuale d'invalidità.</li>
                 </ul>
@@ -524,9 +545,12 @@ if (!$is_user_logged_in) {
             </div>
             <div class="modal-body">
                 <p>Contributo volto a coprire le spese sostenute dal lavoratore per l'insinuazione al passivo in caso di fallimento, liquidazione coatta o altre procedure concorsuali che coinvolgono l'impresa datrice di lavoro.</p>
+                <div class="alert alert-warning mt-3" role="alert">
+                    <h6 class="alert-heading mb-1"><i class="fas fa-exclamation-triangle me-2"></i>Attenzione!</h6>
+                    <p class="mb-0 small">Per tutte le richieste è sempre necessario allegare copia del <strong>documento di riconoscimento</strong> in corso di <strong>validità</strong> e del <strong>codice fiscale</strong>.</p>
+                </div>
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
-                    <li><strong>Domanda</strong> su modulo Ente.</li>
                     <li><strong>Documentazione</strong> che attesti l'avvenuta insinuazione al passivo (es. ricevuta di deposito o atto dell'Avvocato/Curatore).</li>
                     <li><strong>Documentazione</strong> che attesti l'apertura della procedura concorsuale per l'impresa.</li>
                 </ul>
@@ -545,9 +569,12 @@ if (!$is_user_logged_in) {
             </div>
             <div class="modal-body">
                 <p>Contributo erogato in caso di licenziamento avvenuto per superamento del periodo di comporto per malattia (o infortunio), o per altre specifiche casistiche di cessazione del rapporto di lavoro definite nel regolamento.</p>
+                <div class="alert alert-warning mt-3" role="alert">
+                    <h6 class="alert-heading mb-1"><i class="fas fa-exclamation-triangle me-2"></i>Attenzione!</h6>
+                    <p class="mb-0 small">Per tutte le richieste è sempre necessario allegare copia del <strong>documento di riconoscimento</strong> in corso di <strong>validità</strong> e del <strong>codice fiscale</strong>.</p>
+                </div>
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
-                    <li><strong>Domanda</strong> su modulo Ente.</li>
                     <li><strong>Lettera di licenziamento</strong> con indicazione della causale.</li>
                     <li><strong>Documentazione medica</strong> (se il licenziamento è per superamento del comporto).</li>
                 </ul>
@@ -569,9 +596,12 @@ if (!$is_user_logged_in) {
             </div>
             <div class="modal-body">
                 <p>Contributo per il rimborso parziale delle spese sostenute per l'iscrizione dei figli a carico a centri estivi, colonie o attività ricreative durante la stagione estiva.</p>
+                <div class="alert alert-warning mt-3" role="alert">
+                    <h6 class="alert-heading mb-1"><i class="fas fa-exclamation-triangle me-2"></i>Attenzione!</h6>
+                    <p class="mb-0 small">Per tutte le richieste è sempre necessario allegare copia del <strong>documento di riconoscimento</strong> in corso di <strong>validità</strong> e del <strong>codice fiscale</strong>.</p>
+                </div>
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
-                    <li><strong>Domanda</strong> su modulo Ente.</li>
                     <li><strong>Fattura/ricevuta fiscale</strong> (intestata al lavoratore o coniuge) comprovante la spesa sostenuta e il periodo di frequenza.</li>
                     <li><strong>Autocertificazione</strong> del carico fiscale dei figli.</li>
                 </ul>
@@ -593,9 +623,12 @@ if (!$is_user_logged_in) {
             </div>
             <div class="modal-body">
                 <p>Rimborso totale o parziale delle spese sostenute dal lavoratore straniero per il rilascio o il rinnovo del permesso o della carta di soggiorno o per l'ottenimento della cittadinanza italiana.</p>
+                <div class="alert alert-warning mt-3" role="alert">
+                    <h6 class="alert-heading mb-1"><i class="fas fa-exclamation-triangle me-2"></i>Attenzione!</h6>
+                    <p class="mb-0 small">Per tutte le richieste è sempre necessario allegare copia del <strong>documento di riconoscimento</strong> in corso di <strong>validità</strong> e del <strong>codice fiscale</strong>.</p>
+                </div>
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
-                    <li><strong>Domanda</strong> su modulo Ente.</li>
                     <li><strong>Ricevute di pagamento</strong> (bollettini o ricevute postali/telematiche) che comprovino la spesa sostenuta.</li>
                     <li><strong>Copia del documento</strong> (permesso/carta di soggiorno).</li>
                 </ul>
@@ -617,9 +650,12 @@ if (!$is_user_logged_in) {
             </div>
             <div class="modal-body">
                 <p>Premio riconosciuto ai lavoratori che raggiungono un determinato periodo di anzianità nel settore edile (es. 10, 15, 20 o 25 anni di iscrizione). L'Ente generalmente verifica il requisito d'ufficio.</p>
+                <div class="alert alert-warning mt-3" role="alert">
+                    <h6 class="alert-heading mb-1"><i class="fas fa-exclamation-triangle me-2"></i>Attenzione!</h6>
+                    <p class="mb-0 small">Per tutte le richieste è sempre necessario allegare copia del <strong>documento di riconoscimento</strong> in corso di <strong>validità</strong> e del <strong>codice fiscale</strong>.</p>
+                </div>
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
-                    <li><strong>Domanda</strong> su modulo Ente (spesso inviato d'ufficio).</li>
                     <li><strong>Documento d'identità</strong>.</li>
                     <li>Non è solitamente richiesta documentazione aggiuntiva, in quanto l'anzianità è verificata dagli archivi della Cassa Edile.</li>
                 </ul>
@@ -638,9 +674,12 @@ if (!$is_user_logged_in) {
             </div>
             <div class="modal-body">
                 <p>Contributo per il rimborso delle spese sostenute per l'iscrizione ad attività sportive, corsi o palestre del lavoratore stesso e/o dei figli a carico, fino a un massimale stabilito.</p>
+                <div class="alert alert-warning mt-3" role="alert">
+                    <h6 class="alert-heading mb-1"><i class="fas fa-exclamation-triangle me-2"></i>Attenzione!</h6>
+                    <p class="mb-0 small">Per tutte le richieste è sempre necessario allegare copia del <strong>documento di riconoscimento</strong> in corso di <strong>validità</strong> e del <strong>codice fiscale</strong>.</p>
+                </div>
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
-                    <li><strong>Domanda</strong> su modulo Ente.</li>
                     <li><strong>Fattura/ricevuta fiscale</strong> che attesti l'iscrizione e la spesa sostenuta.</li>
                     <li><strong>Autocertificazione</strong> del carico fiscale (se la prestazione è per i figli).</li>
                 </ul>
@@ -662,9 +701,12 @@ if (!$is_user_logged_in) {
             </div>
             <div class="modal-body">
                 <p>Contributo erogato per il rimborso di una parte delle rette pagate per l'iscrizione dei figli a carico presso Asili Nido pubblici o privati accreditati.</p>
+                <div class="alert alert-warning mt-3" role="alert">
+                    <h6 class="alert-heading mb-1"><i class="fas fa-exclamation-triangle me-2"></i>Attenzione!</h6>
+                    <p class="mb-0 small">Per tutte le richieste è sempre necessario allegare copia del <strong>documento di riconoscimento</strong> in corso di <strong>validità</strong> e del <strong>codice fiscale</strong>.</p>
+                </div>
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
-                    <li><strong>Domanda</strong> su modulo Ente.</li>
                     <li><strong>Certificato</strong> di iscrizione all'Asilo Nido.</li>
                     <li><strong>Fatture/ricevute</strong> delle rette pagate (con indicazione del periodo).</li>
                     <li><strong>Autocertificazione</strong> del carico fiscale.</li>
@@ -687,15 +729,18 @@ if (!$is_user_logged_in) {
             </div>
             <div class="modal-body">
                 <p>Assegno di studio o contributo per l'acquisto di materiale scolastico per i figli a carico che frequentano la Scuola Primaria (Elementare), spesso basato sul requisito del merito o della frequenza.</p>
+                <div class="alert alert-warning mt-3" role="alert">
+                    <h6 class="alert-heading mb-1"><i class="fas fa-exclamation-triangle me-2"></i>Attenzione!</h6>
+                    <p class="mb-0 small">Per tutte le richieste è sempre necessario allegare copia del <strong>documento di riconoscimento</strong> in corso di <strong>validità</strong> e del <strong>codice fiscale</strong>.</p>
+                </div>
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
-                    <li><strong>Domanda</strong> su modulo Ente.</li>
                     <li><strong>Certificato di frequenza</strong> o <strong>pagella</strong> (per attestare l'anno scolastico).</li>
                     <li><strong>Autocertificazione</strong> del carico fiscale del figlio.</li>
                 </ul>
             </div>
             <div class="modal-footer">
-                <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>&prestazione=scuole_obbligo" class="btn btn-primary w-100">Compila Modulo Online</a>
+                <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>&prestazione=scuole_elementari" class="btn btn-primary w-100">Compila Modulo Online</a>
             </div>
         </div>
     </div>
@@ -711,15 +756,18 @@ if (!$is_user_logged_in) {
             </div>
             <div class="modal-body">
                 <p>Assegno di studio o contributo per l'acquisto di materiale scolastico per i figli a carico che frequentano la Scuola Secondaria di Primo Grado (Media Inferiore).</p>
+                <div class="alert alert-warning mt-3" role="alert">
+                    <h6 class="alert-heading mb-1"><i class="fas fa-exclamation-triangle me-2"></i>Attenzione!</h6>
+                    <p class="mb-0 small">Per tutte le richieste è sempre necessario allegare copia del <strong>documento di riconoscimento</strong> in corso di <strong>validità</strong> e del <strong>codice fiscale</strong>.</p>
+                </div>
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
-                    <li><strong>Domanda</strong> su modulo Ente.</li>
                     <li><strong>Certificato di frequenza</strong> o <strong>pagella</strong> (per attestare l'anno scolastico).</li>
                     <li><strong>Autocertificazione</strong> del carico fiscale del figlio.</li>
                 </ul>
             </div>
             <div class="modal-footer">
-                <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>&prestazione=scuole_obbligo" class="btn btn-primary w-100">Compila Modulo Online</a>
+                <a href="servizi/moduli/modulo1.php?token=<?php echo htmlspecialchars($token); ?>&prestazione=scuole_medie_inferiori" class="btn btn-primary w-100">Compila Modulo Online</a>
             </div>
         </div>
     </div>
@@ -735,9 +783,12 @@ if (!$is_user_logged_in) {
             </div>
             <div class="modal-body">
                 <p>Assegno di studio per i figli a carico che frequentano la Scuola Secondaria di Secondo Grado (Superiore).</p>
+                <div class="alert alert-warning mt-3" role="alert">
+                    <h6 class="alert-heading mb-1"><i class="fas fa-exclamation-triangle me-2"></i>Attenzione!</h6>
+                    <p class="mb-0 small">Per tutte le richieste è sempre necessario allegare copia del <strong>documento di riconoscimento</strong> in corso di <strong>validità</strong> e del <strong>codice fiscale</strong>.</p>
+                </div>
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
-                    <li><strong>Domanda</strong> su modulo Ente.</li>
                     <li><strong>Certificato di iscrizione e frequenza</strong>.</li>
                     <li><strong>Autocertificazione</strong> del carico fiscale del figlio.</li>
                 </ul>
@@ -759,9 +810,12 @@ if (!$is_user_logged_in) {
             </div>
             <div class="modal-body">
                 <p>Contributo per il rimborso delle tasse di iscrizione all'università per i figli a carico.</p>
+                <div class="alert alert-warning mt-3" role="alert">
+                    <h6 class="alert-heading mb-1"><i class="fas fa-exclamation-triangle me-2"></i>Attenzione!</h6>
+                    <p class="mb-0 small">Per tutte le richieste è sempre necessario allegare copia del <strong>documento di riconoscimento</strong> in corso di <strong>validità</strong> e del <strong>codice fiscale</strong>.</p>
+                </div>
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
-                    <li><strong>Domanda</strong> su modulo Ente.</li>
                     <li><strong>Certificato di iscrizione</strong> all'anno accademico.</li>
                     <li><strong>Ricevute di pagamento</strong> delle tasse universitarie.</li>
                     <li><strong>Autocertificazione</strong> del carico fiscale del figlio.</li>

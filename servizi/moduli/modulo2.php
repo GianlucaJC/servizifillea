@@ -2,13 +2,19 @@
 session_start(); // Avvia la sessione
 
 // 1. Inizializzazione e recupero token
-// Dà priorità al token nell'URL, ma usa quello in sessione come fallback. (Questo è il token dell'utente)
-$token_user = $_GET['token'] ?? ($_SESSION['user_token'] ?? null);
+// Dà priorità al token nella sessione, che è più affidabile.
+$token_user = $_SESSION['user_token'] ?? ($_GET['token'] ?? null);
+// Se il token è nell'URL, assicurati che sia salvato anche in sessione per coerenza
+if (isset($_GET['token'])) {
+    $_SESSION['user_token'] = $_GET['token'];
+}
+
 $prestazione_selezionata = $_GET['prestazione'] ?? null;
 $form_name = $_GET['form_name'] ?? null;
 $user_id_from_admin = $_GET['user_id'] ?? null; // ID utente passato dall'admin
 $user_info = []; // Per contenere i dati dell'utente loggato
 $user_id = null; // ID dell'utente la cui pratica viene visualizzata/modificata
+$default_funzionario_id = null;
 $saved_data = [];
 $is_admin_view = false;
 
@@ -34,7 +40,7 @@ $pdo1 = Database::getInstance('fillea');
 
 // 3. Validazione del token e recupero dati utente
 // VISTA UTENTE: L'utente è loggato tramite token.
-$sql_user = "SELECT id, nome, cognome, email FROM `fillea-app`.users WHERE token = ? AND token_expiry > NOW() LIMIT 1";
+$sql_user = "SELECT id, nome, cognome, email, id_funzionario FROM `fillea-app`.users WHERE token = ? AND token_expiry > NOW() LIMIT 1";
 $stmt_user_token = $pdo1->prepare($sql_user);
 $stmt_user_token->execute([$token_user]);
 $user_from_token = $stmt_user_token->fetch(PDO::FETCH_ASSOC);
@@ -54,6 +60,7 @@ if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true
     // VISTA UTENTE: L'utente è loggato tramite token.
     $user_info = $user_from_token;
     $user_id = $user_from_token['id'];
+    $default_funzionario_id = $user_from_token['id_funzionario'];
     // Assicura che il token sia sempre salvato nella sessione per le pagine successive
     $_SESSION['user_token'] = $token_user;
 } else {
@@ -109,6 +116,11 @@ if ($user_id) {
         $stmt_funz->execute([$user_id]);
         $funzionario_telefono = $stmt_funz->fetchColumn();
     }
+
+    // Recupera l'elenco di tutti i funzionari per il dropdown
+    $stmt_funzionari = $pdo1->prepare("SELECT id, funzionario FROM `fillea-app`.funzionari ORDER BY funzionario ASC");
+    $stmt_funzionari->execute();
+    $funzionari_list = $stmt_funzionari->fetchAll(PDO::FETCH_ASSOC);
 }
 
 // 5. Funzione helper per stampare in modo sicuro i valori
@@ -280,6 +292,27 @@ function e($value) {
 
         <!-- Sezione Dati Lavoratore -->
         <div class="form-section">
+            <?php if (!$is_admin_view): // Sezione visibile solo all'utente ?>
+                <div class="mb-6">
+                    <label for="id_funzionario" class="form-label">Funzionario di Riferimento</label>
+                    <select id="id_funzionario" name="id_funzionario" class="form-input" <?php if (!empty($saved_data)) echo 'disabled'; ?>>
+                        <?php foreach ($funzionari_list as $funzionario): ?>
+                            <option value="<?php echo $funzionario['id']; ?>" 
+                                <?php 
+                                    // Se è una pratica salvata, seleziona il funzionario salvato.
+                                    // Altrimenti, seleziona il funzionario di default dell'utente.
+                                    $selected_funzionario_id = $saved_data['id_funzionario'] ?? $default_funzionario_id;
+                                    if ($funzionario['id'] == $selected_funzionario_id) echo 'selected'; 
+                                ?>>
+                                <?php echo htmlspecialchars($funzionario['funzionario']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <?php if (!empty($saved_data)): ?>
+                        <p class="text-sm text-gray-500 mt-1">Il funzionario non può essere modificato per una pratica già salvata.</p>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
             <h2 class="form-section-title"><i class="fas fa-user mr-2"></i>Dati del Lavoratore</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="md:col-span-2">
@@ -533,7 +566,7 @@ function handleFormSelection(selectedValue) {
     let formName = '';
 
     if (selectedValue === 'new') {
-        formName = `form2_${userId}_${Date.now()}`; 
+        formName = `form2_${userId}_${Date.now()}`;
     } else {
         formName = selectedValue;
     }

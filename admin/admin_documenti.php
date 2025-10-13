@@ -20,9 +20,10 @@ $pdo1 = Database::getInstance('fillea');
 $filter_service = $_GET['service_filter'] ?? 'all';
 $filter_user = $_GET['user_filter'] ?? 'all';
 $filter_status = $_GET['status_filter'] ?? 'all';
+$filter_prestazione = $_GET['prestazione_filter'] ?? 'all'; // Nuovo filtro per prestazione
 
 // 2. Ordinamento
-$allowed_sort_columns = ['modulo_nome', 'form_name', 'data_invio', 'status', 'cognome'];
+$allowed_sort_columns = ['modulo_nome', 'form_name', 'data_invio', 'status', 'cognome', 'prestazioni'];
 $sort_by = in_array($_GET['sort_by'] ?? '', $allowed_sort_columns) ? $_GET['sort_by'] : 'data_invio';
 $sort_dir = (isset($_GET['sort_dir']) && strtoupper($_GET['sort_dir']) === 'ASC') ? 'ASC' : 'DESC';
 
@@ -53,6 +54,30 @@ $stati = [
     'inviato_in_cassa_edile' => 'Inviato in Cassa Edile'
 ];
 
+// Elenco delle prestazioni specifiche per il nuovo filtro
+$prestazioni_specifiche = [
+    'premio_matrimoniale' => 'Premio Matrimoniale / Unioni Civili',
+    'premio_giovani' => 'Premio Giovani e Inserimento',
+    'bonus_nascita' => 'Bonus Nascita o Adozione',
+    'donazioni_sangue' => 'Donazioni del Sangue',
+    'contributo_affitto' => 'Contributo Affitto Casa',
+    'contributo_sfratto' => 'Contributo per Ingiunzione Sfratto',
+    'contributo_disabilita' => 'Contributo Figli con Diversa Abilità',
+    'post_licenziamento' => 'Contributo Post Licenziamento',
+    'permesso_soggiorno' => 'Rimborso Permesso di Soggiorno',
+    'attivita_sportive' => 'Attività Sportive e Ricreative',
+    'centri_estivi' => 'Bonus Centri Estivi',
+    'asili_nido' => 'Contributi Asilo Nido',
+    // 'scuole_obbligo' è deprecato, usiamo le chiavi specifiche
+    'scuole_elementari' => 'Contributo Studio (Elementari)',
+    'scuole_medie_inferiori' => 'Contributo Studio (Medie Inferiori)',
+    'superiori_iscrizione' => 'Contributo Studio (Scuole Superiori)',
+    'universita_iscrizione' => 'Contributo Studio (Università)',
+    // Aggiungere qui altre prestazioni se necessario
+];
+asort($prestazioni_specifiche); // Ordina alfabeticamente per valore
+
+
 // Recupera l'elenco di tutti gli utenti che hanno inviato richieste per popolare il filtro
 $sql_users = "SELECT DISTINCT u.id, u.cognome, u.nome FROM `fillea-app`.users u JOIN `fillea-app`.richieste_master rm ON u.id = rm.user_id ORDER BY u.cognome, u.nome";
 $stmt_users = $pdo1->prepare($sql_users);
@@ -71,9 +96,12 @@ $sql_base = "
         rm.status,
         u.nome,
         rm.is_new,
-        u.cognome
+        u.cognome,
+        COALESCE(m1.prestazioni, m2.prestazioni) AS prestazioni
     FROM `fillea-app`.richieste_master AS rm
     JOIN `fillea-app`.users AS u ON rm.user_id = u.id
+    LEFT JOIN `fillea-app`.modulo1_richieste m1 ON rm.form_name = m1.form_name COLLATE utf8mb4_unicode_ci
+    LEFT JOIN `fillea-app`.modulo2_richieste m2 ON rm.form_name = m2.form_name COLLATE utf8mb4_unicode_ci
 ";
 
 // Aggiungiamo la condizione FONDAMENTALE per il funzionario loggato.
@@ -95,14 +123,25 @@ if ($filter_status !== 'all') {
     $conditions[] = "rm.status = ?";
     $params[] = $filter_status;
 }
+if ($filter_prestazione !== 'all') {
+    // Cerca la prestazione in entrambe le tabelle dei moduli
+    $conditions[] = "(m1.prestazioni LIKE ? OR m2.prestazioni LIKE ?)";
+    $params[] = '%"'.$filter_prestazione.'"%';
+    $params[] = '%"'.$filter_prestazione.'"%';
+}
 
 $where_clause = '';
 if (!empty($conditions)) {
     $where_clause = " WHERE " . implode(' AND ', $conditions);
 }
 
-// Query per contare il totale dei record (per la paginazione)
-$sql_count = "SELECT COUNT(rm.id) FROM `fillea-app`.richieste_master AS rm " . $where_clause;
+// La query di conteggio deve includere le JOIN se si filtra per prestazione,
+// altrimenti le colonne m1.prestazioni e m2.prestazioni non vengono trovate.
+$sql_count_base = "SELECT COUNT(rm.id) FROM `fillea-app`.richieste_master AS rm ";
+if ($filter_prestazione !== 'all') {
+    $sql_count_base .= "LEFT JOIN `fillea-app`.modulo1_richieste m1 ON rm.form_name = m1.form_name COLLATE utf8mb4_unicode_ci LEFT JOIN `fillea-app`.modulo2_richieste m2 ON rm.form_name = m2.form_name COLLATE utf8mb4_unicode_ci ";
+}
+$sql_count = $sql_count_base . $where_clause;
 $stmt_count = $pdo1->prepare($sql_count);
 $stmt_count->execute($params);
 $total_records = $stmt_count->fetchColumn();
@@ -255,6 +294,18 @@ function get_sort_link($column, $current_sort_by, $current_sort_dir, $label) {
         .topbar {
             height: 4.375rem;
         }
+        /* Aggiunta per far funzionare la classe .hidden usata da jQuery */
+        .hidden {
+            display: none !important;
+        }
+        /* Aggiunta per mostrare la sidebar su mobile quando ha la classe .show */
+        .sidebar.show {
+            transform: translateX(0);
+        }
+        /* Aggiunta per garantire altezza minima alla tabella e non tagliare il menu azioni */
+        .table-min-height {
+            min-height: 350px;
+        }
     </style>
 </head>
 <body>
@@ -381,7 +432,7 @@ function get_sort_link($column, $current_sort_by, $current_sort_dir, $label) {
                 <div class="card-body">
                     <form action="admin_documenti.php" method="GET">
                         <div class="row">
-                            <div class="col-md-3">
+                            <div class="col-md-3 mb-3 mb-md-0">
                                 <label for="serviceFilter" class="form-label">Filtra per Servizio</label>
                                 <select id="serviceFilter" name="service_filter" class="form-select">
                                     <option value="all" <?php if ($filter_service === 'all') echo 'selected'; ?>>Tutti i servizi</option>
@@ -390,7 +441,16 @@ function get_sort_link($column, $current_sort_by, $current_sort_dir, $label) {
                                     <?php endforeach; ?>
                                 </select>
                             </div>
-                            <div class="col-md-3 mt-2 mt-md-0">
+                            <div class="col-md-3 mb-3 mb-md-0">
+                                <label for="prestazioneFilter" class="form-label">Filtra per Prestazione</label>
+                                <select id="prestazioneFilter" name="prestazione_filter" class="form-select">
+                                    <option value="all" <?php if ($filter_prestazione === 'all') echo 'selected'; ?>>Tutte le prestazioni</option>
+                                    <?php foreach ($prestazioni_specifiche as $val => $label): ?>
+                                        <option value="<?php echo $val; ?>" <?php if ($filter_prestazione === $val) echo 'selected'; ?>><?php echo $label; ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-3 mb-md-0">
                                 <label for="userFilter" class="form-label">Filtra per Lavoratore</label>
                                 <select id="userFilter" name="user_filter" class="form-select">
                                     <option value="all" <?php if ($filter_user === 'all') echo 'selected'; ?>>Tutti i lavoratori</option>
@@ -399,7 +459,7 @@ function get_sort_link($column, $current_sort_by, $current_sort_dir, $label) {
                                     <?php endforeach; ?>
                                 </select>
                             </div>
-                            <div class="col-md-3 mt-2 mt-md-0">
+                            <div class="col-md-3 mb-3 mb-md-0">
                                 <label for="statusFilter" class="form-label">Filtra per Stato</label>
                                 <select id="statusFilter" name="status_filter" class="form-select">
                                     <option value="all" <?php if ($filter_status === 'all') echo 'selected'; ?>>Tutti gli stati</option>
@@ -408,7 +468,7 @@ function get_sort_link($column, $current_sort_by, $current_sort_dir, $label) {
                                     <?php endforeach; ?>
                                 </select>
                             </div>
-                            <div class="col-md-3 d-flex align-items-end mt-3 mt-md-0">
+                            <div class="col-12 d-flex align-items-end mt-3">
                                 <button type="submit" class="btn" style="background-color: var(--admin-primary); color: white;">Applica Filtro</button>
                             </div>
                         </div>
@@ -422,11 +482,12 @@ function get_sort_link($column, $current_sort_by, $current_sort_dir, $label) {
                     <h5 class="mb-0">Elenco Documenti</h5>
                 </div>
                 <div class="card-body p-0">
-                    <div class="table-responsive">
+                    <div class="table-responsive table-min-height">
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
                                     <th><?php echo get_sort_link('modulo_nome', $sort_by, $sort_dir, 'Servizio'); ?></th>
+                                    <th><?php echo get_sort_link('prestazioni', $sort_by, $sort_dir, 'Prestazione'); ?></th>
                                     <th><?php echo get_sort_link('form_name', $sort_by, $sort_dir, 'Nome Documento'); ?></th>
                                     <th class="text-center"><?php echo get_sort_link('data_invio', $sort_by, $sort_dir, 'Data Invio'); ?></th>
                                     <th class="text-center"><?php echo get_sort_link('status', $sort_by, $sort_dir, 'Stato'); ?></th>
@@ -435,7 +496,7 @@ function get_sort_link($column, $current_sort_by, $current_sort_dir, $label) {
                             </thead>
                             <tbody>
                                 <?php if (empty($richieste)): ?>
-                                    <tr><td colspan="5" class="text-center p-4">Nessuna richiesta trovata con i filtri applicati.</td></tr>
+                                    <tr><td colspan="6" class="text-center p-4">Nessuna richiesta trovata con i filtri applicati.</td></tr>
                                 <?php else: ?>
                                 <?php foreach ($richieste_per_utente as $user_id => $data): ?>
                                     <tr class="user-group-header">
@@ -450,6 +511,16 @@ function get_sort_link($column, $current_sort_by, $current_sort_dir, $label) {
                                                 <?php if ($req['is_new']): ?>
                                                     <span class="badge bg-danger ms-2">Nuovo</span>
                                                 <?php endif; ?>
+                                            </td>
+                                            <td>
+                                                <?php
+                                                    $prestazione_key = '';
+                                                    if (!empty($req['prestazioni'])) {
+                                                        $prest_array = json_decode($req['prestazioni'], true);
+                                                        if (is_array($prest_array)) $prestazione_key = key($prest_array);
+                                                    }
+                                                    echo htmlspecialchars($prestazioni_specifiche[$prestazione_key] ?? 'N/D');
+                                                ?>
                                             </td>
                                             <td><i class="far fa-file-alt me-2 text-primary"></i>Richiesta (<?php echo htmlspecialchars($req['form_name']); ?>)</td>
                                             <td class="text-center"><?php echo date('d/m/Y H:i', strtotime($req['data_invio'])); ?></td>
@@ -496,6 +567,7 @@ function get_sort_link($column, $current_sort_by, $current_sort_dir, $label) {
 
                                                             $view_link = "../servizi/moduli/{$module_file}?form_name=" . urlencode($req['form_name']) . "&user_id=" . urlencode($req['user_id']) . "&prestazione=" . urlencode($prestazione);
                                                         ?>
+                                                        <li><a class="dropdown-item" href="preview_pdf_summary.php?form_name=<?php echo htmlspecialchars($req['form_name']); ?>" target="_blank"><i class="fas fa-file-pdf me-2 text-danger"></i>Anteprima PDF Compilato</a></li>
                                                         <li><a class="dropdown-item" href="<?php echo $view_link; ?>"><i class="fas fa-eye me-2"></i>Visualizza Dettagli</a></li>
                                                         <li><hr class="dropdown-divider"></li>
                                                         <?php if ($req['status'] !== 'bozza'): ?>
@@ -628,7 +700,7 @@ function get_sort_link($column, $current_sort_by, $current_sort_dir, $label) {
 
             $.get('check_attachments.php', { form_name: formName })
                 .done(function(response) {
-                    if (response && !response.has_attachments) {
+                    if (response && response.has_attachments === false) {
                         warningDiv.removeClass('hidden');
                     }
                 });

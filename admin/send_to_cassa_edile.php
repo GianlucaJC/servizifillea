@@ -57,6 +57,28 @@ if (empty($files_to_zip)) {
 }
 
 // 5. Crea il file ZIP
+// --- INIZIO LOGICA PDF DINAMICO ---
+// Determina la tabella del modulo specifico per recuperare i dati
+$table_name = strpos($form_name, 'form2_') === 0 ? 'modulo2_richieste' : 'modulo1_richieste';
+$stmt_data = $pdo1->prepare("SELECT * FROM `fillea-app`.`{$table_name}` WHERE form_name = ?");
+$stmt_data->execute([$form_name]);
+$form_data = $stmt_data->fetch(PDO::FETCH_ASSOC);
+
+// Decodifica il campo JSON delle prestazioni, necessario per la logica di compilazione
+if ($form_data && !empty($form_data['prestazioni'])) {
+    $form_data['prestazioni_decoded'] = json_decode($form_data['prestazioni'], true);
+}
+
+// Crea il PDF solo se abbiamo trovato i dati del modulo
+$dynamic_pdf_path = null;
+if ($form_data) {
+    require_once 'generate_pdf_summary.php'; // Includiamo la logica di generazione
+    $pdf_generator = new PDFTemplateFiller();
+    $dynamic_pdf_path = $pdf_generator->generate($form_data, $table_name);
+}
+// --- FINE LOGICA PDF DINAMICO ---
+
+
 $downloads_dir = __DIR__ . '/downloads';
 if (!is_dir($downloads_dir)) {
     mkdir($downloads_dir, 0755, true);
@@ -77,10 +99,13 @@ foreach ($files_to_zip as $file) {
     }
 }
 
-// Aggiungi il PDF statico (per ora)
-$static_pdf_path = __DIR__ . '/../modulo.pdf';
-if (file_exists($static_pdf_path)) {
-    $zip->addFile($static_pdf_path, 'modulo_riepilogativo.pdf');
+// Aggiungi il PDF riepilogativo (dinamico se generato, altrimenti statico come fallback)
+if ($dynamic_pdf_path && file_exists($dynamic_pdf_path)) {
+    $zip->addFile($dynamic_pdf_path, 'modulo_compilato_' . $form_name . '.pdf');
+} else {
+    // Fallback al PDF statico se la generazione dinamica fallisce
+    $static_pdf_path = __DIR__ . '/../modulo.pdf';
+    if (file_exists($static_pdf_path)) { $zip->addFile($static_pdf_path, 'modulo_template_vuoto.pdf'); }
 }
 
 $zip->close();
