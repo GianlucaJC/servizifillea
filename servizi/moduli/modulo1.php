@@ -103,7 +103,7 @@ if ($user_id) {
     }
 
     // Recupera l'elenco di tutti i funzionari per il dropdown
-    $stmt_funzionari = $pdo1->prepare("SELECT id, funzionario FROM `fillea-app`.funzionari ORDER BY funzionario ASC");
+    $stmt_funzionari = $pdo1->prepare("SELECT id, funzionario FROM `fillea-app`.funzionari WHERE is_super_admin = 0 ORDER BY funzionario ASC");
     $stmt_funzionari->execute();
     $funzionari_list = $stmt_funzionari->fetchAll(PDO::FETCH_ASSOC);
 
