@@ -119,6 +119,7 @@ try {
     $mail->isSMTP();
     $mail->Host = SMTP_HOST;
     $mail->Port = SMTP_PORT;
+    $mail->Priority = 1; // Priorità massima
 
     // Se ci sono username e password, abilita l'autenticazione.
     if (!empty(SMTP_USERNAME) && !empty(SMTP_PASSWORD)) {
