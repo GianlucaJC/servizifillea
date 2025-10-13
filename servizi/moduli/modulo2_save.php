@@ -1,6 +1,13 @@
 <?php
 session_start();
 
+function log_sql($sql, $params, $context = '') {
+    $log_file = __DIR__ . '/../../sql_debug.log';
+    $timestamp = date('Y-m-d H:i:s');
+    $log_message = "[$timestamp] - CONTEXT: $context\nSQL: " . preg_replace('/\s+/', ' ', $sql) . "\nPARAMS: " . json_encode($params, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n---\n";
+    file_put_contents($log_file, $log_message, FILE_APPEND);
+}
+
 // 1. Inizializzazione e recupero dati
 $token = $_SESSION['user_token'] ?? null; // Leggi il token dalla sessione, non dall'URL
 $action = $_POST['action'] ?? 'save'; // 'save' o 'submit_official'
@@ -96,6 +103,7 @@ try {
                         (:user_id, :form_name, :status, :nome_completo, :pos_cassa_edile, :data_nascita, :codice_fiscale, :via_piazza, :domicilio_a, :cap, :telefono, :impresa_occupazione, :prestazioni, :luogo_firma, :data_firma, :privacy_consent, :firma_data, NULL, NOW())";
         }
         
+        log_sql($sql, $data, 'Salvataggio in modulo2_richieste');
         $stmt = $pdo1->prepare($sql);
         $stmt->execute($data);
         $richiesta_id = $existing_record ? $existing_record['id'] : $pdo1->lastInsertId();
@@ -110,7 +118,9 @@ try {
                        VALUES (:user_id, :id_funzionario, 'Prestazioni Varie', :form_name, :richiesta_id, NOW(), 'inviato', 1) 
                        ON DUPLICATE KEY UPDATE data_invio = NOW(), status = 'inviato', is_new = 1, id_funzionario = :id_funzionario_upd";
         $stmt_master = $pdo1->prepare($sql_master);
-        $stmt_master->execute(['user_id' => $user_id, 'id_funzionario' => $id_funzionario_scelto, 'form_name' => $form_name, 'richiesta_id' => $richiesta_id, 'id_funzionario_upd' => $id_funzionario_scelto]);
+        $master_params = ['user_id' => $user_id, 'id_funzionario' => $id_funzionario_scelto, 'form_name' => $form_name, 'richiesta_id' => $richiesta_id, 'id_funzionario_upd' => $id_funzionario_scelto];
+        log_sql($sql_master, $master_params, 'Salvataggio in richieste_master');
+        $stmt_master->execute($master_params);
     } elseif ($action === 'unlock') {
         // Se l'admin sblocca, aggiorna lo stato anche nella tabella master
         $sql_master_unlock = "UPDATE `fillea-app`.`richieste_master` SET status = 'bozza' WHERE form_name = ? AND user_id = ?";

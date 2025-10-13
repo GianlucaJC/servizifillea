@@ -397,7 +397,7 @@ function e($value) {
             <?php if (!$is_admin_view): // Sezione visibile solo all'utente ?>
                 <div class="mb-6">
                     <label for="id_funzionario" class="form-label">Funzionario di Riferimento</label>
-                    <select id="id_funzionario" name="id_funzionario" class="form-input" <?php if (!empty($saved_data)) echo 'disabled'; ?>>
+                    <select id="id_funzionario" name="id_funzionario" class="form-input" <?php if (!empty($saved_data)) echo 'readonly'; ?>>
                         <?php foreach ($funzionari_list as $funzionario): ?>
                             <option value="<?php echo $funzionario['id']; ?>" 
                                 <?php 

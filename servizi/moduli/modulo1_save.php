@@ -200,7 +200,7 @@ try {
                        ON DUPLICATE KEY UPDATE data_invio = NOW(), status = 'inviato', is_new = 1, id_funzionario = :id_funzionario_upd";
         $stmt_master = $pdo1->prepare($sql_master);
         $stmt_master->execute(['user_id' => $user_id, 'id_funzionario' => $id_funzionario_scelto, 'form_name' => $form_name, 'richiesta_id' => $richiesta_id, 'id_funzionario_upd' => $id_funzionario_scelto]);
-        
+
         // --- INVIA NOTIFICA PUSH AL FUNZIONARIO ---
         try {
             // 1. Recupera l'ID del funzionario associato all'utente
