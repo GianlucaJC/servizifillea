@@ -184,6 +184,7 @@ try {
         
         $stmt = $pdo1->prepare($sql);
         $stmt->execute($data);
+        $richiesta_id = $existing_record ? $existing_record['id'] : $pdo1->lastInsertId();
     }
     
     // 7. Aggiorna la tabella master delle richieste
@@ -192,12 +193,14 @@ try {
         // Altrimenti, recupera quello di default associato all'utente.
         $id_funzionario_scelto = $_POST['id_funzionario'] ?? null;
 
-        $sql_master = "INSERT INTO `fillea-app`.`richieste_master` (user_id, id_funzionario, modulo_nome, form_name, data_invio, status, is_new) 
-                       VALUES (:user_id, :id_funzionario, 'Contributi di Studio', :form_name, NOW(), 'inviato', 1) 
+        // ESEGUI SEMPRE L'INSERIMENTO/AGGIORNAMENTO NELLA TABELLA MASTER
+        // CORREZIONE: Aggiunto richiesta_id per risolvere il bug della sovrascrittura.
+        $sql_master = "INSERT INTO `fillea-app`.`richieste_master` (user_id, id_funzionario, modulo_nome, form_name, richiesta_id, data_invio, status, is_new) 
+                       VALUES (:user_id, :id_funzionario, 'Contributi di Studio', :form_name, :richiesta_id, NOW(), 'inviato', 1) 
                        ON DUPLICATE KEY UPDATE data_invio = NOW(), status = 'inviato', is_new = 1, id_funzionario = :id_funzionario_upd";
         $stmt_master = $pdo1->prepare($sql_master);
-        $stmt_master->execute(['user_id' => $user_id, 'id_funzionario' => $id_funzionario_scelto, 'form_name' => $form_name, 'id_funzionario_upd' => $id_funzionario_scelto]);
-
+        $stmt_master->execute(['user_id' => $user_id, 'id_funzionario' => $id_funzionario_scelto, 'form_name' => $form_name, 'richiesta_id' => $richiesta_id, 'id_funzionario_upd' => $id_funzionario_scelto]);
+        
         // --- INVIA NOTIFICA PUSH AL FUNZIONARIO ---
         try {
             // 1. Recupera l'ID del funzionario associato all'utente

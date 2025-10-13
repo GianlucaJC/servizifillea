@@ -158,7 +158,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (form) {
-        form.addEventListener('submit', function(event) {
+        form.addEventListener('submit', function(event) {            
+            // Controlla se ci sono file in coda per l'upload.
+            // La variabile `uploadQueue` è definita in modulo2_upload.js
+            if (typeof uploadQueue !== 'undefined' && uploadQueue.length > 0) {
+                event.preventDefault(); // Blocca l'invio del form
+                // Avvia l'upload. La funzione `processQueue` si occuperà di inviare il form
+                // una volta che tutti i file sono stati caricati.
+                processQueue();
+                return;
+            }
             let isValid = true;
 
             // Validazione Codice Fiscale (se compilato)

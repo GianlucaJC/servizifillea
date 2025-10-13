@@ -98,17 +98,19 @@ try {
         
         $stmt = $pdo1->prepare($sql);
         $stmt->execute($data);
+        $richiesta_id = $existing_record ? $existing_record['id'] : $pdo1->lastInsertId();
     }
 
     if ($action === 'submit_official') {
         // Se l'utente ha selezionato un funzionario dal dropdown, usa quello.
         $id_funzionario_scelto = $_POST['id_funzionario'] ?? null;
 
-        $sql_master = "INSERT INTO `fillea-app`.`richieste_master` (user_id, id_funzionario, modulo_nome, form_name, data_invio, status, is_new) 
-                       VALUES (:user_id, :id_funzionario, 'Prestazioni Varie', :form_name, NOW(), 'inviato', 1) 
+        // CORREZIONE: Aggiunto richiesta_id per risolvere il bug della sovrascrittura.
+        $sql_master = "INSERT INTO `fillea-app`.`richieste_master` (user_id, id_funzionario, modulo_nome, form_name, richiesta_id, data_invio, status, is_new) 
+                       VALUES (:user_id, :id_funzionario, 'Prestazioni Varie', :form_name, :richiesta_id, NOW(), 'inviato', 1) 
                        ON DUPLICATE KEY UPDATE data_invio = NOW(), status = 'inviato', is_new = 1, id_funzionario = :id_funzionario_upd";
         $stmt_master = $pdo1->prepare($sql_master);
-        $stmt_master->execute(['user_id' => $user_id, 'id_funzionario' => $id_funzionario_scelto, 'form_name' => $form_name, 'id_funzionario_upd' => $id_funzionario_scelto]);
+        $stmt_master->execute(['user_id' => $user_id, 'id_funzionario' => $id_funzionario_scelto, 'form_name' => $form_name, 'richiesta_id' => $richiesta_id, 'id_funzionario_upd' => $id_funzionario_scelto]);
     } elseif ($action === 'unlock') {
         // Se l'admin sblocca, aggiorna lo stato anche nella tabella master
         $sql_master_unlock = "UPDATE `fillea-app`.`richieste_master` SET status = 'bozza' WHERE form_name = ? AND user_id = ?";

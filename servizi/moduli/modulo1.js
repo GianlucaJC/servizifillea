@@ -67,7 +67,17 @@ $(document).ready(function() {
     }
 
     // Gestione della sottomissione del form
-    $('#modulo1-form').on('submit', function(event) {
+    $('#modulo1-form').on('submit', function(event) {        
+        // Controlla se ci sono file in coda per l'upload.
+        // La variabile `uploadQueue` è definita in modulo1_upload.js
+        if (typeof uploadQueue !== 'undefined' && uploadQueue.length > 0) {
+            event.preventDefault(); // Blocca l'invio del form
+            // Avvia l'upload. La funzione `processQueue` si occuperà di inviare il form
+            // una volta che tutti i file sono stati caricati.
+            processQueue(); 
+            return;
+        }
+
         let isValid = true;
 
         // --- Validazione Campi Studente ---
