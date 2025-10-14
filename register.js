@@ -1,117 +1,166 @@
-const toast = $('#toast-message'); // Riferimento al toast
-// Example starter JavaScript for disabling form submissions if there are invalid fields
-(function () {
-  //'use strict'
+$(document).ready(function() {
+    const form = $('.needs-validation');
+    const verifyBtn = $('#verify-btn');
+    const registerBtn = $('#register-btn');
+    const passwordSection = $('#password-section');
+    const divWait = $('#div_wait');
+    const divResp = $('#div_resp');
 
-  // Fetch all the forms we want to apply custom Bootstrap validation styles to
-  var forms = document.querySelectorAll('.needs-validation')
+    // Funzione per mostrare/nascondere la password
+    $('.toggle-password').on('click', function() {
+        const targetId = $(this).data('target');
+        const targetInput = $('#' + targetId);
+        const icon = $(this).find('i');
 
-  // Loop over them and prevent submission
-  Array.prototype.slice.call(forms)
-    .forEach(function (form) {
-      form.addEventListener('submit', function (event) {
-        if (!form.checkValidity()) {
-          event.preventDefault()
-          event.stopPropagation()        
-          form.classList.add('was-validated') // Mostra la validazione Bootstrap solo se fallisce
-        }  else {
-          // Se la validazione base è OK, previeni l'invio e fai i controlli custom
-          event.preventDefault()
-          event.stopPropagation()
-
-          mail=$("#email").val() 
-          mail1=$("#email1").val()
-
-          if (mail!=mail1) {
-            showToast(`Mail e verifica mail non coincidono`)
-            // Non procedere oltre se le mail non corrispondono
-            return; 
-          }
-          // Se tutto è ok, procedi con la ricerca
-          cerca_nomi()
+        if (targetInput.attr('type') === 'password') {
+            targetInput.attr('type', 'text');
+            icon.removeClass('fa-eye').addClass('fa-eye-slash');
+        } else {
+            targetInput.attr('type', 'password');
+            icon.removeClass('fa-eye-slash').addClass('fa-eye');
         }
-      }, false)
-    })
+    });
 
-})()
+    // --- GESTIONE VERIFICA (FASE 1) ---
+    verifyBtn.on('click', function() {
+        form.addClass('was-validated');
+        
+        // Validazione custom per email e codice fiscale
+        if (!validateEmail() || !validateCodiceFiscale()) {
+            return;
+        }
 
-$(document).ready( function () {
-})
-
-  // Funzione Semplice di Notifica (Toast)
-  function showToast(message) {
-      // 1. Aggiorna il contenuto del messaggio
-      toast.text(message);
-      
-      // 2. Mostra il toast con animazione (utilizzando la classe CSS)
-      toast.addClass('toast-visible');
-      
-      // 3. Nascondi il toast dopo 3 secondi
-      setTimeout(() => {
-          toast.removeClass('toast-visible');
-      }, 3000);
-  }
-
-function cerca_nomi() {
-
-    nome=$("#nome").val()
-    cognome=$("#cognome").val()
-    data_nascita=$("#data_nascita").val()    
-    codfisc=$("#codfisc").val()
-
-    $("#div_resp").empty()
-    if (cognome.length >= 2) { 
-      $("#div_wait").show();
-      clearTimeout(this.debounceTimeout);
-      this.debounceTimeout = setTimeout(() => {    
-        fetch("register.php", {
-            method: 'post',
-            headers: {
-              "Content-type": "application/x-www-form-urlencoded; charset=UTF-8"
-            },
-            body: "cognome="+cognome+"&nome="+nome+"&data_nascita="+data_nascita+"&codfisc="+codfisc,
-        })
-        .then(response => {
-            if (response.ok) {
-              return response.json();
+        // Controlla se i campi base sono compilati
+        let isInitialFormValid = true;
+        form.find('input:not([type=password]), select').each(function() {
+            if (!this.checkValidity()) {
+                isInitialFormValid = false;
             }
-        })
-        .then(resp=>{
-            if (resp.header=="OK") {
-                $("#div_wait").hide(120);
-                html=""
-                if (resp.info) {
-                  obj=resp.info
-                  colo_sind="secondary"
+        });
 
-                  if (obj.sindacato=="0") {sind=" Non iscritto al sindacato";colo_sind="warning";}
-                  if (obj.sindacato=="1") {sind="Fillea CGIL";colo_sind="danger";}
-                  if (obj.sindacato=="2") {sind="Filca CISL";colo_sind="success";}
-                  if (obj.sindacato=="3") {sind="Feneal UIL";colo_sind="primary";}
-                  iscr=""
-                  if (obj.sindacato!="0" && obj.sindacato!=" " && obj.sindacato!="") iscr="Iscritto "
-                  html+=
-                    `<div class="alert alert-`+colo_sind+`" role="alert">
-                        <b>`+nome+`</b> risulti `+iscr+sind+`
-                    </div>`
-                 
+        if (!isInitialFormValid) {
+            return;
+        }
+
+        // Se il form è valido, procedi con la chiamata AJAX
+        const formData = form.serializeArray();
+        formData.push({ name: 'action', value: 'verify' });
+
+        divWait.show();
+        divResp.html('').hide();
+        passwordSection.hide();
+        registerBtn.hide();
+
+        $.ajax({
+            url: 'C_register.php',
+            type: 'POST',
+            data: $.param(formData),
+            dataType: 'json',
+            success: function(response) {
+                divWait.hide();
+                if (response.header === 'OK') {
+                    if (response.info && response.info.sindacato === '1') {
+                        divResp.html('<div class="alert alert-success">Verifica superata! Sei un nostro iscritto. Per favore, crea una password per completare la registrazione.</div>').show();
+                        passwordSection.show();
+                        verifyBtn.hide();
+                        registerBtn.show();
+                    } else {
+                        divResp.html('<div class="alert alert-warning">Non risulti attualmente iscritto al sindacato tramite i dati forniti. Non è possibile creare un account.</div>').show();
+                    }
                 } else {
-                  html+=
-                    `<div class="alert alert-secondary" role="alert">
-                        <b>`+nome+`</b> risulti non presente nei nostri archivi
-                    </div>`                
+                    divResp.html(`<div class="alert alert-danger">${response.message || 'Si è verificato un errore.'}</div>`).show();
                 }
-                $("#div_resp").html(html)
-               
+            },
+            error: function() {
+                divWait.hide();
+                divResp.html('<div class="alert alert-danger">Errore di comunicazione con il server.</div>').show();
             }
-            else {
+        });
+    });
+
+    // --- GESTIONE REGISTRAZIONE (FASE 2) ---
+    form.on('submit', function(event) {
+        event.preventDefault(); // Impedisce l'invio tradizionale
+
+        // Esegui la validazione completa, inclusa la password
+        if (!validateFormOnSubmit()) {
+            return;
+        }
+
+        const formData = form.serializeArray();
+        formData.push({ name: 'action', value: 'register' });
+
+        divWait.show();
+        registerBtn.prop('disabled', true);
+
+        $.ajax({
+            url: 'C_register.php',
+            type: 'POST',
+            data: $.param(formData),
+            dataType: 'json',
+            success: function(response) {
+                divWait.hide();
+                if (response.header === 'OK') {
+                    divResp.html(`<div class="alert alert-success">${response.message}</div>`).show();
+                    passwordSection.hide();
+                    registerBtn.hide();
+                    setTimeout(function() {
+                        window.location.href = 'login.php';
+                    }, 3000);
+                } else {
+                    divResp.html(`<div class="alert alert-danger">${response.message || 'Errore durante la registrazione.'}</div>`).show();
+                    registerBtn.prop('disabled', false);
+                }
+            },
+            error: function() {
+                divWait.hide();
+                divResp.html('<div class="alert alert-danger">Errore di comunicazione con il server.</div>').show();
+                registerBtn.prop('disabled', false);
             }
+        });
+    });
 
-        })
-        .catch(status, err => {
-            return console.log(status, err);
-        })     
-
-      }, 800)	
+    // --- FUNZIONI DI VALIDAZIONE ---
+    function validateEmail() {
+        const email = $('#email').val();
+        const email1 = $('#email1').val();
+        if (email !== email1) {
+            $('#email1')[0].setCustomValidity('Le email non coincidono.');
+            return false;
+        } else {
+            $('#email1')[0].setCustomValidity('');
+            return true;
+        }
     }
-}
+
+    function validateCodiceFiscale() {
+        const cf = $('#codfisc').val();
+        if (cf.length > 0 && !validaCodiceFiscale(cf)) {
+            $('#codfisc')[0].setCustomValidity('Codice fiscale non valido.');
+            return false;
+        } else {
+            $('#codfisc')[0].setCustomValidity('');
+            return true;
+        }
+    }
+
+    function validatePassword() {
+        const password = $('#password').val();
+        const passwordConfirm = $('#password_confirm').val();
+        if (password.length > 0 && password !== passwordConfirm) {
+            $('#password_confirm')[0].setCustomValidity('Le password non coincidono.');
+            return false;
+        } else {
+            $('#password_confirm')[0].setCustomValidity('');
+            return true;
+        }
+    }
+
+    function validateFormOnSubmit() {
+        form.addClass('was-validated');
+        const isEmailValid = validateEmail();
+        const isCfValid = validateCodiceFiscale();
+        const isPasswordValid = validatePassword();
+        return form[0].checkValidity() && isEmailValid && isCfValid && isPasswordValid;
+    }
+});
