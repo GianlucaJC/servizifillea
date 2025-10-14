@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $mail->addAddress($email);
 
                 // Contenuto dell'email
-                $reset_link = "http://" . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . "/set_new_password.php?token=" . $token;
+                $reset_link = "https://" . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . "/set_new_password.php?token=" . $token;
                 $mail->isHTML(true);
                 $mail->Subject = 'Reset della password - Fillea Service App';
                 $mail->Body    = "Ciao,<br><br>Hai richiesto di resettare la tua password. Clicca sul link qui sotto per procedere:<br><br>"
