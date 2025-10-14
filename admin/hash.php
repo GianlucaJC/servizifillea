@@ -1,6 +1,6 @@
 <?php
 // Inserisci qui la password che vuoi usare
-$password_da_criptare = 'tamara1967';
+$password_da_criptare = 'test2025!';
 
 // Genera l'hash sicuro
 $hash_generato = password_hash($password_da_criptare, PASSWORD_DEFAULT);
