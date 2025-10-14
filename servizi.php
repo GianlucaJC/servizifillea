@@ -78,7 +78,10 @@
     <!-- 1. SPLASH SCREEN -->
     <div id="splash-screen">
         <div class="p-8 bg-white/20 rounded-xl shadow-2xl backdrop-blur-sm flex flex-col items-center">
-            <div class="text-4xl font-extrabold mb-4 text-white">Fillea Service App</div>
+            <!-- Aggiunto il logo qui -->
+            <img src="logo.jpg" alt="Logo Fillea CGIL Firenze" class="w-full max-w-sm mb-6 rounded">
+            
+            <div class="text-3xl font-extrabold mb-4 text-white">Fillea Service App</div>
             <div class="spinner"></div>
             <p class="mt-4 text-white/90 text-sm">Caricamento rapido...</p>
         </div>
@@ -101,7 +104,7 @@
             <div class="container mx-auto px-4 py-4">
                 <?php if ($is_user_logged_in==true): ?>
                 <!-- Icona utente -->
-                <div class="absolute top-4 right-4">
+                <div class="absolute top-16 right-4">
                     <div class="relative">
                         <button id="user-menu-button" class="text-white bg-primary hover:bg-primary-dark rounded-full p-3 shadow-lg flex items-center justify-center focus:outline-none">
                             <i class="fas fa-user fa-lg"></i>
@@ -115,14 +118,15 @@
                 <?php endif; ?>
 
                 <header class="text-center">
-                    <h1 class="text-2xl md:text-4xl font-bold text-gray-800">Seleziona un Servizio</h1>
-                    <p class="text-lg md:text-xl text-gray-500 mt-2">Scegli tra i nostri 13 servizi principali.</p>
+                    <!-- Logo aggiunto qui -->
+                    <img src="logo.jpg" alt="Logo Fillea CGIL Firenze" class="mx-auto mb-4 w-full max-w-md">
                 </header>
             </div>
         </div>
 
         <!-- Griglia dei 13 Servizi -->
         <div class="container mx-auto pt-8 pb-20"> <!-- Aggiunto padding per distanziare dalla barra fissa -->
+            <p class="text-center text-gray-600 mb-8 px-4">Scegli il servizio di cui hai bisogno. Clicca su una delle card per iniziare.</p>
             <!-- CLASSI AGGIORNATE: 
                  - grid-cols-2 (2 colonne su MOBILE - Nuovo Default)
                  - md:grid-cols-3 (3 colonne da schermi medi in su - Massimo)
