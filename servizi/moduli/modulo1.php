@@ -16,6 +16,7 @@ $user_id_from_admin = $_GET['user_id'] ?? null; // ID utente passato dall'admin
 $user_id = null;
 $default_funzionario_id = null;
 $saved_data = [];
+$id_funzionario_assegnato = null; // Variabile per l'ID del funzionario da master
 $is_admin_view = false;
 
 // Mappa delle prestazioni per il titolo della pagina
@@ -79,6 +80,13 @@ if ($user_id) {
             while ($file = $stmt_files->fetch(PDO::FETCH_ASSOC)) {
                 $saved_data['allegati'][$file['document_type']][] = $file;
             }
+        }
+
+        // Controlla se la richiesta è già stata inviata e recupera l'ID del funzionario assegnato
+        $stmt_master_check = $pdo1->prepare("SELECT id, id_funzionario FROM `fillea-app`.`richieste_master` WHERE form_name = ? AND user_id = ?");
+        $stmt_master_check->execute([$form_name, $user_id]);
+        if ($master_record = $stmt_master_check->fetch(PDO::FETCH_ASSOC)) {
+            $id_funzionario_assegnato = $master_record['id_funzionario'];
         }
     }
 
@@ -352,7 +360,8 @@ function e($value) {
     </div>
 
     <!-- Aggiunto ID al form per il targeting con jQuery -->
-    <form id="modulo1-form" action="modulo1_save.php?token=<?php echo htmlspecialchars($token); ?>" method="POST" autocomplete="off">
+    <form 
+        id="modulo1-form" action="modulo1_save.php?token=<?php echo htmlspecialchars($token); ?>" method="POST" autocomplete="off">
 
     <?php
         $status = $saved_data['status'] ?? 'bozza';
@@ -394,27 +403,6 @@ function e($value) {
 
         <!-- Sezione Dati Studente -->
         <div class="form-section">
-            <?php if (!$is_admin_view): // Sezione visibile solo all'utente ?>
-                <div class="mb-6">
-                    <label for="id_funzionario" class="form-label">Funzionario di Riferimento</label>
-                    <select id="id_funzionario" name="id_funzionario" class="form-input" <?php if (!empty($saved_data)) echo 'readonly'; ?>>
-                        <?php foreach ($funzionari_list as $funzionario): ?>
-                            <option value="<?php echo $funzionario['id']; ?>" 
-                                <?php 
-                                    // Se è una pratica salvata, seleziona il funzionario salvato.
-                                    // Altrimenti, seleziona il funzionario di default dell'utente.
-                                    $selected_funzionario_id = $saved_data['id_funzionario'] ?? $default_funzionario_id;
-                                    if ($funzionario['id'] == $selected_funzionario_id) echo 'selected'; 
-                                ?>>
-                                <?php echo htmlspecialchars($funzionario['funzionario'] . ' (' . $funzionario['zona'] . ')'); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                    <?php if (!empty($saved_data)): ?>
-                        <p class="text-sm text-gray-500 mt-1">Il funzionario non può essere modificato per una pratica già salvata.</p>
-                    <?php endif; ?>
-                </div>
-            <?php endif; ?>
             <h2 class="form-section-title">Dati dello Studente Richiedente</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -623,6 +611,9 @@ function e($value) {
         <input type="hidden" name="form_name" value="<?php echo htmlspecialchars($form_name ?? uniqid()); ?>">
         <input type="hidden" name="prestazione" value="<?php echo htmlspecialchars($prestazione_selezionata); ?>">
         <input type="hidden" name="firma_data" id="firma_data">
+        
+        <!-- Campo nascosto per l'ID del funzionario già assegnato -->
+        <input type="hidden" id="IDfunz" value="<?php echo htmlspecialchars($id_funzionario_assegnato ?? ''); ?>">
 
         <?php 
             // Logica per mostrare il pulsante "Salva Dati":
@@ -657,9 +648,25 @@ function e($value) {
             <h3 class="text-xl font-bold text-gray-800">Conferma Invio</h3>
             <button id="modal-close-btn" class="text-gray-500 hover:text-gray-800">&times;</button>
         </div>
-        <p class="text-gray-600 mb-6">
-            Sei sicuro di voler inviare la richiesta al funzionario? Una volta inviata, non potrai più modificarla.
-        </p>
+        <div id="modal-content-area">
+            <p class="text-gray-600 mb-6">
+                Stai per inviare la richiesta. Una volta inviata, non potrai più modificarla.
+            </p>
+            <!-- Contenitore per il selettore del funzionario, visibile solo al primo invio -->
+            <div id="funzionario-selector-container" class="mb-6">
+                <label for="id_funzionario_modal" class="form-label">Assegna a un Funzionario</label>
+                <select id="id_funzionario_modal" name="id_funzionario" class="form-input mt-1">
+                    <option value="" disabled selected>-- Seleziona un funzionario --</option>
+                    <?php foreach ($funzionari_list as $funzionario): ?>
+                        <option value="<?php echo $funzionario['id']; ?>" <?php if ($funzionario['id'] == $default_funzionario_id) echo 'selected'; ?>>
+                            <?php echo htmlspecialchars($funzionario['funzionario'] . ' (' . $funzionario['zona'] . ')'); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <p id="error-id_funzionario_modal" class="text-red-500 text-xs mt-1 hidden"></p>
+            </div>
+        </div>
+
         <div class="flex justify-end space-x-4">
             <button id="modal-cancel-btn" class="py-2 px-4 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">
                 Annulla

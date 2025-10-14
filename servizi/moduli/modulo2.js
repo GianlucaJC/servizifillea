@@ -64,7 +64,15 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             if (isValid) {
-                if (confirmationModal) confirmationModal.classList.remove('hidden');
+                if (confirmationModal) {
+                    // Legge il campo nascosto per vedere se un funzionario è già stato assegnato.
+                    const isFunzionarioAssigned = document.getElementById('IDfunz').value !== '';
+                    const funzionarioSelectorContainer = document.getElementById('funzionario-selector-container');
+                    
+                    funzionarioSelectorContainer.style.display = isFunzionarioAssigned ? 'none' : 'block';
+
+                    confirmationModal.classList.remove('hidden');
+                }
             } else {
                 // Se non è valido, scrolla al campo con errore
                 const firstErrorField = form.querySelector('.border-red-500');
@@ -75,12 +83,46 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (modalConfirmBtn) {
         modalConfirmBtn.addEventListener('click', function() {
-            const hiddenActionInput = document.createElement('input');
-            hiddenActionInput.type = 'hidden';
-            hiddenActionInput.name = 'action';
-            hiddenActionInput.value = 'submit_official';
-            form.appendChild(hiddenActionInput);
-            form.submit();
+            let isValid = true;
+            let funzionarioId = null;
+
+            const funzionarioSelectorContainer = document.getElementById('funzionario-selector-container');
+            const funzionarioModalSelect = document.getElementById('id_funzionario_modal');
+
+            // Se il selettore è visibile, valida la scelta
+            if (funzionarioSelectorContainer && window.getComputedStyle(funzionarioSelectorContainer).display !== 'none') {
+                funzionarioId = funzionarioModalSelect.value;
+                if (!funzionarioId) {
+                    toggleError('id_funzionario_modal', 'Per favore, seleziona un funzionario.');
+                    isValid = false;
+                } else {
+                    toggleError('id_funzionario_modal', null);
+                }
+            } else {
+                // Se non è visibile, il funzionario è già assegnato. Prendi il valore dal campo nascosto.
+                funzionarioId = document.getElementById('IDfunz').value;
+            }
+
+            if (isValid) {
+                // Rimuovi eventuali campi nascosti precedenti per evitare duplicati
+                form.querySelectorAll('input[name="action"], input[name="id_funzionario"]').forEach(el => el.remove());
+
+                // Aggiungi l'azione di invio
+                const hiddenActionInput = document.createElement('input');
+                hiddenActionInput.type = 'hidden';
+                hiddenActionInput.name = 'action';
+                hiddenActionInput.value = 'submit_official';
+                form.appendChild(hiddenActionInput);
+
+                // Aggiungi l'ID del funzionario
+                const hiddenFunzionarioInput = document.createElement('input');
+                hiddenFunzionarioInput.type = 'hidden';
+                hiddenFunzionarioInput.name = 'id_funzionario';
+                hiddenFunzionarioInput.value = funzionarioId;
+                form.appendChild(hiddenFunzionarioInput);
+
+                form.submit();
+            }
         });
     }
 

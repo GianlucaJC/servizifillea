@@ -140,16 +140,41 @@ $(document).ready(function() {
     // Mostra la modale quando si clicca "Invia al funzionario"
     $('#submit-official-btn').on('click', function(event) {
         event.preventDefault(); // Impedisce l'invio immediato del form
+        
+        // Legge il campo nascosto per vedere se un funzionario è già stato assegnato.
+        const isFunzionarioAssigned = $('#IDfunz').val() !== '';
+        
+        if (isFunzionarioAssigned) {
+            $('#funzionario-selector-container').hide();
+        } else {
+            $('#funzionario-selector-container').show();
+        }
+
         modal.removeClass('hidden');
     });
 
     // Nascondi la modale se si clicca "Annulla" o il tasto chiudi
     $('#modal-cancel-btn, #modal-close-btn').on('click', function() {
         modal.addClass('hidden');
+        toggleError('id_funzionario_modal', null); // Pulisci eventuali errori
     });
 
     // Invia il form quando si clicca "Sì, invia" nella modale
     $('#modal-confirm-btn').on('click', function() {
+        let funzionarioId = null;
+        // Se il selettore è visibile, valida la scelta e prendi il valore
+        if ($('#funzionario-selector-container').is(':visible')) {
+            funzionarioId = $('#id_funzionario_modal').val();
+            if (!funzionarioId) {
+                toggleError('id_funzionario_modal', 'Per favore, seleziona un funzionario.');
+                return; // Blocca l'invio
+            }
+            toggleError('id_funzionario_modal', null);
+        } else {
+            // Se non è visibile, il funzionario è già assegnato. Prendi il valore dal campo nascosto.
+            funzionarioId = $('#IDfunz').val();
+        }
+
         // Aggiungiamo un campo nascosto per assicurarci che l'azione corretta venga inviata
         // anche se la sottomissione è programmatica.
         if (!$('input[name="action"][value="submit_official"]').length) {
@@ -159,6 +184,15 @@ $(document).ready(function() {
                 value: 'submit_official'
             }).appendTo('#modulo1-form');
         }
+
+        // Rimuovi un eventuale campo 'id_funzionario' precedente per evitare duplicati
+        $('#modulo1-form input[name="id_funzionario"]').remove();
+
+        // Aggiungi il nuovo valore solo se ne abbiamo uno
+        if (funzionarioId) {
+            $('<input>').attr({ type: 'hidden', name: 'id_funzionario', value: funzionarioId }).appendTo('#modulo1-form');
+        }
+
         $('#modulo1-form').submit();
     });
 
