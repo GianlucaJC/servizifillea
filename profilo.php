@@ -5,7 +5,6 @@ session_start(); // Avvia la sessione DOPO aver impostato i parametri
 // 1. Recupera il token dall'URL
 $token = $_GET['token'] ?? '';
 $user_data = null;
-$funzionario_info = "Non specificato";
 
 include_once("push_config.php"); // Includi per accedere alla chiave pubblica VAPID
 // 2. Se il token è presente, verifica la sua validità e recupera i dati dell'utente
@@ -16,23 +15,13 @@ if (!empty($token)) {
     $pdo1 = Database::getInstance('fillea');
 
     // Query per recuperare i dati dell'utente e del funzionario associato con un token valido e non scaduto
-    $sql = "SELECT 
-                u.nome, u.cognome, u.email, u.telefono, u.data_nascita, u.codfisc, u.settore,
-                f.funzionario, f.zona
-            FROM `fillea-app`.users AS u
-            LEFT JOIN `fillea-app`.funzionari AS f ON u.id_funzionario = f.id
-            WHERE u.token = ? AND u.token_expiry > NOW()
+    $sql = "SELECT nome, cognome, email, telefono, data_nascita, codfisc, settore
+            FROM `fillea-app`.users
+            WHERE token = ? AND token_expiry > NOW()
             LIMIT 1";
     $stmt = $pdo1->prepare($sql);
     $stmt->execute([$token]);
     $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    // Se l'utente è stato trovato e ha un funzionario, formatta la stringa
-    if ($user_data) {
-        if (!empty($user_data['funzionario'])) {
-            $funzionario_info = $user_data['funzionario'] . ' (' . $user_data['zona'] . ')';
-        }
-    }
 
     // Salva il token nella sessione per usarlo negli script WebAuthn
     $_SESSION['user_token'] = $token;
@@ -120,10 +109,6 @@ if (!$user_data) {
             <div class="col-md-6">
                 <label class="form-label">Settore</label>
                 <input type="text" class="form-control" value="<?php echo htmlspecialchars(ucfirst($user_data['settore'])); ?>" readonly>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label">Funzionario di Riferimento</label>
-                <input type="text" class="form-control" value="<?php echo htmlspecialchars($funzionario_info); ?>" readonly>
             </div>
         </div>
 

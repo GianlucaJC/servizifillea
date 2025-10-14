@@ -6,6 +6,7 @@ push_config.php
 /vendor/
 /admin/downloads
 /uploads
+/temp_pdf/
 # Log di debug
 *.log
 # File di configurazione con credenziali

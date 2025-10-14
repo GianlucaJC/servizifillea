@@ -143,7 +143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <div class="text-center mt-3">
-        <a href="#" class="text-muted">Password dimenticata?</a>
+        <a href="forgot_password.php" class="text-muted">Password dimenticata?</a>
         <p class='mt-2'><a href="register.php" class="text-muted">Non sei registrato? Clicca quì</a></p>
     </div>
 </div>
@@ -273,8 +273,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 </body>
 </html>
-        }
-    });
+
 </script>
 
 </body>
