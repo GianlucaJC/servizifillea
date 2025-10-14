@@ -103,7 +103,7 @@ if ($user_id) {
     }
 
     // Recupera l'elenco di tutti i funzionari per il dropdown
-    $stmt_funzionari = $pdo1->prepare("SELECT id, funzionario FROM `fillea-app`.funzionari WHERE is_super_admin = 0 ORDER BY funzionario ASC");
+    $stmt_funzionari = $pdo1->prepare("SELECT id, funzionario, zona FROM `fillea-app`.funzionari WHERE is_super_admin = 0 ORDER BY funzionario ASC");
     $stmt_funzionari->execute();
     $funzionari_list = $stmt_funzionari->fetchAll(PDO::FETCH_ASSOC);
 
@@ -406,7 +406,7 @@ function e($value) {
                                     $selected_funzionario_id = $saved_data['id_funzionario'] ?? $default_funzionario_id;
                                     if ($funzionario['id'] == $selected_funzionario_id) echo 'selected'; 
                                 ?>>
-                                <?php echo htmlspecialchars($funzionario['funzionario']); ?>
+                                <?php echo htmlspecialchars($funzionario['funzionario'] . ' (' . $funzionario['zona'] . ')'); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
