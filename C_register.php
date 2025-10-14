@@ -51,6 +51,7 @@
                     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
                     $nome_post = trim($_POST['nome'] ?? '');
                     $cognome_post = trim($_POST['cognome'] ?? '');
+                    $name=substr($cognome_post,0,1).substr($nome_post,0,1);
                     // Crea uno username fittizio con cognome e iniziale del nome (es. Rossi.M)
                     $username_fittizio = $cognome_post . '.' . mb_substr($nome_post, 0, 1);
 
@@ -61,6 +62,7 @@
                     
                     $stmt_insert = $pdo_fillea->prepare($insert_sql);
                     $stmt_insert->execute([
+                        ':name' => $name,
                         ':nome' => $nome_post,
                         ':cognome' => $cognome_post,
                         ':username' => $username_fittizio,
