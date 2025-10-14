@@ -160,31 +160,31 @@ if ($show_email_form && isset($_SESSION['pre_reg_user_id']) && !$user_data) {
                     <input type="hidden" name="action" value="complete_registration">
                     
                     <div class="input-group mb-3">
-                        <span class="input-group-text" style="width: 150px;"><i class="fas fa-id-card me-2"></i>Codice Fiscale</span>
+                        <span class="input-group-text" style="width: 130px;"><i class="fas fa-id-card me-2"></i>Codice Fiscale</span>
                         <input type="text" id="codice_fiscale_display" class="form-control" value="<?php echo htmlspecialchars($user_data['codfisc']); ?>" readonly>
                     </div>
                     <div class="input-group mb-3">
-                        <span class="input-group-text" style="width: 150px;"><i class="fas fa-user me-2"></i>Nome</span>
+                        <span class="input-group-text" style="width: 130px;"><i class="fas fa-user me-2"></i>Nome</span>
                         <input type="text" id="nome" name="nome" class="form-control" value="<?php echo htmlspecialchars($user_data['nome'] ?? ''); ?>" placeholder="Il tuo nome" required autocomplete="off">
                     </div>
                     <div class="input-group mb-3">
-                        <span class="input-group-text" style="width: 150px;"><i class="fas fa-user me-2"></i>Cognome</span>
+                        <span class="input-group-text" style="width: 130px;"><i class="fas fa-user me-2"></i>Cognome</span>
                         <input type="text" id="cognome" name="cognome" class="form-control" value="<?php echo htmlspecialchars($user_data['cognome'] ?? ''); ?>" placeholder="Il tuo cognome" required autocomplete="off">
                     </div>
                     <div class="input-group mb-3">
-                        <span class="input-group-text" style="width: 150px;"><i class="fas fa-envelope me-2"></i>Email</span>
+                        <span class="input-group-text" style="width: 130px;"><i class="fas fa-envelope me-2"></i>Email</span>
                         <input type="email" id="email" name="email" class="form-control" placeholder="mario.rossi@email.com" required autocomplete="off">
                     </div>
-                    <p class="text-muted small mb-3" style="margin-top: -0.5rem; margin-left: 155px;">L'email sarà il tuo username per l'accesso.</p>
+                    <p class="text-muted small mb-3" style="margin-top: -0.5rem; margin-left: 135px;">L'email sarà il tuo username per l'accesso.</p>
 
                     <div class="input-group mb-3">
-                        <span class="input-group-text" style="width: 150px;"><i class="fas fa-envelope-circle-check me-2"></i>Conferma Email</span>
+                        <span class="input-group-text" style="width: 130px;"><i class="fas fa-envelope-circle-check me-2"></i>Conferma Email</span>
                         <input type="email" id="email_confirm" name="email_confirm" class="form-control" placeholder="Ripeti l'email" required autocomplete="off">
                         <div id="email-confirm-feedback" class="invalid-feedback"></div>
                     </div>
 
                     <div class="input-group mb-3">
-                        <span class="input-group-text" style="width: 150px;"><i class="fas fa-lock me-2"></i>Crea Password</span>
+                        <span class="input-group-text" style="width: 130px;"><i class="fas fa-lock me-2"></i>Crea Password</span>
                             <input type="password" id="password" name="password" class="form-control" required minlength="8" aria-describedby="password-feedback" autocomplete="new-password">
                             <button class="btn btn-outline-secondary toggle-password" type="button" data-target="password">
                                 <i class="fas fa-eye"></i>
@@ -193,7 +193,7 @@ if ($show_email_form && isset($_SESSION['pre_reg_user_id']) && !$user_data) {
                     </div>
 
                     <div class="input-group mb-3">
-                        <span class="input-group-text" style="width: 150px;"><i class="fas fa-lock me-2"></i>Conferma Pass</span>
+                        <span class="input-group-text" style="width: 130px;"><i class="fas fa-lock me-2"></i>Conferma Pass</span>
                             <input type="password" id="password_confirm" name="password_confirm" class="form-control" required minlength="8" aria-describedby="password-confirm-feedback" autocomplete="new-password">
                             <button class="btn btn-outline-secondary toggle-password" type="button" data-target="password_confirm">
                                 <i class="fas fa-eye"></i>
@@ -202,8 +202,7 @@ if ($show_email_form && isset($_SESSION['pre_reg_user_id']) && !$user_data) {
                     </div>
                     
                     <div class="d-grid gap-2 mt-4">
-                        <button type="submit" class="btn btn-primary fw-bold">Attiva il mio Account</button>
-                        <a href="servizi.php" class="btn btn-secondary">Hai già l'account? Vai ai servizi</a>
+                        <button type="submit" class="btn btn-primary fw-bold">Attiva il mio Account</button>                        <a href="servizi.php" class="btn btn-secondary">Hai già l'account? Vai ai servizi</a>
                     </div>
                 </form>
 
@@ -222,7 +221,7 @@ if ($show_email_form && isset($_SESSION['pre_reg_user_id']) && !$user_data) {
                         <input type="text" id="codice_fiscale" name="codice_fiscale" class="form-control text-uppercase" required autocomplete="off">
                     </div>
                     <div class="input-group mb-3">
-                        <span class="input-group-text" style="width: 150px;"><i class="fas fa-key me-2"></i>Password Temp.</span>
+                        <span class="input-group-text" style="width: 130px;"><i class="fas fa-key me-2"></i>Password Temp.</span>
                         <input type="password" id="temp_password" name="temp_password" class="form-control" required autocomplete="off">
                         <button class="btn btn-outline-secondary toggle-password" type="button" data-target="temp_password">
                             <i class="fas fa-eye"></i>
@@ -230,7 +229,7 @@ if ($show_email_form && isset($_SESSION['pre_reg_user_id']) && !$user_data) {
                     </div>
                     <div class="d-grid gap-2 mt-4">
                         <button type="submit" class="btn btn-primary fw-bold">Procedi</button>
-                        <a href="servizi.php" class="btn btn-secondary">Hai già laccount? Vai ai servizi</a>
+                        <a href="servizi.php" class="btn btn-secondary">Hai già l'account? Vai ai servizi</a>
                     </div>
                 </form>
             <?php endif; ?>
