@@ -108,15 +108,17 @@ include("C_register.php");
             <div id='div_wait' class="text-center my-3" style='display:none;'><i class='fas fa-spinner fa-spin fa-2x'></i></div>
             <div id='div_resp'></div>
 
+            <div class="d-grid gap-2 mt-4">
+                <button type="button" id="verify-btn" class="btn btn-primary btn-lg fw-bold">Verifica se puoi registrare un account</button>
+            </div>
+
             <!-- Sezione Password (inizialmente nascosta) -->
             <div id="password-section" class="mt-4 pt-4 border-top" style="display: none;">
                 <h4 class="text-center mb-3 fw-bold">Crea la tua Password</h4>
                 <div class="input-group mb-3">
                     <span class="input-group-text" style="width: 130px;"><i class="fas fa-lock me-2"></i>Password</span>
                     <input type="password" id="password" name="password" class="form-control" required minlength="8">
-                    <button class="btn btn-outline-secondary toggle-password" type="button" data-target="password">
-                        <i class="fas fa-eye"></i>
-                    </button>
+                    <button class="btn btn-outline-secondary toggle-password" type="button" data-target="password"><i class="fas fa-eye"></i></button>
                     <div class="invalid-feedback">La password deve essere di almeno 8 caratteri.</div>
                 </div>
                 <div class="input-group mb-3">
@@ -131,9 +133,9 @@ include("C_register.php");
             <!-- Fine Sezione Password -->
 
             <div class="d-grid gap-2 mt-4">
-                <button type="button" id="verify-btn" class="btn btn-primary btn-lg fw-bold">Verifica se puoi registrare un account</button>
-                <button type="submit" id="register-btn" class="btn btn-success btn-lg fw-bold" style="display: none;">Crea il mio Account</button>
-                <a href="login.php" class="btn btn-secondary">Hai già un account? Accedi</a>
+                <button type="submit" id="register-btn" class="btn btn-success btn-lg fw-bold mt-3" style="display: none;">Crea il mio Account</button>
+                <a href="login.php" id="go-to-login-btn" class="btn btn-primary btn-lg fw-bold mt-3" style="display: none;">Vai alla pagina di Login <i class="fas fa-arrow-right ms-2"></i></a>
+                <a href="login.php" id="already-registered-link" class="btn btn-secondary">Hai già un account? Accedi</a>
             </div>
         </form>
     </div>

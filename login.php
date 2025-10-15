@@ -17,14 +17,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
     // Query SQL
-    $sql="SELECT count(id),password FROM `fillea-app`.users WHERE (email = ?) LIMIT 0,1";
+    $sql="SELECT id, password, status, email_verification_expiry FROM `fillea-app`.users WHERE email = ? LIMIT 1";
     $stmt = $pdo1->prepare($sql);
     $stmt->execute([$username]);
     $check_account = $stmt->fetch(PDO::FETCH_ASSOC);
     
-    if (isset($check_account['password'])) {
+    if ($check_account) {
         $pw=$check_account['password'];
         if (password_verify($password,$pw)) {
+            // Controlla se l'account è stato disattivato per mancata verifica
+            // Questo controllo si applica SOLO ai nuovi utenti in fase di verifica.
+            // Gli utenti esistenti con status 'attivo' o NULL non vengono toccati.
+            if (isset($check_account['status']) && $check_account['status'] === 'non_verificato' && strtotime($check_account['email_verification_expiry']) < time()) {
+                $error_message = 'Il tuo account è stato disattivato perché non hai verificato l\'email in tempo. Contatta l\'assistenza.';
+                $pdo1 = null;
+                // Interrompi l'esecuzione qui per non procedere al login
+                goto end_login_logic;
+            }
+
             // Autenticazione riuscita:
             // Genera un token casuale (ad esempio, 32 caratteri esadecimali)
             $token = bin2hex(random_bytes(16)); 
@@ -54,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
 }
-
+end_login_logic:; // Etichetta per il goto
 ?>
 <!DOCTYPE html>
 <html lang="it">

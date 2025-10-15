@@ -21,6 +21,13 @@ $(document).ready(function() {
         }
     });
 
+    // Nasconde il risultato della verifica precedente se i dati cambiano
+    $('#cognome, #nome, #data_nascita, #codfisc').on('input', function() {
+        divResp.html('').hide();
+        passwordSection.hide();
+        registerBtn.hide();
+    });
+
     // --- GESTIONE VERIFICA (FASE 1) ---
     verifyBtn.on('click', function() {
         form.addClass('was-validated');
@@ -62,7 +69,7 @@ $(document).ready(function() {
                     if (response.info && response.info.sindacato === '1') {
                         divResp.html('<div class="alert alert-success">Verifica superata! Sei un nostro iscritto. Per favore, crea una password per completare la registrazione.</div>').show();
                         passwordSection.show();
-                        verifyBtn.hide();
+                        // verifyBtn.hide(); // Come richiesto, non nascondo più il bottone per permettere una nuova verifica.
                         registerBtn.show();
                     } else {
                         divResp.html('<div class="alert alert-warning">Non risulti attualmente iscritto al sindacato tramite i dati forniti. Non è possibile creare un account.</div>').show();
@@ -102,11 +109,16 @@ $(document).ready(function() {
                 divWait.hide();
                 if (response.header === 'OK') {
                     divResp.html(`<div class="alert alert-success">${response.message}</div>`).show();
-                    passwordSection.hide();
-                    registerBtn.hide();
-                    setTimeout(function() {
+                    // Nascondi tutti gli elementi del form non più necessari
+                    $('.input-group, #verify-btn, #password-section, #register-btn, #already-registered-link').hide();
+                    
+                    // Mostra il pulsante per andare al login
+                    $('#go-to-login-btn').show();
+
+                    // Rimuovi il reindirizzamento automatico
+                    /* setTimeout(function() {
                         window.location.href = 'login.php';
-                    }, 3000);
+                    }, 3000); */
                 } else {
                     divResp.html(`<div class="alert alert-danger">${response.message || 'Errore durante la registrazione.'}</div>`).show();
                     registerBtn.prop('disabled', false);
