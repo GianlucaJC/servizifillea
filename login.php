@@ -132,6 +132,9 @@ end_login_logic:; // Etichetta per il goto
             <div class="input-group">
                 <span class="input-group-text"><i class="fas fa-lock"></i></span>
                 <input type="password" class="form-control" id="password" name="password" required>
+                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                    <i class="fas fa-eye"></i>
+                </button>
             </div>
         </div>
         
@@ -163,6 +166,20 @@ end_login_logic:; // Etichetta per il goto
 <script src="webauthn_helpers.js?v=<?php echo time(); ?>"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+
+        // --- Logica per mostrare/nascondere la password ---
+        $('#togglePassword').on('click', function() {
+            const passwordInput = $('#password');
+            const icon = $(this).find('i');
+
+            if (passwordInput.attr('type') === 'password') {
+                passwordInput.attr('type', 'text');
+                icon.removeClass('fa-eye').addClass('fa-eye-slash');
+            } else {
+                passwordInput.attr('type', 'password');
+                icon.removeClass('fa-eye-slash').addClass('fa-eye');
+            }
+        });
 
         /*
          * --- ACCESSO BIOMETRICO TEMPORANEAMENTE DISABILITATO ---
