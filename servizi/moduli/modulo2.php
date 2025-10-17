@@ -360,11 +360,6 @@ function e($value) {
                             <a href="modulo_autocertificazione_stato_famiglia.php?token=<?php echo htmlspecialchars($token_user); ?>&origin_form_name=<?php echo htmlspecialchars($GLOBALS['form_name']); ?>&origin_prestazione=<?php echo htmlspecialchars($GLOBALS['prestazione_selezionata']); ?>&origin_module=modulo2" class="open-autocert-modal inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
                                 <i class="fas fa-file-signature mr-2"></i> Compila autocertificazione
                             </a>
-                            <?php if (!empty($saved_files)): ?>
-                                <span class="ml-3 text-green-500" title="Autocertificazione compilata e salvata.">
-                                    <i class="fas fa-check-circle fa-lg"></i>
-                                </span>
-                            <?php endif; ?>
                         </div>
                     <?php else: ?>
                      <div class="upload-box">
@@ -373,8 +368,6 @@ function e($value) {
                         <p class="mt-2 text-gray-600">Trascina i file qui o <span class="text-primary font-semibold">clicca per selezionare</span></p>
                     </div>
                     <div class="progress-container mt-4 hidden"><div class="progress-bar-container"><div class="progress-bar"></div></div></div>
-                    <?php endif; ?>
-                    <?php if ($doc_type !== 'autocertificazione_famiglia'): ?>
                     <div class="file-list mt-4">
                         <?php if (!empty($saved_files)): foreach ($saved_files as $file): ?>
                             <div class="file-list-item" data-file-id="<?php echo $file['id']; ?>">
@@ -386,6 +379,7 @@ function e($value) {
                             </div>
                         <?php endforeach; endif; ?>
                     </div>
+                    <?php endif; ?>
                 </div>
                 <?php
                     return ob_get_clean();
