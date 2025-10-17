@@ -152,6 +152,17 @@ if (!$is_user_logged_in) {
             padding: 2px 5px;
             border-radius: 4px;
         }
+        /* Stile per il bollino del modulo */
+        .module-dot {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 1px solid rgba(0,0,0,0.1);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
@@ -213,6 +224,7 @@ if (!$is_user_logged_in) {
                 <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_matrimonio">
                     <div class="prestazione-icon"><i class="fa-solid fa-ring"></i></div>
                     <div class="prestazione-text">Premio Matrimoniale / Unioni Civili</div>
+                    <span class="module-dot" style="background-color: #28a745;" title="Modulo Prestazioni Varie"></span>
                 </div>
             </div>
 
@@ -220,6 +232,7 @@ if (!$is_user_logged_in) {
                 <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_premiogiovani">
                     <div class="prestazione-icon"><i class="fa-solid fa-person-running"></i></div>
                     <div class="prestazione-text">Premio Giovani e Inserimento</div>
+                    <span class="module-dot" style="background-color: #28a745;" title="Modulo Prestazioni Varie"></span>
                 </div>
             </div>
 
@@ -227,6 +240,7 @@ if (!$is_user_logged_in) {
                 <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_nascita">
                     <div class="prestazione-icon"><i class="fa-solid fa-baby"></i></div>
                     <div class="prestazione-text">Bonus Nascita o Adozione</div>
+                    <span class="module-dot" style="background-color: #28a745;" title="Modulo Prestazioni Varie"></span>
                 </div>
             </div>
 
@@ -234,6 +248,7 @@ if (!$is_user_logged_in) {
                 <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_donazioni">
                     <div class="prestazione-icon"><i class="fa-solid fa-pills"></i></div>
                     <div class="prestazione-text">Donazioni del Sangue</div>
+                    <span class="module-dot" style="background-color: #28a745;" title="Modulo Prestazioni Varie"></span>
                 </div>
             </div>
 
@@ -241,6 +256,7 @@ if (!$is_user_logged_in) {
                 <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_affitto">
                     <div class="prestazione-icon"><i class="fa-solid fa-house-chimney"></i></div>
                     <div class="prestazione-text">Contributo Affitto Casa</div>
+                    <span class="module-dot" style="background-color: #28a745;" title="Modulo Prestazioni Varie"></span>
                 </div>
             </div>
 
@@ -248,6 +264,7 @@ if (!$is_user_logged_in) {
                 <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_sfratto">
                     <div class="prestazione-icon"><i class="fa-solid fa-gavel"></i></div>
                     <div class="prestazione-text">Contributo per Ingiunzione Sfratto</div>
+                    <span class="module-dot" style="background-color: #28a745;" title="Modulo Prestazioni Varie"></span>
                 </div>
             </div>
 
@@ -255,6 +272,7 @@ if (!$is_user_logged_in) {
                 <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_disabilita">
                     <div class="prestazione-icon"><i class="fa-solid fa-wheelchair"></i></div>
                     <div class="prestazione-text">Contributo Figli con Diversa Abilità</div>
+                    <span class="module-dot" style="background-color: #28a745;" title="Modulo Prestazioni Varie"></span>
                 </div>
             </div>
 
@@ -269,6 +287,7 @@ if (!$is_user_logged_in) {
                 <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_licenziamento">
                     <div class="prestazione-icon"><i class="fa-solid fa-briefcase"></i></div>
                     <div class="prestazione-text">Contributo Post Licenziamento</div>
+                    <span class="module-dot" style="background-color: #28a745;" title="Modulo Prestazioni Varie"></span>
                 </div>
             </div>
 
@@ -276,6 +295,7 @@ if (!$is_user_logged_in) {
                 <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_centriestivi">
                     <div class="prestazione-icon"><i class="fa-solid fa-sun"></i></div>
                     <div class="prestazione-text">Bonus Centri Estivi</div>
+                    <span class="module-dot" style="background-color: #0d6efd;" title="Modulo Contributi di Studio"></span>
                 </div>
             </div>
 
@@ -283,6 +303,7 @@ if (!$is_user_logged_in) {
                 <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_soggiorno">
                     <div class="prestazione-icon"><i class="fa-solid fa-passport"></i></div>
                     <div class="prestazione-text">Rimborso Permesso di Soggiorno</div>
+                    <span class="module-dot" style="background-color: #28a745;" title="Modulo Prestazioni Varie"></span>
                 </div>
             </div>
 
@@ -297,6 +318,7 @@ if (!$is_user_logged_in) {
                 <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_sportive">
                     <div class="prestazione-icon"><i class="fa-solid fa-futbol"></i></div>
                     <div class="prestazione-text">Attività Sportive e Ricreative</div>
+                    <span class="module-dot" style="background-color: #28a745;" title="Modulo Prestazioni Varie"></span>
                 </div>
             </div>
 
@@ -304,6 +326,7 @@ if (!$is_user_logged_in) {
                 <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_nido">
                     <div class="prestazione-icon"><i class="fa-solid fa-child-reaching"></i></div>
                     <div class="prestazione-text">Contributi Asilo Nido</div>
+                    <span class="module-dot" style="background-color: #0d6efd;" title="Modulo Contributi di Studio"></span>
                 </div>
             </div>
 
@@ -311,6 +334,7 @@ if (!$is_user_logged_in) {
                 <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_elementari">
                     <div class="prestazione-icon"><i class="fa-solid fa-book-open-reader"></i></div>
                     <div class="prestazione-text">Contributi Studio Scuole Elementari</div>
+                    <span class="module-dot" style="background-color: #0d6efd;" title="Modulo Contributi di Studio"></span>
                 </div>
             </div>
             
@@ -318,6 +342,7 @@ if (!$is_user_logged_in) {
                 <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_medie">
                     <div class="prestazione-icon"><i class="fa-solid fa-user-graduate"></i></div>
                     <div class="prestazione-text">Contributi Studio Scuole Medie</div>
+                    <span class="module-dot" style="background-color: #0d6efd;" title="Modulo Contributi di Studio"></span>
                 </div>
             </div>
 
@@ -325,6 +350,7 @@ if (!$is_user_logged_in) {
                 <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_superiori">
                     <div class="prestazione-icon"><i class="fa-solid fa-school-flag"></i></div>
                     <div class="prestazione-text">Contributi Studio Scuole Superiori</div>
+                    <span class="module-dot" style="background-color: #0d6efd;" title="Modulo Contributi di Studio"></span>
                 </div>
             </div>
 
@@ -332,6 +358,7 @@ if (!$is_user_logged_in) {
                 <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_universita">
                     <div class="prestazione-icon"><i class="fa-solid fa-building-columns"></i></div>
                     <div class="prestazione-text">Contributi Studio Università</div>
+                    <span class="module-dot" style="background-color: #0d6efd;" title="Modulo Contributi di Studio"></span>
                 </div>
             </div>
 
@@ -470,8 +497,8 @@ if (!$is_user_logged_in) {
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
                     <li><strong>Copia del Contratto di Affitto</strong> ad uso abitativo registrato presso l'Agenzia delle Entrate.</li>
-                    <li><strong>Modello ISEE</strong> valido per l'anno corrente (se il requisito è legato al reddito).</li>
-                    <li><strong>Autocertificazione</strong> della composizione del nucleo familiare.</li>
+                    <li><strong>Modello ISEE</strong> valido per l'anno corrente (se richiesto dal regolamento).</li>
+                    <li><strong>Autocertificazione dello stato di famiglia</strong>.</li>
                 </ul>
             </div>
             <div class="modal-footer">
@@ -524,7 +551,7 @@ if (!$is_user_logged_in) {
                 </div>
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
-                    <li><strong>Stato di famiglia</strong> e autocertificazione del carico fiscale.</li>
+                    <li><strong>Autocertificazione dello stato di famiglia</strong> e del carico fiscale.</li>
                     <li><strong>Documentazione sanitaria</strong> (es. Certificazione ex L. 104/92 o verbale della Commissione Medica) che attesti la condizione e la percentuale d'invalidità.</li>
                 </ul>
             </div>

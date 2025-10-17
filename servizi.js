@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    const SPLASH_DURATION = 2000; // 2 secondi per lo splash screen
+    const SPLASH_DURATION = 3000; // 3 secondi per lo splash screen
     const serviceGrid = $('#service-grid');
     const splashScreen = $('#splash-screen');
     const mainApp = $('#main-app');

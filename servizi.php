@@ -77,14 +77,9 @@
 
     <!-- 1. SPLASH SCREEN -->
     <div id="splash-screen">
-        <div class="p-8 bg-white/20 rounded-xl shadow-2xl backdrop-blur-sm flex flex-col items-center">
-            <!-- Aggiunto il logo qui -->
-            <img src="logo.jpg" alt="Logo Fillea CGIL Firenze" class="w-full max-w-sm mb-6 rounded">
-            
-            <div class="text-3xl font-extrabold mb-4 text-white">Fillea Service App</div>
-            <div class="spinner"></div>
-            <p class="mt-4 text-white/90 text-sm">Caricamento rapido...</p>
-        </div>
+        <img src="splash1.png" alt="Fillea Service App" class="w-full max-w-md shadow-2xl rounded-lg">
+        <div class="spinner mt-8"></div>
+        <p class="mt-4 text-white/90 text-sm">Caricamento in corso...</p>
     </div>
 
     <!-- 2. MAIN APP CONTENT -->

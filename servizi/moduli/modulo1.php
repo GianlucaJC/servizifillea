@@ -475,10 +475,23 @@ function e($value) {
                 function render_upload_box($doc_type, $title, $description, $token, $saved_files = []) {
                     ob_start();
                 ?>
-                <div id="upload-area-<?php echo $doc_type; ?>" class="upload-section hidden" data-doc-type="<?php echo $doc_type; ?>">
+                <div id="container-for-<?php echo $doc_type; ?>" class="upload-section-container upload-section hidden" data-doc-type="<?php echo $doc_type; ?>">
                     <h3 class="font-semibold text-lg text-gray-800 mb-2"><?php echo $title; ?></h3>
                     <p class="text-sm text-gray-500 mb-4"><?php echo $description; ?></p>
                     
+                    <?php if ($doc_type === 'autocertificazione_famiglia'): // Caso speciale per l'autocertificazione ?>
+                        <div class="mb-2"> 
+                            <a href="modulo_autocertificazione_stato_famiglia.php?token=<?php echo htmlspecialchars($token); ?>&origin_form_name=<?php echo htmlspecialchars($GLOBALS['form_name']); ?>&origin_prestazione=<?php echo htmlspecialchars($GLOBALS['prestazione_selezionata']); ?>&origin_module=modulo1" class="open-autocert-modal inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
+                                <i class="fas fa-file-signature mr-2"></i> Compila autocertificazione
+                            </a>
+                            <?php if (!empty($saved_files)): ?>
+                                <span class="ml-3 text-green-500" title="Autocertificazione compilata e salvata.">
+                                    <i class="fas fa-check-circle fa-lg"></i>
+                                </span>
+                            <?php endif; ?>
+                        </div>
+
+                    <?php else: // Box di upload standard per tutti gli altri documenti ?>
                     <div class="upload-box">
                         <input type="file" class="hidden file-input" multiple>
                         <i class="fas fa-cloud-upload-alt text-4xl text-gray-400"></i>
@@ -490,14 +503,16 @@ function e($value) {
                             <div class="progress-bar"></div>
                         </div>
                     </div>
+                    <?php endif; ?>
+                    <?php if ($doc_type !== 'autocertificazione_famiglia'): ?>
 
                     <div class="file-list mt-4">
                         <?php if (!empty($saved_files)): ?>
                             <?php foreach ($saved_files as $file): ?>
                                 <div class="file-list-item" data-file-id="<?php echo $file['id']; ?>">
-                                    <span class="truncate" title="<?php echo htmlspecialchars($file['original_filename']); ?>"><i class="fas fa-file-alt text-gray-500 mr-2"></i><?php echo htmlspecialchars($file['original_filename']); ?></span>
+                                    <span class="truncate" title="<?php e($file['original_filename']); ?>"><i class="fas fa-file-alt text-gray-500 mr-2"></i><?php e($file['original_filename']); ?></span>
                                     <div class="flex items-center space-x-4 ml-2 flex-shrink-0">
-                                        <a href="view_file.php?id=<?php echo $file['id']; ?>&token=<?php echo htmlspecialchars($token); ?>" target="_blank" class="text-blue-500 hover:text-blue-700" title="Visualizza file">
+                                        <a href="view_file.php?id=<?php echo $file['id']; ?>&token=<?php e($token); ?>" target="_blank" class="text-blue-500 hover:text-blue-700" title="Visualizza file">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                         <button type="button" class="delete-file-btn text-red-500 hover:text-red-700" title="Elimina file"><i class="fas fa-trash"></i></button>
@@ -506,6 +521,7 @@ function e($value) {
                             <?php endforeach; ?>
                         <?php endif; ?>
                     </div>
+                    <?php endif; ?>
                 </div>
                 <?php
                     return ob_get_clean();
@@ -586,7 +602,7 @@ function e($value) {
                 </div>
                 <div class="md:col-span-2">
                     <label class="form-label">Firma Digitale</label>
-                    <div id="signature-container" class="w-full mt-2 border border-gray-300 rounded-lg bg-gray-50 relative">
+                    <div id="signature-container" class="w-full mt-2 border border-gray-300 rounded-lg relative">
                         <!-- L'immagine della firma viene sempre mostrata se esiste, ma potrebbe essere nascosta da JS -->
                         <img id="signature-image" src="<?php echo $has_signature ? $saved_data['firma_data'] : ''; ?>" alt="Firma salvata" class="w-full h-auto <?php if (!$has_signature) echo 'hidden'; ?>">
                         <!-- Il canvas è visibile solo se non c'è una firma e la pratica è in bozza -->
@@ -610,7 +626,7 @@ function e($value) {
 
         <input type="hidden" name="form_name" value="<?php echo htmlspecialchars($form_name ?? uniqid()); ?>">
         <input type="hidden" name="prestazione" value="<?php echo htmlspecialchars($prestazione_selezionata); ?>">
-        <input type="hidden" name="firma_data" id="firma_data">
+        <input type="hidden" name="firma_data" id="firma_data" value="<?php e($saved_data['firma_data'] ?? ''); ?>">
         
         <!-- Campo nascosto per l'ID del funzionario già assegnato -->
         <input type="hidden" id="IDfunz" value="<?php echo htmlspecialchars($id_funzionario_assegnato ?? ''); ?>">
@@ -621,7 +637,7 @@ function e($value) {
             // Per l'admin: il pulsante appare se la richiesta è stata 'inviata' dall'utente, per permettere modifiche.
             $can_edit = false;
             if (!$is_admin_view && $status === 'bozza') $can_edit = true;
-            if ($is_admin_view && $status === 'inviato') $can_edit = true;
+            if ($is_admin_view && ($status === 'inviato' || $status === 'inviato_in_cassa_edile')) $can_edit = true;
 
             if ($can_edit):            
         ?>
@@ -678,6 +694,25 @@ function e($value) {
     </div>
 </div>
 
+<!-- Toast Notification -->
+<div id="toast-notification" class="fixed top-5 right-5 bg-green-500 text-white py-3 px-5 rounded-lg shadow-lg hidden transition-opacity duration-300" style="z-index: 1002;">
+    <p id="toast-message"></p>
+</div>
+
+
+<!-- Modale per Iframe Autocertificazione -->
+<div id="autocert-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-[1001] hidden">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl h-[90vh] mx-4 flex flex-col">
+        <div class="flex justify-between items-center p-4 border-b">
+            <h3 class="text-xl font-bold text-gray-800">Compilazione Autocertificazione Stato di Famiglia</h3>
+            <button id="autocert-modal-close-btn" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
+        </div>
+        <div class="flex-grow p-0">
+            <iframe id="autocert-iframe" src="about:blank" class="w-full h-full border-0"></iframe>
+        </div>
+    </div>
+</div>
+
 
 <!-- jQuery CDN -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -688,6 +723,18 @@ function e($value) {
 <!-- Script per l'upload -->
 <script src="modulo1_upload.js?v=<?php echo time(); ?>"></script>
 <script>
+    // Funzione per mostrare la notifica Toast, chiamata dall'iframe
+    function showToast(message) {
+        const toast = document.getElementById('toast-notification');
+        const toastMessage = document.getElementById('toast-message');
+        if (toast && toastMessage) {
+            toastMessage.textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000); // Nasconde dopo 3 secondi
+        }
+    }
     function handleFormSelection(selectedValue, prestazione) {
         const token = '<?php echo htmlspecialchars($token); ?>';
         const userId = '<?php echo $user_id; ?>'; // Recupera l'user_id per la generazione del nome
@@ -713,6 +760,42 @@ function e($value) {
             dataFirmaInput.value = today;
         }
 
+        function showRequiredUploads(prestazione) {
+
+            // Mappa delle prestazioni ai documenti richiesti
+            const uploadRequirements = {
+                'asili_nido': ['certificato_iscrizione_nido', 'autocertificazione_famiglia'], // Già presente
+                'centri_estivi': ['attestazione_spesa_centri_estivi', 'autocertificazione_famiglia'],
+                // CORREZIONE: Allineamento delle chiavi con quelle passate dall'URL
+                'scuole_elementari': ['autocertificazione_frequenza_obbligo', 'autocertificazione_famiglia'], // Corretto
+                'scuole_medie_inferiori': ['autocertificazione_frequenza_obbligo', 'autocertificazione_famiglia'], // Corretto
+                'superiori_iscrizione': ['autocertificazione_frequenza_superiori', 'autocertificazione_famiglia'],
+                'universita_iscrizione': ['documentazione_universita', 'autocertificazione_famiglia']
+            };
+
+            // Nascondi tutti i contenitori prima di mostrare quelli necessari
+            document.querySelectorAll('.upload-section-container').forEach(container => {
+                container.classList.add('hidden');
+            });
+
+            const requiredDocs = uploadRequirements[prestazione];
+            
+            if (requiredDocs) {
+                requiredDocs.forEach(docType => {
+                    const container = document.getElementById(`container-for-${docType}`);
+                    if (container) {
+                        container.classList.remove('hidden');
+                    }
+                });
+            }
+        }
+
+        // Mostra i box corretti al caricamento della pagina
+        const prestazioneSelezionata = '<?php echo htmlspecialchars($prestazione_selezionata ?? ''); ?>';
+        if (prestazioneSelezionata) {
+            showRequiredUploads(prestazioneSelezionata);
+        }
+
         // Gestione dropdown utente
         const userMenuButton = document.getElementById('userMenuButton');
         const userDropdown = document.getElementById('userDropdown');
@@ -730,6 +813,24 @@ function e($value) {
                 }
             });
         }
+
+        // Logica per modale autocertificazione
+        const autocertModal = document.getElementById('autocert-modal');
+        const autocertIframe = document.getElementById('autocert-iframe');
+        const openModalLinks = document.querySelectorAll('.open-autocert-modal');
+        const closeModalBtn = document.getElementById('autocert-modal-close-btn');
+
+        openModalLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const url = this.href;
+                autocertIframe.src = url;
+                autocertModal.classList.remove('hidden');
+            });
+        });
+        if(closeModalBtn) {
+            closeModalBtn.addEventListener('click', () => autocertModal.classList.add('hidden'));
+        }
         // Logica per disabilitare i campi in base allo stato e al ruolo
         <?php
             // Logica di modifica corretta:
@@ -737,7 +838,7 @@ function e($value) {
             // L'admin può modificare solo se lo stato è 'inviato'.
             $can_edit = false;
             if (!$is_admin_view && $status === 'bozza') $can_edit = true;
-            if ($is_admin_view && ($status === 'inviato' || $status === 'inviato_in_cassa_edile')) $can_edit = true;
+            if ($is_admin_view && ($status === 'inviato' || $status === 'inviato_in_cassa_edile')) $can_edit = true; 
 
             if (!$can_edit):
         ?>
@@ -758,7 +859,8 @@ function e($value) {
         function initializeSignaturePad() {
             if (canvas && !signaturePad) {
                 signaturePad = new SignaturePad(canvas, {
-                backgroundColor: 'rgb(249, 250, 251)' // Corrisponde a bg-gray-50
+                    penColor: 'blue', // Imposta il colore della penna a blu
+                    // Rimuovendo backgroundColor, il canvas diventa trasparente
                 });
                 window.signaturePadInstance = signaturePad; // Assegna all'istanza globale
                 resizeCanvas();

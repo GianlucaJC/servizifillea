@@ -7,7 +7,8 @@ $(document).ready(function() {
     const docMap = {
         'asili_nido': ['autocertificazione_famiglia', 'certificato_iscrizione_nido'],
         'centri_estivi': ['autocertificazione_famiglia', 'attestazione_spesa_centri_estivi'],
-        'scuole_obbligo': ['autocertificazione_famiglia', 'autocertificazione_frequenza_obbligo'],
+        'scuole_elementari': ['autocertificazione_famiglia', 'autocertificazione_frequenza_obbligo'],
+        'scuole_medie_inferiori': ['autocertificazione_famiglia', 'autocertificazione_frequenza_obbligo'],
         'superiori_iscrizione': ['autocertificazione_famiglia', 'autocertificazione_frequenza_superiori'],
         'universita_iscrizione': ['autocertificazione_famiglia', 'documentazione_universita']
     };
@@ -15,12 +16,12 @@ $(document).ready(function() {
     // Funzione per aggiornare la visibilità dei box di upload
     function updateUploadSections() {
         // Nascondi tutte le sezioni di upload
-        $('.upload-section').addClass('hidden'); 
+        $('.upload-section-container').addClass('hidden'); 
 
         // Mostra le sezioni per la prestazione selezionata dall'URL
         if (prestazione && docMap[prestazione]) {
             docMap[prestazione].forEach(docType => {
-                $(`#upload-area-${docType}`).removeClass('hidden');
+                $(`#container-for-${docType}`).removeClass('hidden');
             });
         }
     }
