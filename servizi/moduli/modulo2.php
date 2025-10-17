@@ -449,13 +449,18 @@ function e($value) {
                     <div id="signature-container" class="w-full mt-2 border border-gray-300 rounded-lg relative">
                         <img id="signature-image" src="<?php echo $has_signature ? $saved_data['firma_data'] : ''; ?>" alt="Firma salvata" class="w-full h-auto <?php if (!$has_signature) echo 'hidden'; ?>">
                         <canvas id="signature-pad" class="w-full h-48 <?php if ($has_signature || !$can_sign_or_modify) echo 'hidden'; ?>"></canvas>
+                        
                     </div>
+                    
                     <div id="signature-controls" class="flex justify-end mt-2">
                         <?php if ($can_sign_or_modify): ?>
                             <?php if ($has_signature): ?>
                                 <button type="button" id="modify-signature" class="text-sm text-blue-600 hover:text-blue-800 font-semibold"><i class="fas fa-pencil-alt mr-1"></i> Modifica Firma</button>
                             <?php else: ?>
-                                <button type="button" id="clear-signature" class="text-sm text-gray-600 hover:text-primary">Pulisci</button>
+                                <div class="space-x-4">
+                                    <button type="button" id="undo-signature" class="text-sm text-gray-600 hover:text-primary">Annulla tratto</button>
+                                    <button type="button" id="clear-signature" class="text-sm text-gray-600 hover:text-primary">Pulisci</button>
+                                </div>
                             <?php endif; ?>
                         <?php endif; ?>
                     </div>
@@ -519,9 +524,6 @@ function e($value) {
 
 <!-- jQuery CDN -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<!-- Signature Pad Library -->
-<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
-
 <!-- Finestra Modale di Conferma (come in modulo1) -->
 <div id="confirmation-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 hidden">
     <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
@@ -560,8 +562,6 @@ function e($value) {
 
 <!-- Script per la firma (caricato prima degli altri script JS) -->
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
-<script src="signature_pad_logic.js?v=<?php echo time(); ?>"></script>
-
 
 <!-- Logica di visualizzazione dinamica (spostata qui) -->
 <script>
@@ -687,7 +687,86 @@ function e($value) {
         });
         if(closeModalBtn) {
             closeModalBtn.addEventListener('click', () => autocertModal.classList.add('hidden'));
-        }        
+        }
+
+        // --- Logica per la firma digitale ---
+        const canvas = document.getElementById('signature-pad');
+        const signatureImage = document.getElementById('signature-image');
+        const signatureControls = document.getElementById('signature-controls');
+        const helpText = document.getElementById('signature-help-text');
+        let signaturePad = null;
+
+
+
+        function initializeSignaturePad() {
+            if (canvas && !signaturePad) {
+                signaturePad = new SignaturePad(canvas, { penColor: 'blue' });
+                resizeCanvas();
+            }
+
+
+        }
+
+        function resizeCanvas() {
+            if (!signaturePad) return;
+            const ratio =  Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            canvas.getContext("2d").scale(ratio, ratio);
+            signaturePad.clear();
+        }
+        window.addEventListener("resize", resizeCanvas);
+
+
+
+        if (canvas && !canvas.classList.contains('hidden')) {
+            initializeSignaturePad();
+        }
+
+
+        if (signatureControls) {
+            signatureControls.addEventListener('click', function(event) {
+                const target = event.target.closest('button');
+                if (!target) return;
+
+                if (!signaturePad) initializeSignaturePad();
+
+                if (target.id === 'clear-signature') {
+                    signaturePad.clear();
+                }
+
+                if (target.id === 'clear-signature') { signaturePad.clear(); }
+                if (target.id === 'undo-signature') {
+                    const data = signaturePad.toData();
+                    if (data.length) {
+                        data.pop();
+                        signaturePad.fromData(data);
+                    }
+                    if (data.length) { data.pop(); signaturePad.fromData(data); }
+                }
+
+                if (target.id === 'modify-signature') {
+                    event.preventDefault();
+                    signatureImage.classList.add('hidden');
+                    target.style.display = 'none';
+                    $('#firma_data').val('');
+                    canvas.classList.remove('hidden');
+                    if(helpText) helpText.classList.remove('hidden');
+                    if (helpText) helpText.classList.remove('hidden');
+                    initializeSignaturePad();
+                    signatureControls.innerHTML = `<div class="space-x-4">
+                                                    <button type="button" id="undo-signature" class="text-sm text-gray-600 hover:text-primary">Annulla tratto</button>
+                                                    <button type="button" id="clear-signature" class="text-sm text-gray-600 hover:text-primary">Pulisci</button>
+                                                </div>`;
+                }
+            });
+        }
+
+        $('#modulo2-form').on('submit', function() {
+            if (signaturePad && !signaturePad.isEmpty()) {
+                $('#firma_data').val(signaturePad.toDataURL('image/png'));
+            }
+        });
     });
 </script>
 

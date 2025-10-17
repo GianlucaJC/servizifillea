@@ -635,7 +635,10 @@ function e($value) {
                             <?php if ($has_signature): ?>
                                 <button type="button" id="modify-signature" class="text-sm text-blue-600 hover:text-blue-800 font-semibold"><i class="fas fa-pencil-alt mr-1"></i> Modifica Firma</button>
                             <?php else: ?>
-                                <button type="button" id="clear-signature" class="text-sm text-gray-600 hover:text-primary">Pulisci</button>
+                                <div class="space-x-4">
+                                    <button type="button" id="undo-signature" class="text-sm text-gray-600 hover:text-primary">Annulla tratto</button>
+                                    <button type="button" id="clear-signature" class="text-sm text-gray-600 hover:text-primary">Pulisci</button>
+                                </div>
                             <?php endif; ?>
                         <?php elseif ($has_signature): ?>
                              <p class="text-xs text-gray-500 mt-1">Firma salvata. La pratica è stata inviata e non può essere modificata.</p>
@@ -978,6 +981,13 @@ function e($value) {
                     signaturePad.clear();
                 }
 
+                if (target.id === 'undo-signature') {
+                    const data = signaturePad.toData();
+                    if (data.length) {
+                        data.pop(); // Rimuove l'ultimo tratto
+                        signaturePad.fromData(data);
+                    }
+                }
                 if (target.id === 'modify-signature') {
                     event.preventDefault();
                     // Nascondi l'immagine e il bottone "Modifica"
@@ -996,7 +1006,10 @@ function e($value) {
                     signaturePad.clear();
 
                     // Crea e mostra il pulsante "Pulisci"
-                    const clearButtonHTML = '<button type="button" id="clear-signature" class="text-sm text-gray-600 hover:text-primary">Pulisci</button>';
+                    const clearButtonHTML = `<div class="space-x-4">
+                                                <button type="button" id="undo-signature" class="text-sm text-gray-600 hover:text-primary">Annulla tratto</button>
+                                                <button type="button" id="clear-signature" class="text-sm text-gray-600 hover:text-primary">Pulisci</button>
+                                             </div>`;
                     signatureControls.innerHTML = clearButtonHTML;
                 }
             });
