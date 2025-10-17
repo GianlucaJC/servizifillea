@@ -116,8 +116,19 @@ function e($value) {
                     <input type="text" id="sottoscrittore_luogo_nascita" name="sottoscrittore_luogo_nascita" class="form-input" value="<?php e($saved_data['sottoscrittore_luogo_nascita'] ?? ''); ?>">
                 </div>
                 <div>
-                    <label for="sottoscrittore_data_nascita" class="form-label">Il (Data di nascita)</label>
-                    <input type="date" id="sottoscrittore_data_nascita" name="sottoscrittore_data_nascita" class="form-input" value="<?php e($saved_data['sottoscrittore_data_nascita'] ?? ''); ?>">
+                    <label class="form-label">Il (Data di nascita)</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <select id="sottoscrittore_data_nascita_giorno" class="form-input text-sm" aria-label="Giorno di nascita"><option value="">Giorno</option></select>
+                        </div>
+                        <div>
+                            <select id="sottoscrittore_data_nascita_mese" class="form-input text-sm" aria-label="Mese di nascita"><option value="">Mese</option></select>
+                        </div>
+                        <div>
+                            <select id="sottoscrittore_data_nascita_anno" class="form-input text-sm" aria-label="Anno di nascita"><option value="">Anno</option></select>
+                        </div>
+                    </div>
+                    <input type="hidden" id="sottoscrittore_data_nascita" name="sottoscrittore_data_nascita" value="<?php e($saved_data['sottoscrittore_data_nascita'] ?? ''); ?>">
                 </div>
                 <div>
                     <label for="sottoscrittore_residenza_comune" class="form-label">Residente a (Comune)</label>
@@ -219,9 +230,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const memberIndex = tbody.querySelectorAll('tr').length;
         const row = document.createElement('tr');
         row.classList.add('border-b');
+        // Aggiungi un ID univoco per il campo nascosto della data
+        const hiddenDateId = `membro_data_nascita_${memberIndex}`;
         row.innerHTML = `
             <td class="py-2 px-4"><input type="text" name="membri[${memberIndex}][nome_cognome]" class="form-input text-sm p-1" value="${data.nome_cognome || ''}"></td>
-            <td class="py-2 px-4"><input type="date" name="membri[${memberIndex}][data_nascita]" class="form-input text-sm p-1" value="${data.data_nascita || ''}"></td>
+            <td class="py-2 px-4">
+                <div class="grid grid-cols-3 gap-1">
+                    <select name="membri[${memberIndex}][data_nascita_giorno]" class="form-input text-xs p-1"><option value="">G</option></select>
+                    <select name="membri[${memberIndex}][data_nascita_mese]" class="form-input text-xs p-1"><option value="">M</option></select>
+                    <select name="membri[${memberIndex}][data_nascita_anno]" class="form-input text-xs p-1"><option value="">A</option></select>
+                </div>
+                <input type="hidden" id="${hiddenDateId}" name="membri[${memberIndex}][data_nascita]" value="${data.data_nascita || ''}">
+            </td>
             <td class="py-2 px-4"><input type="text" name="membri[${memberIndex}][luogo_nascita]" class="form-input text-sm p-1" value="${data.luogo_nascita || ''}"></td>
             <td class="py-2 px-4"><input type="text" name="membri[${memberIndex}][parentela]" class="form-input text-sm p-1" value="${data.parentela || ''}"></td>
             <td class="py-2 px-4 text-center">
@@ -229,12 +249,67 @@ document.addEventListener('DOMContentLoaded', function() {
             </td>
         `;
         tbody.appendChild(row);
+
+        // Inizializza i selettori della data per la nuova riga
+        setupDateInputsForRow(row, hiddenDateId, data.data_nascita || '');
     }
 
     // Imposta data odierna
     const dataFirmaInput = document.getElementById('data_firma');
     if (!dataFirmaInput.value) {
         dataFirmaInput.value = new Date().toISOString().split('T')[0];
+    }
+
+    // --- Logica per i selettori della data di nascita ---
+    function setupDateInputs(prefix, savedDate) {
+        const daySelect = document.getElementById(prefix + '_giorno');
+        const monthSelect = document.getElementById(prefix + '_mese');
+        const yearSelect = document.getElementById(prefix + '_anno');
+        const hiddenInput = document.getElementById(prefix);
+
+        // Popola anni (dal 1924 ad oggi)
+        const currentYear = new Date().getFullYear();
+        for (let i = currentYear; i >= 1924; i--) { yearSelect.add(new Option(i, i)); }
+        // Popola mesi
+        const months = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
+        months.forEach((month, index) => { monthSelect.add(new Option(month, index + 1)); });
+        // Popola giorni
+        for (let i = 1; i <= 31; i++) { daySelect.add(new Option(i, i)); }
+
+        function updateHiddenDate() {
+            const year = yearSelect.value;
+            const month = monthSelect.value;
+            const day = daySelect.value;
+            if (year && month && day) {
+                const formattedMonth = month.toString().padStart(2, '0');
+                const formattedDay = day.toString().padStart(2, '0');
+                hiddenInput.value = `${year}-${formattedMonth}-${formattedDay}`;
+            } else { hiddenInput.value = ''; }
+        }
+
+        if (savedDate) {
+            const dateParts = savedDate.split('-');
+            yearSelect.value = parseInt(dateParts[0], 10);
+            monthSelect.value = parseInt(dateParts[1], 10);
+            daySelect.value = parseInt(dateParts[2], 10);
+        }
+        [daySelect, monthSelect, yearSelect].forEach(select => select.addEventListener('change', updateHiddenDate));
+    }
+
+    function setupDateInputsForRow(row, hiddenInputId, savedDate) {
+        const daySelect = row.querySelector('select[name$="[data_nascita_giorno]"]');
+        const monthSelect = row.querySelector('select[name$="[data_nascita_mese]"]');
+        const yearSelect = row.querySelector('select[name$="[data_nascita_anno]"]');
+        const hiddenInput = document.getElementById(hiddenInputId);
+
+        const currentYear = new Date().getFullYear();
+        for (let i = currentYear; i >= 1924; i--) { yearSelect.add(new Option(i, i)); }
+        for (let i = 1; i <= 12; i++) { monthSelect.add(new Option(i, i)); }
+        for (let i = 1; i <= 31; i++) { daySelect.add(new Option(i, i)); }
+
+        // La logica di aggiornamento e pre-selezione è identica a setupDateInputs
+        // e viene gestita tramite gli attributi `value` impostati durante la creazione della riga.
+        // L'aggiornamento del campo nascosto avviene tramite la funzione `serializeTableData` al momento del submit.
     }
 
     // Popola la tabella dei membri della famiglia con i dati pre-caricati
@@ -246,6 +321,9 @@ document.addEventListener('DOMContentLoaded', function() {
             addMemberRow(membro);
         });
     }
+
+    // Inizializza il selettore data per il dichiarante
+    setupDateInputs('sottoscrittore_data_nascita', '<?php e($saved_data['sottoscrittore_data_nascita'] ?? ''); ?>');
     // Logica tabella dinamica
     const addMemberBtn = document.getElementById('add-member-btn');
     const tbody = document.getElementById('membri-famiglia-tbody');
@@ -331,14 +409,23 @@ document.addEventListener('DOMContentLoaded', function() {
         const rows = tbody.querySelectorAll('tr');
         rows.forEach(row => {
             const inputs = row.querySelectorAll('input');
+            const selects = row.querySelectorAll('select');
+            const day = selects[0].value;
+            const month = selects[1].value;
+            const year = selects[2].value;
+            let dateValue = '';
+            if (day && month && year) {
+                dateValue = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+            }
+
             const membro = {
                 nome_cognome: inputs[0].value,
-                data_nascita: inputs[1].value,
-                luogo_nascita: inputs[2].value,
-                parentela: inputs[3].value
+                data_nascita: dateValue,
+                luogo_nascita: inputs[1].value,
+                parentela: inputs[2].value
             };
             // Aggiungi solo se la riga non è completamente vuota
-            if (membro.nome_cognome || membro.data_nascita || membro.luogo_nascita || membro.parentela) {
+            if (membro.nome_cognome || dateValue || membro.luogo_nascita || membro.parentela) {
                 membri.push(membro);
             }
         });

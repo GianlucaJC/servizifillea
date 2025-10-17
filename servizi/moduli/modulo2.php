@@ -267,7 +267,7 @@ function e($value) {
     <?php endif; ?>
 
     <form 
-        id="modulo2-form" action="modulo2_save.php?token=<?php echo htmlspecialchars($token_user); ?>" method="POST" autocomplete="off">
+        id="modulo2-form" action="modulo2_save.php" method="POST" autocomplete="off">
 
     <?php
         // Se è un admin, mostra sempre la sezione delle azioni admin.
@@ -312,8 +312,19 @@ function e($value) {
                     <input type="text" id="pos_cassa_edile" name="pos_cassa_edile" class="form-input" value="<?php e($saved_data['pos_cassa_edile'] ?? ''); ?>">
                 </div>
                 <div>
-                    <label for="data_nascita" class="form-label">Nato il</label>
-                    <input type="date" id="data_nascita" name="data_nascita" class="form-input" value="<?php e($saved_data['data_nascita'] ?? ''); ?>">
+                    <label class="form-label">Nato il</label>
+                     <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <select id="data_nascita_giorno" class="form-input text-sm" aria-label="Giorno di nascita"><option value="">Giorno</option></select>
+                        </div>
+                        <div>
+                            <select id="data_nascita_mese" class="form-input text-sm" aria-label="Mese di nascita"><option value="">Mese</option></select>
+                        </div>
+                        <div>
+                            <select id="data_nascita_anno" class="form-input text-sm" aria-label="Anno di nascita"><option value="">Anno</option></select>
+                        </div>
+                    </div>
+                    <input type="hidden" id="data_nascita" name="data_nascita" value="<?php e($saved_data['data_nascita'] ?? ''); ?>">
                 </div>
                 <div class="md:col-span-2">
                     <label for="codice_fiscale" class="form-label">Codice Fiscale</label>
@@ -454,6 +465,7 @@ function e($value) {
 
         <input type="hidden" name="form_name" value="<?php echo htmlspecialchars($form_name ?? uniqid('form2_')); ?>">
         <input type="hidden" name="prestazione" value="<?php echo htmlspecialchars($prestazione_selezionata); ?>">
+        <input type="hidden" name="token" value="<?php echo htmlspecialchars($token_user); ?>">
         <input type="hidden" name="firma_data" id="firma_data" value="<?php e($saved_data['firma_data'] ?? ''); ?>">
 
         <!-- Campo nascosto per l'ID del funzionario già assegnato -->
@@ -572,6 +584,53 @@ function e($value) {
             dataFirmaInput.value = new Date().toISOString().split('T')[0];
         }
 
+        // --- Logica per i selettori della data di nascita ---
+        function setupDateInputs(prefix, savedDate) {
+            const daySelect = document.getElementById(prefix + '_giorno');
+            const monthSelect = document.getElementById(prefix + '_mese');
+            const yearSelect = document.getElementById(prefix + '_anno');
+            const hiddenInput = document.getElementById(prefix);
+
+            // Popola anni (dal 1924 ad oggi)
+            const currentYear = new Date().getFullYear();
+            for (let i = currentYear; i >= 1924; i--) {
+                yearSelect.add(new Option(i, i));
+            }
+
+            // Popola mesi
+            const months = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
+            months.forEach((month, index) => {
+                monthSelect.add(new Option(month, index + 1));
+            });
+
+            // Popola giorni
+            for (let i = 1; i <= 31; i++) {
+                daySelect.add(new Option(i, i));
+            }
+
+            // Funzione per aggiornare il campo nascosto
+            function updateHiddenDate() {
+                const year = yearSelect.value;
+                const month = monthSelect.value;
+                const day = daySelect.value;
+
+                if (year && month && day) {
+                    const formattedMonth = month.toString().padStart(2, '0');
+                    const formattedDay = day.toString().padStart(2, '0');
+                    hiddenInput.value = `${year}-${formattedMonth}-${formattedDay}`;
+                } else {
+                    hiddenInput.value = '';
+                }
+            }
+
+            if (savedDate) {
+                const dateParts = savedDate.split('-');
+                yearSelect.value = parseInt(dateParts[0], 10);
+                monthSelect.value = parseInt(dateParts[1], 10);
+                daySelect.value = parseInt(dateParts[2], 10);
+            }
+            [daySelect, monthSelect, yearSelect].forEach(select => select.addEventListener('change', updateHiddenDate));
+        }
         // --- Logica per mostrare i box di upload corretti ---
         const prestazioneSelezionata = '<?php echo htmlspecialchars($prestazione_selezionata ?? ''); ?>';
         
@@ -609,6 +668,7 @@ function e($value) {
         // Mostra i box corretti al caricamento della pagina
         if (prestazioneSelezionata) {
             showRequiredUploads(prestazioneSelezionata);
+            setupDateInputs('data_nascita', '<?php e($saved_data['data_nascita'] ?? ''); ?>');
         }
 
         // Logica per modale autocertificazione

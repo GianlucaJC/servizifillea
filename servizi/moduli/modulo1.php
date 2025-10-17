@@ -410,8 +410,19 @@ function e($value) {
                     <input type="text" id="studente_nome_cognome" name="studente_nome_cognome" class="form-input" value="<?php e($saved_data['studente_nome_cognome'] ?? ''); ?>">
                 </div>
                 <div>
-                    <label for="studente_data_nascita" class="form-label">Data di Nascita</label>
-                    <input type="date" id="studente_data_nascita" name="studente_data_nascita" class="form-input" value="<?php e($saved_data['studente_data_nascita'] ?? ''); ?>">
+                    <label class="form-label">Data di Nascita</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <select id="studente_data_nascita_giorno" class="form-input text-sm" aria-label="Giorno di nascita"><option value="">Giorno</option></select>
+                        </div>
+                        <div>
+                            <select id="studente_data_nascita_mese" class="form-input text-sm" aria-label="Mese di nascita"><option value="">Mese</option></select>
+                        </div>
+                        <div>
+                            <select id="studente_data_nascita_anno" class="form-input text-sm" aria-label="Anno di nascita"><option value="">Anno</option></select>
+                        </div>
+                    </div>
+                    <input type="hidden" id="studente_data_nascita" name="studente_data_nascita" value="<?php e($saved_data['studente_data_nascita'] ?? ''); ?>">
                 </div>
                 <div>
                     <label for="studente_luogo_nascita" class="form-label">Luogo di Nascita</label>
@@ -446,8 +457,19 @@ function e($value) {
                     <input type="text" id="lavoratore_nome_cognome" name="lavoratore_nome_cognome" class="form-input" value="<?php e($saved_data['lavoratore_nome_cognome'] ?? ''); ?>">
                 </div>
                 <div>
-                    <label for="lavoratore_data_nascita" class="form-label">Data di Nascita</label>
-                    <input type="date" id="lavoratore_data_nascita" name="lavoratore_data_nascita" class="form-input" value="<?php e($saved_data['lavoratore_data_nascita'] ?? ''); ?>">
+                    <label class="form-label">Data di Nascita</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <select id="lavoratore_data_nascita_giorno" class="form-input text-sm" aria-label="Giorno di nascita lavoratore"><option value="">Giorno</option></select>
+                        </div>
+                        <div>
+                            <select id="lavoratore_data_nascita_mese" class="form-input text-sm" aria-label="Mese di nascita lavoratore"><option value="">Mese</option></select>
+                        </div>
+                        <div>
+                            <select id="lavoratore_data_nascita_anno" class="form-input text-sm" aria-label="Anno di nascita lavoratore"><option value="">Anno</option></select>
+                        </div>
+                    </div>
+                    <input type="hidden" id="lavoratore_data_nascita" name="lavoratore_data_nascita" value="<?php e($saved_data['lavoratore_data_nascita'] ?? ''); ?>">
                 </div>
                 <div>
                     <label for="lavoratore_codice_cassa" class="form-label">Codice Cassa Edile</label>
@@ -760,6 +782,60 @@ function e($value) {
             dataFirmaInput.value = today;
         }
 
+        // --- Logica per i selettori della data di nascita ---
+        function setupDateInputs(prefix, savedDate) {
+            const daySelect = document.getElementById(prefix + '_giorno');
+            const monthSelect = document.getElementById(prefix + '_mese');
+            const yearSelect = document.getElementById(prefix + '_anno');
+            const hiddenInput = document.getElementById(prefix);
+
+            // Popola anni (dal 1924 ad oggi)
+            const currentYear = new Date().getFullYear();
+            for (let i = currentYear; i >= 1924; i--) {
+                yearSelect.add(new Option(i, i));
+            }
+
+            // Popola mesi
+            const months = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
+            months.forEach((month, index) => {
+                monthSelect.add(new Option(month, index + 1));
+            });
+
+            // Popola giorni
+            for (let i = 1; i <= 31; i++) {
+                daySelect.add(new Option(i, i));
+            }
+
+            // Funzione per aggiornare il campo nascosto
+            function updateHiddenDate() {
+                const year = yearSelect.value;
+                const month = monthSelect.value;
+                const day = daySelect.value;
+
+                if (year && month && day) {
+                    // Formatta mese e giorno con zero iniziale se necessario
+                    const formattedMonth = month.toString().padStart(2, '0');
+                    const formattedDay = day.toString().padStart(2, '0');
+                    hiddenInput.value = `${year}-${formattedMonth}-${formattedDay}`;
+                } else {
+                    hiddenInput.value = '';
+                }
+            }
+
+            // Pre-seleziona i valori se esiste una data salvata
+            if (savedDate) {
+                const dateParts = savedDate.split('-');
+                yearSelect.value = parseInt(dateParts[0], 10);
+                monthSelect.value = parseInt(dateParts[1], 10);
+                daySelect.value = parseInt(dateParts[2], 10);
+            }
+
+            // Aggiungi event listeners
+            [daySelect, monthSelect, yearSelect].forEach(select => {
+                select.addEventListener('change', updateHiddenDate);
+            });
+        }
+
         function showRequiredUploads(prestazione) {
 
             // Mappa delle prestazioni ai documenti richiesti
@@ -794,6 +870,10 @@ function e($value) {
         const prestazioneSelezionata = '<?php echo htmlspecialchars($prestazione_selezionata ?? ''); ?>';
         if (prestazioneSelezionata) {
             showRequiredUploads(prestazioneSelezionata);
+
+            // Inizializza i campi data
+            setupDateInputs('studente_data_nascita', '<?php e($saved_data['studente_data_nascita'] ?? ''); ?>');
+            setupDateInputs('lavoratore_data_nascita', '<?php e($saved_data['lavoratore_data_nascita'] ?? ''); ?>');
         }
 
         // Gestione dropdown utente
