@@ -147,6 +147,9 @@ try {
     $primary_color = '#d0112b'; // Colore primario della piattaforma
     $bg_color = '#f4f6f9';
     $text_color = '#333333';
+    
+    // Imposta la codifica dei caratteri per risolvere problemi con gli accenti
+    $mail->CharSet = 'UTF-8';
 
     $htmlBody = '
     <body style="margin: 0; padding: 0; background-color: '.$bg_color.'; font-family: Inter, Arial, sans-serif;">
@@ -159,7 +162,7 @@ try {
                         </td>
                     </tr>
                     <tr>
-                        <td style="padding: 40px 30px; color: '.$text_color.'; font-size: 16px; line-height: 1.5;">
+                        <td style="padding: 40px 30px; color: '.$text_color.'; font-size: 18px; line-height: 1.6;">
                             <h2 style="margin-top: 0; color: '.$primary_color.';">'.$email_title.'</h2>
                             <p>È stata inviata la pratica: <strong>'.$form_name.'</strong>.</p>';
 
