@@ -6,6 +6,8 @@ push_config.php
 /vendor/
 /admin/downloads
 /uploads
+/servizi/moduli/uploads
+/servizi/moduli/autocertificazioni_data
 /temp_pdf/
 # Log di debug
 *.log
