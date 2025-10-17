@@ -9,7 +9,10 @@ function log_sql($sql, $params, $context = '') {
 }
 
 // 1. Inizializzazione e recupero dati
-$token = $_SESSION['user_token'] ?? null; // Leggi il token dalla sessione, non dall'URL
+// Dà priorità al token inviato con il form, altrimenti usa quello in sessione.
+$token = $_POST['token'] ?? ($_SESSION['user_token'] ?? null);
+if ($token) { $_SESSION['user_token'] = $token; } // Sincronizza la sessione
+
 $action = $_POST['action'] ?? 'save'; // 'save' o 'submit_official'
 $form_name = $_POST['form_name'] ?? null;
 $user_id = null;

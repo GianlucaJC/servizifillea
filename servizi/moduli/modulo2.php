@@ -267,7 +267,7 @@ function e($value) {
     <?php endif; ?>
 
     <form 
-        id="modulo2-form" action="modulo2_save.php?token=<?php echo htmlspecialchars($token_user); ?>" method="POST" autocomplete="off">
+        id="modulo2-form" action="modulo2_save.php" method="POST" autocomplete="off">
 
     <?php
         // Se è un admin, mostra sempre la sezione delle azioni admin.
@@ -454,6 +454,7 @@ function e($value) {
 
         <input type="hidden" name="form_name" value="<?php echo htmlspecialchars($form_name ?? uniqid('form2_')); ?>">
         <input type="hidden" name="prestazione" value="<?php echo htmlspecialchars($prestazione_selezionata); ?>">
+        <input type="hidden" name="token" value="<?php echo htmlspecialchars($token_user); ?>">
         <input type="hidden" name="firma_data" id="firma_data" value="<?php e($saved_data['firma_data'] ?? ''); ?>">
 
         <!-- Campo nascosto per l'ID del funzionario già assegnato -->
