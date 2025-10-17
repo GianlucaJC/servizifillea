@@ -69,6 +69,17 @@ if ($form_data && !empty($form_data['prestazioni'])) {
     $form_data['prestazioni_decoded'] = json_decode($form_data['prestazioni'], true);
 }
 
+// Estrai il nome del lavoratore per personalizzare l'email
+$worker_name = '';
+if ($form_data) {
+    if ($table_name === 'modulo1_richieste') {
+        $worker_name = $form_data['lavoratore_nome_cognome'] ?? '';
+    } elseif ($table_name === 'modulo2_richieste') {
+        $worker_name = $form_data['nome_completo'] ?? '';
+    }
+}
+
+
 // Crea il PDF solo se abbiamo trovato i dati del modulo
 $dynamic_pdf_path = null;
 if ($form_data) {
@@ -165,6 +176,9 @@ try {
                         <td style="padding: 40px 30px; color: '.$text_color.'; font-size: 18px; line-height: 1.6;">
                             <h2 style="margin-top: 0; color: '.$primary_color.';">'.$email_title.'</h2>
                             <p>È stata inviata la pratica: <strong>'.$form_name.'</strong>.</p>';
+    if (!empty($worker_name)) {
+        $htmlBody .= '<p>Lavoratore: <strong>'.htmlspecialchars($worker_name).'</strong>.</p>';
+    }
 
     if (!empty($files_to_zip)) {
         // Genera un link di download sicuro solo se ci sono file
@@ -184,7 +198,11 @@ try {
                                     <a href="'.$download_link.'" style="background-color: '.$primary_color.'; color: #ffffff; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Scarica Documenti</a>
                                 </td></tr>
                             </table>';
-        $altBody = "È stata inviata la pratica {$form_name}.\n\nPuoi scaricare tutta la documentazione visitando il seguente link (scade tra 7 giorni):\n{$download_link}";
+        $altBody = "È stata inviata la pratica {$form_name}.\n";
+        if (!empty($worker_name)) {
+            $altBody .= "Lavoratore: " . htmlspecialchars($worker_name) . ".\n";
+        }
+        $altBody .= "\nPuoi scaricare tutta la documentazione visitando il seguente link (scade tra 7 giorni):\n{$download_link}";
     } else {
         $htmlBody .= '<p>Non sono stati allegati nuovi documenti a questo invio.</p>';
         $altBody = "È stata inviata la pratica {$form_name}.\n\nNon sono stati allegati nuovi documenti a questo invio.";
@@ -201,7 +219,11 @@ try {
 
     // Imposta il contenuto dell'email
     $mail->isHTML(true);
-    $mail->Subject = 'Invio Pratica Cassa Edile: ' . $form_name;
+    $subject = 'Invio Pratica Cassa Edile: ' . $form_name;
+    if (!empty($worker_name)) {
+        $subject .= ' - ' . htmlspecialchars($worker_name);
+    }
+    $mail->Subject = $subject;
     $mail->Body    = $htmlBody;
     $mail->AltBody = $altBody;
 
