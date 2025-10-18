@@ -1,66 +1,42 @@
 <?php
 session_start();
 
-$token = $_SESSION['user_token'] ?? ($_GET['token'] ?? null);
-if (isset($_GET['token'])) { $_SESSION['user_token'] = $_GET['token']; }
-
-$form_name_origin = $_GET['origin_form_name'] ?? null;
-$prestazione_origin = $_GET['origin_prestazione'] ?? null;
+// 1. Inizializzazione e recupero dati
+$token = $_GET['token'] ?? null;
+$origin_form_name = $_GET['origin_form_name'] ?? null;
+$origin_prestazione = $_GET['origin_prestazione'] ?? null;
 $origin_module = $_GET['origin_module'] ?? null;
+
+$user_id = null;
+$saved_data = [];
+
+if (!$token || !$origin_form_name) {
+    die("Accesso non autorizzato o parametri mancanti.");
+}
+
+// Salva il token in sessione per coerenza
+$_SESSION['user_token'] = $token;
 
 include_once("../../database.php");
 $pdo1 = Database::getInstance('fillea');
 
-$user_id = null;
-$user_info = [];
-if ($token) {
-    $stmt_user = $pdo1->prepare("SELECT id, nome, cognome FROM `fillea-app`.users WHERE token = ? AND token_expiry > NOW()");
-    $stmt_user->execute([$token]);
-    $user = $stmt_user->fetch(PDO::FETCH_ASSOC);
-    if ($user) {
-        $user_id = $user['id'];
-        $user_info = $user;
-    }
+// Recupera user_id dal token
+$stmt_user = $pdo1->prepare("SELECT id FROM `fillea-app`.users WHERE token = ? AND token_expiry > NOW()");
+$stmt_user->execute([$token]);
+$user = $stmt_user->fetch(PDO::FETCH_ASSOC);
+
+if (!$user) {
+    die("Utente non valido o sessione scaduta.");
 }
+$user_id = $user['id'];
 
-if (!$user_id) {
-    // Invece di reindirizzare, mostra un messaggio di errore all'interno della modale.
-    // Questo perché la pagina è caricata in un iframe.
-    ?>
-    <!DOCTYPE html>
-    <html lang="it">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Errore di Autenticazione</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-    </head>
-    <body class="bg-gray-100 flex items-center justify-center h-screen">
-        <div class="text-center p-8 bg-white rounded-lg shadow-md max-w-md mx-auto">
-            <h1 class="text-2xl font-bold text-red-700 mb-4">Sessione Scaduta o Non Valida</h1>
-            <p class="text-gray-700">La tua sessione di lavoro non è più valida.</p>
-            <p class="text-gray-600 mt-2">Per favore, chiudi questa finestra e accedi nuovamente dalla pagina principale per continuare.</p>
-        </div>
-    </body>
-    </html>
-    <?php
-    exit;
-}
+// Cerca dati salvati per questa autocertificazione
+$json_filename = 'autocert_' . $origin_form_name . '.json';
+$json_filepath = __DIR__ . '/autocertificazioni_data/' . $json_filename;
 
-// --- Logica di pre-caricamento dati da file JSON ---
-$saved_data = [];
-if ($form_name_origin) {
-    $data_dir = __DIR__ . '/autocertificazioni_data/';
-    $json_filename = 'autocert_' . $form_name_origin . '.json';
-    $json_filepath = $data_dir . $json_filename;
-
-    if (file_exists($json_filepath)) {
-        $json_content = file_get_contents($json_filepath);
-        $decoded_data = json_decode($json_content, true);
-        if (is_array($decoded_data)) {
-            $saved_data = $decoded_data;
-        }
-    }
+if (file_exists($json_filepath)) {
+    $json_content = file_get_contents($json_filepath);
+    $saved_data = json_decode($json_content, true);
 }
 
 function e($value) {
@@ -73,50 +49,68 @@ function e($value) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Autocertificazione Stato di Famiglia</title>
+    
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { 'primary': '#d0112b', 'secondary': '#f97316', 'light': '#fbe6e8' },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
     <style>
-        .form-section { background-color: white; padding: 1.5rem; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 2rem; }
-        .form-section-title { font-size: 1.25rem; font-weight: 700; border-bottom: 2px solid #d1d5db; padding-bottom: 0.75rem; margin-bottom: 1.5rem; }
+        /* Stili ripresi da modulo1.php per coerenza */
+        body { background-color: #f8f9fa; }
+        .form-section { background-color: white; padding: 1.5rem; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); margin-bottom: 2rem; }
+        .form-section-title { font-size: 1.25rem; font-weight: 700; color: #1f2937; border-bottom: 2px solid #d1d5db; padding-bottom: 0.75rem; margin-bottom: 1.5rem; }
         .form-label { font-weight: 600; color: #4b5563; }
-        .form-input { width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.375rem; }
+        .form-input { width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.375rem; transition: border-color 0.2s, box-shadow 0.2s; }
         .form-input:focus { outline: none; border-color: #d0112b; box-shadow: 0 0 0 2px rgba(208, 17, 43, 0.2); }
-        .btn-primary { background-color: #d0112b; color: white; }
-        .btn-primary:hover { background-color: #a80d22; }
-        .btn-secondary { background-color: #6c757d; color: white; }
+        .btn-primary { background-color: #d0112b; color: white; font-weight: bold; padding: 0.75rem 1.5rem; border-radius: 0.5rem; transition: background-color 0.3s; }
+        .btn-primary:hover { background-color: #a80e23; }
+        .btn-secondary { background-color: #6c757d; color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; transition: background-color 0.3s; }
         .btn-secondary:hover { background-color: #5a6268; }
     </style>
 </head>
-<body class="bg-gray-50">
+<body class="p-4 md:p-6">
 
-<div class="container mx-auto p-4 md:p-8 max-w-4xl">
+<div class="max-w-3xl mx-auto">
     <header class="text-center mb-8">
-        <h1 class="text-3xl md:text-4xl font-bold text-red-700">Autocertificazione Stato di Famiglia</h1>
-        <p class="text-lg text-gray-600 mt-2">DICHIARAZIONE SOSTITUTIVA DI CERTIFICAZIONI</p>
-        <p class="text-xs text-gray-500">(art.2 L. 15/68 come modificato dall’art. 3 Legge 15.5.97, n.127 ed integrato dall’ art. 1 DPR 403/1998 e succ.)</p>
+        <h1 class="text-2xl md:text-3xl font-bold text-primary">Autocertificazione Stato di Famiglia</h1>
+        <p class="text-md text-gray-600 mt-2">Compila i dati richiesti per generare il documento.</p>
     </header>
 
-    <form id="stato-famiglia-form" action="modulo_autocertificazione_stato_famiglia_save.php" method="POST">
+    <form id="autocert-form" action="modulo_autocertificazione_stato_famiglia_save.php" method="POST">
+        <!-- Campi nascosti per il salvataggio -->
         <input type="hidden" name="token" value="<?php e($token); ?>">
-        <input type="hidden" name="origin_form_name" value="<?php e($form_name_origin); ?>">
-        <input type="hidden" name="origin_prestazione" value="<?php e($prestazione_origin); ?>">
+        <input type="hidden" name="origin_form_name" value="<?php e($origin_form_name); ?>">
+        <input type="hidden" name="origin_prestazione" value="<?php e($origin_prestazione); ?>">
         <input type="hidden" name="origin_module" value="<?php e($origin_module); ?>">
+        <input type="hidden" name="firma_data" id="firma_data" value="<?php e($saved_data['firma_data'] ?? ''); ?>">
+        <input type="hidden" name="membri_famiglia_json" id="membri_famiglia_json">
 
-        <!-- Dati Dichiarante -->
+        <!-- Sezione Dati Sottoscrittore -->
         <div class="form-section">
             <h2 class="form-section-title">Dati del Dichiarante</h2>
-            <p class="text-sm text-gray-600 mb-4">Da compilare a cura dei figli dei lavoratori se maggiorenni, oppure a cura dei lavoratori nel caso di figli minorenni.</p>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="md:col-span-2">
-                    <label for="sottoscrittore_nome_cognome" class="form-label">Io sottoscritto/a (Nome e Cognome)</label>
-                    <input type="text" id="sottoscrittore_nome_cognome" name="sottoscrittore_nome_cognome" class="form-input" value="<?php e($saved_data['sottoscrittore_nome_cognome'] ?? ($user_info['cognome'] . ' ' . $user_info['nome'])); ?>">
+                <div>
+                    <label for="sottoscrittore_nome_cognome" class="form-label">Nome e Cognome</label>
+                    <input type="text" id="sottoscrittore_nome_cognome" name="sottoscrittore_nome_cognome" class="form-input" value="<?php e($saved_data['sottoscrittore_nome_cognome'] ?? ''); ?>" required>
                 </div>
                 <div>
-                    <label for="sottoscrittore_luogo_nascita" class="form-label">Nato/a a (Luogo di nascita)</label>
-                    <input type="text" id="sottoscrittore_luogo_nascita" name="sottoscrittore_luogo_nascita" class="form-input" value="<?php e($saved_data['sottoscrittore_luogo_nascita'] ?? ''); ?>">
+                    <label for="sottoscrittore_luogo_nascita" class="form-label">Luogo di Nascita</label>
+                    <input type="text" id="sottoscrittore_luogo_nascita" name="sottoscrittore_luogo_nascita" class="form-input" value="<?php e($saved_data['sottoscrittore_luogo_nascita'] ?? ''); ?>" required>
                 </div>
                 <div>
-                    <label class="form-label">Il (Data di nascita)</label>
+                    <label for="sottoscrittore_data_nascita" class="form-label">Data di Nascita</label>
                     <div class="grid grid-cols-3 gap-2">
                         <div>
                             <select id="sottoscrittore_data_nascita_giorno" class="form-input text-sm" aria-label="Giorno di nascita"><option value="">Giorno</option></select>
@@ -128,227 +122,246 @@ function e($value) {
                             <select id="sottoscrittore_data_nascita_anno" class="form-input text-sm" aria-label="Anno di nascita"><option value="">Anno</option></select>
                         </div>
                     </div>
-                    <input type="hidden" id="sottoscrittore_data_nascita" name="sottoscrittore_data_nascita" value="<?php e($saved_data['sottoscrittore_data_nascita'] ?? ''); ?>">
+                    <input type="hidden" id="sottoscrittore_data_nascita" name="sottoscrittore_data_nascita" value="<?php e($saved_data['sottoscrittore_data_nascita'] ?? ''); ?>" required>
                 </div>
                 <div>
-                    <label for="sottoscrittore_residenza_comune" class="form-label">Residente a (Comune)</label>
-                    <input type="text" id="sottoscrittore_residenza_comune" name="sottoscrittore_residenza_comune" class="form-input" value="<?php e($saved_data['sottoscrittore_residenza_comune'] ?? ''); ?>">
+                    <label for="sottoscrittore_residenza_comune" class="form-label">Comune di Residenza</label>
+                    <input type="text" id="sottoscrittore_residenza_comune" name="sottoscrittore_residenza_comune" class="form-input" value="<?php e($saved_data['sottoscrittore_residenza_comune'] ?? ''); ?>" required>
                 </div>
-                <div>
-                    <label for="sottoscrittore_residenza_indirizzo" class="form-label">In (Via/Piazza)</label>
-                    <input type="text" id="sottoscrittore_residenza_indirizzo" name="sottoscrittore_residenza_indirizzo" class="form-input" value="<?php e($saved_data['sottoscrittore_residenza_indirizzo'] ?? ''); ?>">
+                <div class="md:col-span-2">
+                    <label for="sottoscrittore_residenza_indirizzo" class="form-label">Indirizzo di Residenza (Via/Piazza e n.)</label>
+                    <input type="text" id="sottoscrittore_residenza_indirizzo" name="sottoscrittore_residenza_indirizzo" class="form-input" value="<?php e($saved_data['sottoscrittore_residenza_indirizzo'] ?? ''); ?>" required>
                 </div>
             </div>
         </div>
 
-        <!-- Composizione Nucleo Familiare -->
+        <!-- Sezione Membri Famiglia -->
         <div class="form-section">
-            <h2 class="form-section-title">Composizione del Nucleo Familiare</h2>
-            <p class="text-sm text-gray-600 mb-4">Consapevole delle responsabilità penali in caso di false dichiarazioni, dichiaro che la famiglia anagrafica è composta dalle seguenti persone:</p>
-            <div class="overflow-x-auto">
-                <table class="min-w-full bg-white">
-                    <thead class="bg-gray-100">
-                        <tr>
-                            <th class="py-2 px-4 text-left text-sm font-semibold text-gray-600">Cognome e Nome</th>
-                            <th class="py-2 px-4 text-left text-sm font-semibold text-gray-600">Data di Nascita</th>
-                            <th class="py-2 px-4 text-left text-sm font-semibold text-gray-600">Luogo di Nascita</th>
-                            <th class="py-2 px-4 text-left text-sm font-semibold text-gray-600">Rapporto di Parentela</th>
-                            <th class="py-2 px-4 text-center text-sm font-semibold text-gray-600">Azioni</th>
-                        </tr>
-                    </thead>
-                    <tbody id="membri-famiglia-tbody">
-                        <!-- Le righe verranno aggiunte qui da JS -->
-                    </tbody>
-                </table>
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="form-section-title !border-0 !mb-0">Composizione Nucleo Familiare</h2>
+                <button type="button" id="add-member-btn" class="btn-secondary text-sm"><i class="fas fa-plus mr-2"></i>Aggiungi Membro</button>
             </div>
-            <button type="button" id="add-member-btn" class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
-                <i class="fas fa-plus mr-2"></i> Aggiungi Membro
-            </button>
+            <p class="text-sm text-gray-600 mb-6">Elenca tutti i componenti del nucleo familiare, incluso il dichiarante.</p>
+            <div id="family-members-container" class="space-y-4">
+                <!-- Le card dei membri verranno inserite qui da JS -->
+            </div>
         </div>
 
-        <!-- Dichiarazioni e Firma -->
+        <!-- Sezione Firma -->
         <div class="form-section">
-            <h2 class="form-section-title">Dichiarazioni e Firma</h2>
-            <p class="text-sm text-gray-700 mb-6">Dichiaro altresì, in caso di false attestazioni, di impegnarmi a restituire le somme illecitamente percepite, autorizzando la Cassa a trattenere dette somme dalle eventuali altre spettanze a me dovute.</p>
-            
+            <h2 class="form-section-title">Luogo, Data e Firma</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label for="luogo_firma" class="form-label">Luogo</label>
-                    <input type="text" id="luogo_firma" name="luogo_firma" class="form-input" value="<?php e($saved_data['luogo_firma'] ?? 'Firenze'); ?>">
+                    <input type="text" id="luogo_firma" name="luogo_firma" class="form-input" value="<?php e($saved_data['luogo_firma'] ?? 'Firenze'); ?>" required>
                 </div>
                 <div>
                     <label for="data_firma" class="form-label">Data</label>
-                    <input type="date" id="data_firma" name="data_firma" class="form-input" value="<?php e($saved_data['data_firma'] ?? ''); ?>">
+                    <input type="date" id="data_firma" name="data_firma" class="form-input" value="<?php e($saved_data['data_firma'] ?? ''); ?>" required>
                 </div>
                 <div class="md:col-span-2">
-                    <label class="form-label">Firma</label>
+                    <label class="form-label">Firma Digitale</label>
                     <div id="signature-container" class="w-full mt-2 border border-gray-300 rounded-lg relative">
                         <?php $has_signature = !empty($saved_data['firma_data']); ?>
                         <img id="signature-image" src="<?php echo $has_signature ? $saved_data['firma_data'] : ''; ?>" alt="Firma salvata" class="w-full h-auto <?php if (!$has_signature) echo 'hidden'; ?>">
                         <canvas id="signature-pad" class="w-full h-48 <?php if ($has_signature) echo 'hidden'; ?>"></canvas>
                     </div>
-                    <div id="signature-controls" class="flex justify-end mt-2 space-x-4">
+                    <div id="signature-controls" class="flex justify-end mt-2">
                         <?php if ($has_signature): ?>
                             <button type="button" id="modify-signature" class="text-sm text-blue-600 hover:text-blue-800 font-semibold"><i class="fas fa-pencil-alt mr-1"></i> Modifica Firma</button>
                         <?php else: ?>
-                            <button type="button" id="undo-signature" class="text-sm text-gray-600 hover:text-red-700">Annulla tratto</button>
-                            <button type="button" id="clear-signature" class="text-sm text-gray-600 hover:text-red-700">Pulisci</button>
+                            <div class="space-x-4">
+                                <button type="button" id="undo-signature" class="text-sm text-gray-600 hover:text-primary">Annulla tratto</button>
+                                <button type="button" id="clear-signature" class="text-sm text-gray-600 hover:text-primary">Pulisci</button>
+                            </div>
                         <?php endif; ?>
                     </div>
                 </div>
             </div>
         </div>
 
-        <input type="hidden" name="firma_data" id="firma_data" value="<?php e($saved_data['firma_data'] ?? ''); ?>">
-        <input type="hidden" name="membri_famiglia_json" id="membri_famiglia_json">
-
-        <div class="mt-8 flex justify-between items-center">
-            <button type="button" id="close-modal-btn" class="btn-secondary font-bold py-3 px-6 rounded-lg">
-                <i class="fas fa-times mr-2"></i> Chiudi
-            </button>
-            <button type="submit" id="save-btn" class="btn-primary font-bold py-3 px-6 rounded-lg shadow-lg">
-                <i class="fas fa-save mr-2"></i> Salva Dati
+        <div class="mt-8 text-center">
+            <button type="submit" id="save-btn" class="btn-primary w-full md:w-auto">
+                <i class="fas fa-save mr-2"></i> Salva e Genera Autocertificazione
             </button>
         </div>
     </form>
 </div>
+
+<!-- Template per la card di un membro della famiglia -->
+<template id="family-member-template">
+    <div class="family-member-card border border-gray-200 rounded-lg p-4 bg-gray-50 relative">
+        <button type="button" class="remove-member-btn absolute top-2 right-2 text-red-500 hover:text-red-700" title="Rimuovi membro">
+            <i class="fas fa-trash-alt"></i>
+        </button>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="form-label text-sm">Nome e Cognome</label>
+                <input type="text" class="form-input member-nome" placeholder="Mario Rossi" required>
+            </div>
+            <div>
+                <label class="form-label text-sm">Parentela</label>
+                <input type="text" class="form-input member-parentela" placeholder="Padre, Figlio, ecc." required>
+            </div>
+            <div>
+                <label class="form-label text-sm">Luogo di Nascita</label>
+                <input type="text" class="form-input member-luogo-nascita" placeholder="Firenze" required>
+            </div>
+            <div>
+                <label class="form-label text-sm">Data di Nascita</label>
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <select class="form-input text-sm member-data-nascita-giorno" aria-label="Giorno di nascita membro"><option value="">Giorno</option></select>
+                    </div>
+                    <div>
+                        <select class="form-input text-sm member-data-nascita-mese" aria-label="Mese di nascita membro"><option value="">Mese</option></select>
+                    </div>
+                    <div>
+                        <select class="form-input text-sm member-data-nascita-anno" aria-label="Anno di nascita membro"><option value="">Anno</option></select>
+                    </div>
+                </div>
+                <input type="hidden" class="member-data-nascita" required>
+            </div>
+        </div>
+    </div>
+</template>
+
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Logica per chiudere la modale
-    document.getElementById('close-modal-btn').addEventListener('click', function() {
-        // Cerca la modale nella finestra genitore e la chiude
-        window.parent.document.getElementById('autocert-modal').classList.add('hidden');
-    });
-
-    // Funzione per aggiungere una riga alla tabella (modificata per accettare dati)
-    function addMemberRow(data = {}) {
-        const tbody = document.getElementById('membri-famiglia-tbody');
-        const memberIndex = tbody.querySelectorAll('tr').length;
-        const row = document.createElement('tr');
-        row.classList.add('border-b');
-        // Aggiungi un ID univoco per il campo nascosto della data
-        const hiddenDateId = `membro_data_nascita_${memberIndex}`;
-        row.innerHTML = `
-            <td class="py-2 px-4"><input type="text" name="membri[${memberIndex}][nome_cognome]" class="form-input text-sm p-1" value="${data.nome_cognome || ''}"></td>
-            <td class="py-2 px-4">
-                <div class="grid grid-cols-3 gap-1">
-                    <select name="membri[${memberIndex}][data_nascita_giorno]" class="form-input text-xs p-1"><option value="">G</option></select>
-                    <select name="membri[${memberIndex}][data_nascita_mese]" class="form-input text-xs p-1"><option value="">M</option></select>
-                    <select name="membri[${memberIndex}][data_nascita_anno]" class="form-input text-xs p-1"><option value="">A</option></select>
-                </div>
-                <input type="hidden" id="${hiddenDateId}" name="membri[${memberIndex}][data_nascita]" value="${data.data_nascita || ''}">
-            </td>
-            <td class="py-2 px-4"><input type="text" name="membri[${memberIndex}][luogo_nascita]" class="form-input text-sm p-1" value="${data.luogo_nascita || ''}"></td>
-            <td class="py-2 px-4"><input type="text" name="membri[${memberIndex}][parentela]" class="form-input text-sm p-1" value="${data.parentela || ''}"></td>
-            <td class="py-2 px-4 text-center">
-                <button type="button" class="text-red-500 hover:text-red-700 remove-member-btn"><i class="fas fa-trash"></i></button>
-            </td>
-        `;
-        tbody.appendChild(row);
-
-        // Inizializza i selettori della data per la nuova riga
-        setupDateInputsForRow(row, hiddenDateId, data.data_nascita || '');
-    }
-
-    // Imposta data odierna
+    // --- IMPOSTAZIONI INIZIALI ---
     const dataFirmaInput = document.getElementById('data_firma');
     if (!dataFirmaInput.value) {
         dataFirmaInput.value = new Date().toISOString().split('T')[0];
     }
 
-    // --- Logica per i selettori della data di nascita ---
-    function setupDateInputs(prefix, savedDate) {
-        const daySelect = document.getElementById(prefix + '_giorno');
-        const monthSelect = document.getElementById(prefix + '_mese');
-        const yearSelect = document.getElementById(prefix + '_anno');
-        const hiddenInput = document.getElementById(prefix);
+    // --- GESTIONE DATA DI NASCITA A 3 CAMPI ---
+    function setupDateInputs(daySelect, monthSelect, yearSelect, hiddenInput, savedDate) {
+        if (!daySelect || !monthSelect || !yearSelect || !hiddenInput) return;
 
         // Popola anni (dal 1924 ad oggi)
         const currentYear = new Date().getFullYear();
-        for (let i = currentYear; i >= 1924; i--) { yearSelect.add(new Option(i, i)); }
+        for (let i = currentYear; i >= 1924; i--) {
+            yearSelect.add(new Option(i, i));
+        }
+
         // Popola mesi
         const months = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
-        months.forEach((month, index) => { monthSelect.add(new Option(month, index + 1)); });
+        months.forEach((month, index) => {
+            monthSelect.add(new Option(month, index + 1));
+        });
+
         // Popola giorni
-        for (let i = 1; i <= 31; i++) { daySelect.add(new Option(i, i)); }
+        for (let i = 1; i <= 31; i++) {
+            daySelect.add(new Option(i, i));
+        }
 
         function updateHiddenDate() {
             const year = yearSelect.value;
             const month = monthSelect.value;
             const day = daySelect.value;
+
             if (year && month && day) {
                 const formattedMonth = month.toString().padStart(2, '0');
                 const formattedDay = day.toString().padStart(2, '0');
                 hiddenInput.value = `${year}-${formattedMonth}-${formattedDay}`;
-            } else { hiddenInput.value = ''; }
+            } else {
+                hiddenInput.value = '';
+            }
         }
 
         if (savedDate) {
             const dateParts = savedDate.split('-');
-            yearSelect.value = parseInt(dateParts[0], 10);
-            monthSelect.value = parseInt(dateParts[1], 10);
-            daySelect.value = parseInt(dateParts[2], 10);
+            if (dateParts.length === 3) {
+                yearSelect.value = parseInt(dateParts[0], 10);
+                monthSelect.value = parseInt(dateParts[1], 10);
+                daySelect.value = parseInt(dateParts[2], 10);
+            }
         }
         [daySelect, monthSelect, yearSelect].forEach(select => select.addEventListener('change', updateHiddenDate));
     }
 
-    function setupDateInputsForRow(row, hiddenInputId, savedDate) {
-        const daySelect = row.querySelector('select[name$="[data_nascita_giorno]"]');
-        const monthSelect = row.querySelector('select[name$="[data_nascita_mese]"]');
-        const yearSelect = row.querySelector('select[name$="[data_nascita_anno]"]');
-        const hiddenInput = document.getElementById(hiddenInputId);
+    // --- GESTIONE MEMBRI FAMIGLIA ---
+    const container = document.getElementById('family-members-container');
+    const addButton = document.getElementById('add-member-btn');
+    const template = document.getElementById('family-member-template');
+    const hiddenJsonInput = document.getElementById('membri_famiglia_json');
 
-        const currentYear = new Date().getFullYear();
-        for (let i = currentYear; i >= 1924; i--) { yearSelect.add(new Option(i, i)); }
-        for (let i = 1; i <= 12; i++) { monthSelect.add(new Option(i, i)); }
-        for (let i = 1; i <= 31; i++) { daySelect.add(new Option(i, i)); }
+    function addMember(data = {}) {
+        const clone = template.content.cloneNode(true);
+        const card = clone.querySelector('.family-member-card');
+        
+        card.querySelector('.member-nome').value = data.nome_cognome || '';
+        card.querySelector('.member-parentela').value = data.parentela || '';
+        card.querySelector('.member-luogo-nascita').value = data.luogo_nascita || '';
+        
+        // Inizializza i selettori data per la nuova card
+        const daySelect = card.querySelector('.member-data-nascita-giorno');
+        const monthSelect = card.querySelector('.member-data-nascita-mese');
+        const yearSelect = card.querySelector('.member-data-nascita-anno');
+        const hiddenInput = card.querySelector('.member-data-nascita');
+        hiddenInput.value = data.data_nascita || ''; // Imposta il valore iniziale del campo nascosto
 
-        // La logica di aggiornamento e pre-selezione è identica a setupDateInputs
-        // e viene gestita tramite gli attributi `value` impostati durante la creazione della riga.
-        // L'aggiornamento del campo nascosto avviene tramite la funzione `serializeTableData` al momento del submit.
-    }
+        setupDateInputs(daySelect, monthSelect, yearSelect, hiddenInput, data.data_nascita || '');
 
-    // Popola la tabella dei membri della famiglia con i dati pre-caricati
-    const membriPrecaricati = <?php echo json_encode($saved_data['membri_famiglia'] ?? []); ?>;
-    if (membriPrecaricati.length > 0) {
-        const tbody = document.getElementById('membri-famiglia-tbody');
-        tbody.innerHTML = ''; // Pulisce eventuali righe vuote
-        membriPrecaricati.forEach(membro => {
-            addMemberRow(membro);
+        card.querySelector('.remove-member-btn').addEventListener('click', () => {
+            card.remove();
         });
+
+        container.appendChild(card);
     }
 
-    // Inizializza il selettore data per il dichiarante
-    setupDateInputs('sottoscrittore_data_nascita', '<?php e($saved_data['sottoscrittore_data_nascita'] ?? ''); ?>');
-    // Logica tabella dinamica
-    const addMemberBtn = document.getElementById('add-member-btn');
-    const tbody = document.getElementById('membri-famiglia-tbody');
+    addButton.addEventListener('click', () => addMember());
 
-    addMemberBtn.addEventListener('click', function() {
-        addMemberRow(); // Chiama la funzione senza dati per aggiungere una riga vuota
-    });
+    // Inizializza i campi data per il sottoscrittore
+    setupDateInputs(
+        document.getElementById('sottoscrittore_data_nascita_giorno'),
+        document.getElementById('sottoscrittore_data_nascita_mese'),
+        document.getElementById('sottoscrittore_data_nascita_anno'),
+        document.getElementById('sottoscrittore_data_nascita'),
+        '<?php e($saved_data['sottoscrittore_data_nascita'] ?? ''); ?>');
 
-    tbody.addEventListener('click', function(e) {
-        if (e.target.closest('.remove-member-btn')) {
-            e.target.closest('tr').remove();
-        }
-    });
+    // Popola con dati salvati
+    const savedMembers = <?php echo json_encode($saved_data['membri_famiglia'] ?? []); ?>;
+    if (savedMembers.length > 0) {
+        savedMembers.forEach(member => addMember(member));
+    } else {
+        // Aggiungi un membro vuoto se non ci sono dati salvati
+        addMember();
+    }
 
-    // Logica Firma
+    function collectFamilyData() {
+        const members = [];
+        container.querySelectorAll('.family-member-card').forEach(card => {
+            const memberData = {
+                nome_cognome: card.querySelector('.member-nome').value,
+                parentela: card.querySelector('.member-parentela').value,
+                luogo_nascita: card.querySelector('.member-luogo-nascita').value,
+                data_nascita: card.querySelector('.member-data-nascita').value,
+            };
+            members.push(memberData);
+        });
+        hiddenJsonInput.value = JSON.stringify(members);
+    }
+
+    // --- GESTIONE FIRMA ---
     const canvas = document.getElementById('signature-pad');
     const signatureImage = document.getElementById('signature-image');
     const signatureControls = document.getElementById('signature-controls');
-    const signaturePad = new SignaturePad(canvas, {
-        penColor: 'blue'
-    });
-    // Se il canvas è visibile, ridimensionalo subito
-    if (!canvas.classList.contains('hidden')) resizeCanvas();
+    let signaturePad = null;
+
+    function initializeSignaturePad() {
+        if (canvas && !signaturePad) {
+            signaturePad = new SignaturePad(canvas, { penColor: 'blue' });
+            resizeCanvas();
+        }
+    }
 
     function resizeCanvas() {
+        if (!signaturePad) return;
         const ratio = Math.max(window.devicePixelRatio || 1, 1);
         canvas.width = canvas.offsetWidth * ratio;
         canvas.height = canvas.offsetHeight * ratio;
@@ -356,110 +369,95 @@ document.addEventListener('DOMContentLoaded', function() {
         signaturePad.clear();
     }
     window.addEventListener("resize", resizeCanvas);
-    resizeCanvas();
-    
+
+    if (canvas && !canvas.classList.contains('hidden')) {
+        initializeSignaturePad();
+    }
+
     signatureControls.addEventListener('click', function(event) {
         const target = event.target.closest('button');
         if (!target) return;
 
+        if (!signaturePad) initializeSignaturePad();
+
         if (target.id === 'clear-signature') {
             signaturePad.clear();
         }
-
         if (target.id === 'undo-signature') {
             const data = signaturePad.toData();
             if (data.length) {
-                data.pop(); // Rimuove l'ultimo tratto
+                data.pop();
                 signaturePad.fromData(data);
             }
         }
-
         if (target.id === 'modify-signature') {
             event.preventDefault();
-            // Nascondi l'immagine e il bottone "Modifica"
             signatureImage.classList.add('hidden');
             target.style.display = 'none';
-
-            // Svuota il campo nascosto per cancellare la vecchia firma al salvataggio
             $('#firma_data').val('');
-
-            // Mostra il canvas
             canvas.classList.remove('hidden');
-            resizeCanvas(); // Ridimensiona e pulisce il canvas
-
-            // Mostra i controlli per il disegno
-            signatureControls.innerHTML = `
-                <button type="button" id="undo-signature" class="text-sm text-gray-600 hover:text-red-700">Annulla tratto</button>
-                <button type="button" id="clear-signature" class="text-sm text-gray-600 hover:text-red-700">Pulisci</button>`;
+            initializeSignaturePad();
+            signatureControls.innerHTML = `<div class="space-x-4">
+                                            <button type="button" id="undo-signature" class="text-sm text-gray-600 hover:text-primary">Annulla tratto</button>
+                                            <button type="button" id="clear-signature" class="text-sm text-gray-600 hover:text-primary">Pulisci</button>
+                                          </div>`;
         }
     });
 
-    // Logica di salvataggio
-    const form = document.getElementById('stato-famiglia-form');
-    form.addEventListener('submit', function(e) { 
-        e.preventDefault(); // Impedisce l'invio tradizionale del form
-        const saveBtn = document.getElementById('save-btn');
-        const originalBtnContent = saveBtn.innerHTML;
+    // --- GESTIONE SUBMIT ---
+    $('#autocert-form').on('submit', function(e) {
+        e.preventDefault();
 
-        // 1. Salva la firma (se il canvas è stato usato)
-        if (!signaturePad.isEmpty()) { document.getElementById('firma_data').value = signaturePad.toDataURL('image/png'); }
+        // 1. Raccogli dati famiglia
+        collectFamilyData();
 
-        // 2. Serializza i dati della tabella in JSON
-        const membri = [];
-        const rows = tbody.querySelectorAll('tr');
-        rows.forEach(row => {
-            const inputs = row.querySelectorAll('input');
-            const selects = row.querySelectorAll('select');
-            const day = selects[0].value;
-            const month = selects[1].value;
-            const year = selects[2].value;
-            let dateValue = '';
-            if (day && month && year) {
-                dateValue = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+        // 2. Salva la firma
+        if (signaturePad && !signaturePad.isEmpty()) {
+            $('#firma_data').val(signaturePad.toDataURL('image/png'));
+        }
+
+        // 3. Validazione firma
+        if (!$('#firma_data').val()) {
+            alert('La firma è obbligatoria.');
+            return;
+        }
+
+        // 4. Invia i dati con AJAX
+        const formData = new FormData(this);
+        const saveBtn = $('#save-btn');
+        saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Salvataggio in corso...');
+
+        $.ajax({
+            url: $(this).attr('action'),
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.status === 'success') {
+                    // Comunica alla finestra genitore di mostrare il toast e ricaricare
+                    if (window.parent && typeof window.parent.showToast === 'function') {
+                        window.parent.showToast('Autocertificazione salvata con successo!');
+                    }
+                     // Ricarica la pagina del modulo principale per vedere l'allegato aggiornato
+                    setTimeout(() => {
+                        if (window.parent) {
+                           window.parent.location.reload();
+                        }
+                    }, 1000);
+                } else {
+                    alert('Errore: ' + response.message);
+                    saveBtn.prop('disabled', false).html('<i class="fas fa-save mr-2"></i> Salva e Genera Autocertificazione');
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                let errorMsg = 'Si è verificato un errore durante il salvataggio.';
+                if (jqXHR.responseJSON && jqXHR.responseJSON.message) {
+                    errorMsg = jqXHR.responseJSON.message;
+                }
+                alert(errorMsg);
+                saveBtn.prop('disabled', false).html('<i class="fas fa-save mr-2"></i> Salva e Genera Autocertificazione');
             }
-
-            const membro = {
-                nome_cognome: inputs[0].value,
-                data_nascita: dateValue,
-                luogo_nascita: inputs[1].value,
-                parentela: inputs[2].value
-            };
-            // Aggiungi solo se la riga non è completamente vuota
-            if (membro.nome_cognome || dateValue || membro.luogo_nascita || membro.parentela) {
-                membri.push(membro);
-            }
-        });
-        document.getElementById('membri_famiglia_json').value = JSON.stringify(membri);
-
-        // Feedback visivo e disabilitazione del pulsante
-        saveBtn.disabled = true;
-        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Salvataggio in corso...';
-
-        // 3. Invia i dati tramite AJAX
-        const formData = new FormData(form);
-
-        fetch(form.action, {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                // Chiudi la modale e mostra una notifica toast sulla pagina principale
-                const parentModal = window.parent.document.getElementById('autocert-modal');
-                if (parentModal) parentModal.classList.add('hidden');
-                window.parent.showToast('Autocertificazione salvata con successo!');
-            } else {
-                alert('Errore: ' + data.message);
-                saveBtn.disabled = false;
-                saveBtn.innerHTML = originalBtnContent;
-            }
-        })
-        .catch(error => {
-            console.error('Errore AJAX:', error);
-            alert('Si è verificato un errore di comunicazione. Riprova.');
-            saveBtn.disabled = false;
-            saveBtn.innerHTML = originalBtnContent;
         });
     });
 });

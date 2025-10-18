@@ -186,6 +186,38 @@ class PDFTemplateFiller {
                 }
             }
         }
+
+        // --- INIZIO: Logica per allegare l'autocertificazione dello stato di famiglia (per modulo1 e modulo2) ---
+        $autocert_pdf_basename = 'autocert_' . ($data['form_name'] ?? '');
+        $autocert_pdf_path = dirname(__DIR__) . '/servizi/moduli/uploads/' . $autocert_pdf_basename . '.pdf';
+
+        if (file_exists($autocert_pdf_path)) {
+            try {
+                // Importa la pagina dal PDF dell'autocertificazione generato
+                $pageCountAutocert = $this->pdf->setSourceFile($autocert_pdf_path);
+                $templateIdAutocert = $this->pdf->importPage(1);
+                $this->pdf->AddPage();
+                $this->pdf->useTemplate($templateIdAutocert, ['adjustPageSize' => true]);
+            } catch (Exception $e) {
+                // Se c'è un errore nell'importazione, lo logghiamo ma non blocchiamo la generazione del PDF principale.
+                error_log("Impossibile allegare l'autocertificazione PDF '{$autocert_pdf_path}': " . $e->getMessage());
+            }
+        }
+
+        // --- INIZIO: Logica per allegare sempre il PDF della privacy come ultima pagina ---
+        $privacy_pdf_path = dirname(__DIR__) . '/privacy.pdf';
+        if (file_exists($privacy_pdf_path)) {
+            try {
+                // Importa la pagina dal PDF della privacy
+                $pageCountPrivacy = $this->pdf->setSourceFile($privacy_pdf_path);
+                $templateIdPrivacy = $this->pdf->importPage(1);
+                $this->pdf->AddPage();
+                $this->pdf->useTemplate($templateIdPrivacy, ['adjustPageSize' => true]);
+            } catch (Exception $e) {
+                // Se c'è un errore nell'importazione, lo logghiamo ma non blocchiamo la generazione del PDF principale.
+                error_log("Impossibile allegare il PDF della privacy '{$privacy_pdf_path}': " . $e->getMessage());
+            }
+        }
     }
 
     public function generate($data, $module_type, $custom_basename = null) {

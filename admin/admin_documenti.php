@@ -23,9 +23,9 @@ $filter_status = $_GET['status_filter'] ?? 'all';
 $filter_prestazione = $_GET['prestazione_filter'] ?? 'all'; // Nuovo filtro per prestazione
 
 // 2. Ordinamento
-$allowed_sort_columns = ['modulo_nome', 'form_name', 'data_invio', 'status', 'cognome', 'prestazioni'];
+$allowed_sort_columns = ['modulo_nome', 'form_name', 'data_invio', 'status', 'cognome', 'prestazioni', 'allegati_count'];
 $sort_by = in_array($_GET['sort_by'] ?? '', $allowed_sort_columns) ? $_GET['sort_by'] : 'data_invio';
-$sort_dir = (isset($_GET['sort_dir']) && strtoupper($_GET['sort_dir']) === 'ASC') ? 'ASC' : 'DESC';
+$sort_dir = (isset($_GET['sort_dir']) && strtoupper($_GET['sort_dir']) === 'DESC') ? 'DESC' : 'ASC';
 
 // 3. Paginazione
 const ITEMS_PER_PAGE = 15;
@@ -77,6 +77,42 @@ $prestazioni_specifiche = [
 ];
 asort($prestazioni_specifiche); // Ordina alfabeticamente per valore
 
+// Array per determinare se una prestazione richiede l'autocertificazione
+$autocert_required_by_prestazione = [
+    // Modulo 1 (tutte)
+    'asili_nido' => true,
+    'centri_estivi' => true,
+    'scuole_elementari' => true,
+    'scuole_medie_inferiori' => true,
+    'superiori_iscrizione' => true,
+    'universita_iscrizione' => true,
+    // Modulo 2 (alcune)
+    'bonus_nascita' => true,
+    'contributo_affitto' => true,
+    'contributo_disabilita' => true,
+];
+
+// Array per determinare se una prestazione richiede allegati (esclusa l'autocertificazione)
+$attachments_required_by_prestazione = [
+    // Modulo 1
+    'asili_nido' => true,
+    'centri_estivi' => true,
+    'scuole_elementari' => true,
+    'scuole_medie_inferiori' => true,
+    'superiori_iscrizione' => true,
+    'universita_iscrizione' => true,
+    // Modulo 2
+    'premio_matrimoniale' => true,
+    'premio_giovani' => true,
+    'bonus_nascita' => true,
+    'donazioni_sangue' => true,
+    'contributo_affitto' => true,
+    'contributo_sfratto' => true,
+    'contributo_disabilita' => true,
+    'post_licenziamento' => true,
+    'permesso_soggiorno' => true,
+    'attivita_sportive' => true,
+];
 
 // Recupera l'elenco di tutti gli utenti che hanno inviato richieste per popolare il filtro
 $sql_users = "SELECT DISTINCT u.id, u.cognome, u.nome FROM `fillea-app`.users u JOIN `fillea-app`.richieste_master rm ON u.id = rm.user_id ORDER BY u.cognome, u.nome";
@@ -96,11 +132,21 @@ $sql_base = "
         rm.status,
         u.nome,
         rm.is_new,
-        u.cognome,
-        COALESCE(m1.prestazioni, m2.prestazioni) AS prestazioni
+        u.cognome, 
+        COALESCE(m1.prestazioni, m2.prestazioni) AS prestazioni,
+        COALESCE(m1.privacy_consent, m2.privacy_consent) AS privacy_consent,
+        (SELECT COUNT(ra.id) FROM `fillea-app`.richieste_allegati ra WHERE ra.form_name = rm.form_name COLLATE utf8mb4_unicode_ci AND ra.document_type != 'autocertificazione_famiglia') AS allegati_count,
+        (SELECT COUNT(rac.id) FROM `fillea-app`.richieste_allegati rac WHERE rac.form_name = rm.form_name COLLATE utf8mb4_unicode_ci AND rac.document_type = 'autocertificazione_famiglia') AS autocert_presente
     FROM `fillea-app`.richieste_master AS rm
     JOIN `fillea-app`.users AS u ON rm.user_id = u.id
-    LEFT JOIN `fillea-app`.modulo1_richieste m1 ON rm.form_name = m1.form_name COLLATE utf8mb4_unicode_ci
+    LEFT JOIN `fillea-app`.modulo1_richieste m1 ON rm.form_name = m1.form_name COLLATE utf8mb4_unicode_ci AND rm.modulo_nome = 'Contributi di Studio'
+    LEFT JOIN `fillea-app`.modulo2_richieste m2 ON rm.form_name = m2.form_name COLLATE utf8mb4_unicode_ci AND rm.modulo_nome = 'Prestazioni Varie'
+";
+
+$sql_base_old = "
+    FROM `fillea-app`.richieste_master AS rm
+    JOIN `fillea-app`.users AS u ON rm.user_id = u.id
+    LEFT JOIN `fillea-app`.modulo1_richieste m1 ON rm.form_name = m1.form_name COLLATE utf8mb4_unicode_ci 
     LEFT JOIN `fillea-app`.modulo2_richieste m2 ON rm.form_name = m2.form_name COLLATE utf8mb4_unicode_ci
 ";
 
@@ -138,7 +184,7 @@ if (!empty($conditions)) {
 // La query di conteggio deve includere le JOIN se si filtra per prestazione,
 // altrimenti le colonne m1.prestazioni e m2.prestazioni non vengono trovate.
 $sql_count_base = "SELECT COUNT(rm.id) FROM `fillea-app`.richieste_master AS rm ";
-if ($filter_prestazione !== 'all') {
+if ($filter_prestazione !== 'all' || $sort_by === 'prestazioni') {
     $sql_count_base .= "LEFT JOIN `fillea-app`.modulo1_richieste m1 ON rm.form_name = m1.form_name COLLATE utf8mb4_unicode_ci LEFT JOIN `fillea-app`.modulo2_richieste m2 ON rm.form_name = m2.form_name COLLATE utf8mb4_unicode_ci ";
 }
 $sql_count = $sql_count_base . $where_clause;
@@ -491,6 +537,10 @@ function get_sort_link($column, $current_sort_by, $current_sort_dir, $label) {
                                     <th><?php echo get_sort_link('form_name', $sort_by, $sort_dir, 'Nome Documento'); ?></th>
                                     <th class="text-center"><?php echo get_sort_link('data_invio', $sort_by, $sort_dir, 'Data Invio'); ?></th>
                                     <th class="text-center"><?php echo get_sort_link('status', $sort_by, $sort_dir, 'Stato'); ?></th>
+                                    <th class="text-center" title="Autocertificazione prevista per questa prestazione">Prev. Autocert.</th>
+                                    <th class="text-center" title="Autocertificazione compilata">Autocert. Compilata</th>
+                                    <th class="text-center" title="Consenso privacy fornito">Privacy</th>
+                                    <th class="text-center" title="Numero di allegati caricati"><?php echo get_sort_link('allegati_count', $sort_by, $sort_dir, 'Allegati'); ?></th>
                                     <th class="text-center">Azioni</th> <!-- Le azioni non sono ordinabili -->
                                 </tr>
                             </thead>
@@ -499,12 +549,26 @@ function get_sort_link($column, $current_sort_by, $current_sort_dir, $label) {
                                     <tr><td colspan="6" class="text-center p-4">Nessuna richiesta trovata con i filtri applicati.</td></tr>
                                 <?php else: ?>
                                 <?php foreach ($richieste_per_utente as $user_id => $data): ?>
-                                    <tr class="user-group-header">
+                                    <tr class="user-group-header" style="border-top-width: 3px;">
                                         <td colspan="5" class="user-sortable-header">
                                             <i class="fas fa-user me-2"></i> Utente: <?php echo htmlspecialchars($data['nome']); ?> (ID: <?php echo $user_id; ?>)
                                         </td>
                                     </tr>
-                                    <?php foreach ($data['richieste'] as $req): ?>
+                                    <?php foreach ($data['richieste'] as $req): 
+                                        $prestazione_key = '';
+                                        if (!empty($req['prestazioni'])) {
+                                            $prest_array = json_decode($req['prestazioni'], true);
+                                            if (is_array($prest_array)) $prestazione_key = key($prest_array);
+                                        }
+                                        $autocert_is_required = $autocert_required_by_prestazione[$prestazione_key] ?? false;
+                                        $attachments_are_required = $attachments_required_by_prestazione[$prestazione_key] ?? false; // Allegati standard
+                                        
+                                        // Logica per evidenziazione
+                                        $has_missing_attachments = ($attachments_are_required && $req['allegati_count'] == 0);
+                                        $has_missing_autocert = ($autocert_is_required && $req['autocert_presente'] == 0);
+                                        $has_missing_privacy = empty($req['privacy_consent']);
+                                        $has_any_issue = $has_missing_attachments || $has_missing_autocert || $has_missing_privacy;
+                                    ?>
                                         <tr>
                                             <td>
                                                 <?php echo htmlspecialchars($req['modulo_nome']); ?>
@@ -514,11 +578,6 @@ function get_sort_link($column, $current_sort_by, $current_sort_dir, $label) {
                                             </td>
                                             <td>
                                                 <?php
-                                                    $prestazione_key = '';
-                                                    if (!empty($req['prestazioni'])) {
-                                                        $prest_array = json_decode($req['prestazioni'], true);
-                                                        if (is_array($prest_array)) $prestazione_key = key($prest_array);
-                                                    }
                                                     echo htmlspecialchars($prestazioni_specifiche[$prestazione_key] ?? 'N/D');
                                                 ?>
                                             </td>
@@ -537,6 +596,30 @@ function get_sort_link($column, $current_sort_by, $current_sort_dir, $label) {
                                                 <span class="badge <?php echo $status_class; ?>"><?php echo ucfirst(str_replace('_', ' ', $req['status'])); ?></span>
                                             </td>
                                             <td class="text-center">
+                                                <?php 
+                                                    if ($autocert_is_required) {
+                                                        echo '<span class="badge bg-light text-dark border">Sì</span>';
+                                                    } else {
+                                                        echo '<span class="badge bg-light text-muted border">No</span>';
+                                                    }
+                                                ?>
+                                            </td>
+                                            <td class="text-center">
+                                                <?php if ($req['autocert_presente'] > 0): ?>
+                                                    <i class="fas fa-check-circle text-success" title="Presente"></i>
+                                                <?php else: echo ($autocert_is_required ? '<i class="fas fa-times-circle text-danger" title="Mancante"></i>' : '<span class="text-muted">N.A.</span>'); endif; ?>
+                                            </td>
+                                            <td class="text-center">
+                                                <?php if ($req['privacy_consent']): ?>
+                                                    <i class="fas fa-check-circle text-success" title="Consenso dato"></i>
+                                                <?php else: echo '<i class="fas fa-times-circle text-danger" title="Consenso non dato"></i>'; endif; ?>
+                                            </td>
+                                            <td class="text-center <?php if ($has_missing_attachments) echo 'bg-warning'; ?>">
+                                                <span class="badge rounded-pill bg-secondary"><?php echo $req['allegati_count']; ?></span>
+                                            </td>
+                                            <td class="text-center <?php if ($has_any_issue) echo 'bg-warning'; ?>">
+                                            </td>
+                                            <td class="text-center <?php if ($has_any_issue) echo 'bg-warning'; ?>">
                                                 <div class="dropdown">
                                                     <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="action-dropdown-<?php echo $req['id']; ?>" data-bs-toggle="dropdown" aria-expanded="false">
                                                         <i class="fas fa-cog"></i>
