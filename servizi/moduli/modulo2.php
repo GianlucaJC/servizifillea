@@ -406,6 +406,7 @@ function e($value) {
                 echo render_upload_box('lettera_licenziamento', 'Lettera di Licenziamento', 'Lettera con indicazione della causale di superamento comporto.', $token_user, $allegati['lettera_licenziamento'] ?? []);
                 
                 echo render_upload_box('ricevuta_attivita_sportiva', 'Ricevuta Attività Sportiva', 'Fattura o ricevuta che attesti l\'iscrizione e la spesa.', $token_user, $allegati['ricevuta_attivita_sportiva'] ?? []);
+                echo render_upload_box('certificato_frequenza_sport', 'Certificato di Frequenza Attività Sportiva', 'Certificato di frequenza alla attività sportiva o ricreativa, per un tempo non inferiore a quattro mesi continuativi', $token_user, $allegati['certificato_frequenza_sport'] ?? []);
                 echo render_upload_box('contratto_affitto', 'Contratto di Affitto', 'Copia del contratto registrato.', $token_user, $allegati['contratto_affitto'] ?? []);
                 echo render_upload_box('autocertificazione_famiglia', 'Autocertificazione Stato di Famiglia', 'Documento che attesta la composizione del nucleo familiare.', $token_user, $allegati['autocertificazione_famiglia'] ?? []);
                 echo render_upload_box('ricevuta_pagamento_affitto', 'Ricevuta Ultimo Pagamento Affitto', 'Ricevuta ultimo pagamento riferita al massimo entro i 6 mesi antecedenti il mese in cui viene presentata la domanda.', $token_user, $allegati['ricevuta_pagamento_affitto'] ?? []);
@@ -656,7 +657,7 @@ function e($value) {
             'contributo_disabilita': ['certificazione_disabilita', 'autocertificazione_paternita', 'documento_identita'],
             'post_licenziamento': ['lettera_licenziamento', 'documentazione_medica_comporto', 'documento_identita'],
             'permesso_soggiorno': ['copia_permesso_soggiorno', 'documento_identita'],
-            'attivita_sportive': ['ricevuta_attivita_sportiva', 'autocertificazione_famiglia', 'documento_identita']
+            'attivita_sportive': ['ricevuta_attivita_sportiva', 'certificato_frequenza_sport', 'documento_identita']
         };
 
         function showRequiredUploads(prestazione) {

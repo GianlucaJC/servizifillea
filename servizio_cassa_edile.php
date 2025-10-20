@@ -708,7 +708,7 @@ if (!$is_user_logged_in) {
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
                     <li><strong>Fattura/ricevuta fiscale</strong> che attesti l'iscrizione e la spesa sostenuta.</li>
-                    <li><strong>Autocertificazione</strong> del carico fiscale (se la prestazione è per i figli).</li>
+                    <li><strong>Certificato di frequenza</strong> alla attività sportiva o ricreativa, per un tempo non inferiore a quattro mesi continuativi.</li>
                 </ul>
             </div>
             <div class="modal-footer">
@@ -735,8 +735,7 @@ if (!$is_user_logged_in) {
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
                     <li><strong>Certificato</strong> di iscrizione all'Asilo Nido.</li>
-                    <li><strong>Fatture/ricevute</strong> delle rette pagate (con indicazione del periodo).</li>
-                    <li><strong>Autocertificazione</strong> del carico fiscale.</li>
+                    <li><strong>Autocertificazione</strong> dello stato di famiglia.</li>
                 </ul>
             </div>
             <div class="modal-footer">
@@ -763,7 +762,7 @@ if (!$is_user_logged_in) {
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
                     <li><strong>Certificato di frequenza</strong> o <strong>pagella</strong> (per attestare l'anno scolastico).</li>
-                    <li><strong>Autocertificazione</strong> del carico fiscale del figlio.</li>
+                    <li><strong>Autocertificazione</strong> dello stato di famiglia.</li>
                 </ul>
             </div>
             <div class="modal-footer">
@@ -790,7 +789,7 @@ if (!$is_user_logged_in) {
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
                     <li><strong>Certificato di frequenza</strong> o <strong>pagella</strong> (per attestare l'anno scolastico).</li>
-                    <li><strong>Autocertificazione</strong> del carico fiscale del figlio.</li>
+                    <li><strong>Autocertificazione</strong> dello stato di famiglia.</li>
                 </ul>
             </div>
             <div class="modal-footer">
@@ -817,7 +816,7 @@ if (!$is_user_logged_in) {
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
                     <li><strong>Certificato di iscrizione e frequenza</strong>.</li>
-                    <li><strong>Autocertificazione</strong> del carico fiscale del figlio.</li>
+                    <li><strong>Autocertificazione</strong> dello stato di famiglia.</li>
                 </ul>
             </div>
             <div class="modal-footer">
@@ -843,9 +842,9 @@ if (!$is_user_logged_in) {
                 </div>
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
-                    <li><strong>Certificato di iscrizione</strong> all'anno accademico.</li>
-                    <li><strong>Ricevute di pagamento</strong> delle tasse universitarie.</li>
-                    <li><strong>Autocertificazione</strong> del carico fiscale del figlio.</li>
+                    <li><strong>Dichiarazione universitaria</strong> attestante esami sostenuti, crediti, votazioni e conformità al piano di studi dell'anno accademico.</li>
+                    <li>Per studenti fuori corso (massimo un anno): fotocopia del <strong>libretto universitario</strong>.</li>
+                    <li class="small text-muted">Per scuole estere: il certificato in lingua originale sarà tradotto e verificato dalla Cassa Edile.</li>
                 </ul>
             </div>
             <div class="modal-footer">
