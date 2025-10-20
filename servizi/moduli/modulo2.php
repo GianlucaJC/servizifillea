@@ -397,6 +397,8 @@ function e($value) {
                 }
                 $allegati = $saved_data['allegati'] ?? []; // Recupera gli allegati salvati
                 echo render_upload_box('certificato_matrimonio', 'Certificato di Matrimonio/Unione Civile', 'Certificato ufficiale o autocertificazione.', $token_user, $allegati['certificato_matrimonio'] ?? []);
+
+                
                 echo render_upload_box('documento_identita', 'Documento d\'Identità', 'Copia fronte/retro del documento del richiedente.', $token_user, $allegati['documento_identita'] ?? []);
                 echo render_upload_box('certificato_nascita', 'Certificato di Nascita/Adozione', 'Estratto di nascita o provvedimento di adozione.', $token_user, $allegati['certificato_nascita'] ?? []);
                 echo render_upload_box('attestazione_donazione', 'Attestazione Donazione', 'Certificato della struttura sanitaria che attesta la donazione.', $token_user, $allegati['attestazione_donazione'] ?? []);
@@ -408,6 +410,13 @@ function e($value) {
                 echo render_upload_box('autocertificazione_famiglia', 'Autocertificazione Stato di Famiglia', 'Documento che attesta la composizione del nucleo familiare.', $token_user, $allegati['autocertificazione_famiglia'] ?? []);
                 echo render_upload_box('dichiarazione_frequenza', 'Dichiarazione Sostitutiva di Iscrizione e Frequenza', 'Compila la dichiarazione di frequenza per l\'anno scolastico corrente.', $token_user, $allegati['dichiarazione_frequenza'] ?? []);
                 echo render_upload_box('documentazione_sfratto', 'Documentazione Sfratto', 'Ordinanza del giudice o altri documenti ufficiali.', $token_user, $allegati['documentazione_sfratto'] ?? []);
+                echo render_upload_box('autocertificazione_altra_cassa', 'Autocertificazione Altra Cassa Edile', 'Autocertificazione di non aver percepito la prestazione per lo stesso titolo da altra Cassa Edile.', $token_user, $allegati['autocertificazione_altra_cassa'] ?? []);
+                echo render_upload_box('autocertificazione_primo_ingresso', 'Autocertificazione Primo Ingresso', 'Autocertificazione che comprova il primo ingresso nel settore edile o la situazione di reingresso.', $token_user, $allegati['autocertificazione_primo_ingresso'] ?? []);
+                echo render_upload_box('autocertificazione_carico_fiscale', 'Autocertificazione Paternità/Maternità e Carico Fiscale', 'Documento che attesta la paternità/maternità e l\'eventuale carico fiscale del figlio.', $token_user, $allegati['autocertificazione_carico_fiscale'] ?? []);
+                echo render_upload_box('modello_isee', 'Modello ISEE', 'Modello ISEE valido per l\'anno corrente (se richiesto dal regolamento).', $token_user, $allegati['modello_isee'] ?? []);
+                echo render_upload_box('documentazione_stato_necessita', 'Stato di Famiglia e Documentazione Reddituale', 'Documentazione che attesti lo stato di famiglia e lo stato di necessità (es. ISEE, buste paga, etc.).', $token_user, $allegati['documentazione_stato_necessita'] ?? []);
+                echo render_upload_box('documentazione_medica_comporto', 'Documentazione Medica per Comporto', 'Documentazione medica se il licenziamento è per superamento del comporto.', $token_user, $allegati['documentazione_medica_comporto'] ?? []);
+                echo render_upload_box('copia_permesso_soggiorno', 'Copia Permesso/Carta di Soggiorno', 'Copia del documento di soggiorno per cui si richiede il rimborso.', $token_user, $allegati['copia_permesso_soggiorno'] ?? []);
                 ?>
             </div>
         </div>
@@ -637,16 +646,16 @@ function e($value) {
         
         // Mappa delle prestazioni ai documenti richiesti
         const uploadRequirements = {
-            'premio_matrimoniale': ['certificato_matrimonio', 'documento_identita'],
-            'premio_giovani': ['documento_identita'], // Non richiede autocertificazione stato famiglia
-            'bonus_nascita': ['certificato_nascita', 'autocertificazione_famiglia', 'documento_identita'],
+            'premio_matrimoniale': ['certificato_matrimonio', 'autocertificazione_altra_cassa', 'documento_identita'],
+            'premio_giovani': ['autocertificazione_primo_ingresso', 'documento_identita'],
+            'bonus_nascita': ['certificato_nascita', 'autocertificazione_carico_fiscale', 'documento_identita'],
             'donazioni_sangue': ['attestazione_donazione', 'documento_identita'],
-            'contributo_affitto': ['contratto_affitto', 'autocertificazione_famiglia', 'documento_identita'],
-            'contributo_sfratto': ['documentazione_sfratto', 'documento_identita'],
+            'contributo_affitto': ['contratto_affitto', 'autocertificazione_famiglia', 'modello_isee', 'documento_identita'],
+            'contributo_sfratto': ['documentazione_sfratto', 'documentazione_stato_necessita', 'documento_identita'],
             'contributo_disabilita': ['certificazione_disabilita', 'autocertificazione_famiglia', 'documento_identita'],
-            'post_licenziamento': ['lettera_licenziamento', 'documento_identita'],
-            'permesso_soggiorno': ['ricevute_soggiorno', 'documento_identita'],
-            'attivita_sportive': ['ricevuta_attivita_sportiva', 'documento_identita']
+            'post_licenziamento': ['lettera_licenziamento', 'documentazione_medica_comporto', 'documento_identita'],
+            'permesso_soggiorno': ['ricevute_soggiorno', 'copia_permesso_soggiorno', 'documento_identita'],
+            'attivita_sportive': ['ricevuta_attivita_sportiva', 'autocertificazione_famiglia', 'documento_identita']
         };
 
         function showRequiredUploads(prestazione) {

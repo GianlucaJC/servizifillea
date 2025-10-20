@@ -565,7 +565,9 @@ function e($value) {
                 echo render_upload_box('certificato_iscrizione_nido', 'Certificato Iscrizione Asilo Nido', 'Certificato rilasciato dalla struttura.', $token, $allegati['certificato_iscrizione_nido'] ?? []);
                 echo render_upload_box('dichiarazione_frequenza', 'Dichiarazione Sostitutiva di Iscrizione e Frequenza', 'Compila la dichiarazione di frequenza per l\'anno scolastico corrente.', $token, $allegati['dichiarazione_frequenza'] ?? []);
                 echo render_upload_box('attestazione_spesa_centri_estivi', 'Attestazione Spesa Centri Estivi', 'Fattura o ricevuta che comprovi la spesa sostenuta.', $token, $allegati['attestazione_spesa_centri_estivi'] ?? []);
+                echo render_upload_box('ricevute_rette_nido', 'Fatture/Ricevute Rette Pagate', 'Fatture o ricevute delle rette pagate, con indicazione del periodo.', $token, $allegati['ricevute_rette_nido'] ?? []);
                 echo render_upload_box('documentazione_universita', 'Documentazione Universitaria', 'Include certificato di iscrizione, piano di studi, superamento esami, ecc.', $token, $allegati['documentazione_universita'] ?? []);
+                echo render_upload_box('ricevute_tasse_universitarie', 'Ricevute Tasse Universitarie', 'Ricevute di pagamento delle tasse universitarie.', $token, $allegati['ricevute_tasse_universitarie'] ?? []);
                 echo render_upload_box('documento_identita', 'Documento d\'Identità', 'Copia fronte/retro del documento del richiedente in corso di validità.', $token, $allegati['documento_identita'] ?? []);
                 ?>
             </div>
@@ -854,12 +856,12 @@ function e($value) {
 
             // Mappa delle prestazioni ai documenti richiesti
             const uploadRequirements = {
-                'asili_nido': ['certificato_iscrizione_nido', 'autocertificazione_famiglia'],
+                'asili_nido': ['certificato_iscrizione_nido', 'autocertificazione_famiglia', 'ricevute_rette_nido'],
                 'centri_estivi': ['attestazione_spesa_centri_estivi', 'autocertificazione_famiglia'],
                 'scuole_elementari': ['dichiarazione_frequenza', 'autocertificazione_famiglia'],
                 'scuole_medie_inferiori': ['dichiarazione_frequenza', 'autocertificazione_famiglia'],
                 'superiori_iscrizione': ['dichiarazione_frequenza', 'autocertificazione_famiglia'],
-                'universita_iscrizione': ['documentazione_universita', 'autocertificazione_famiglia']
+                'universita_iscrizione': ['documentazione_universita', 'autocertificazione_famiglia', 'ricevute_tasse_universitarie']
             };
 
             // Nascondi tutti i contenitori prima di mostrare quelli necessari
