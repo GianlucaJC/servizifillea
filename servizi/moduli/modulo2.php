@@ -363,7 +363,7 @@ function e($value) {
                 function render_upload_box($doc_type, $title, $description, $token_user, $saved_files = []) {
                     ob_start();
                 ?>
-                <div id="container-for-<?php echo $doc_type; ?>" class="upload-section-container hidden">
+                <div id="container-for-<?php echo $doc_type; ?>" class="upload-section-container hidden" data-doc-type="<?php echo $doc_type; ?>">
                     <h3 class="font-semibold text-lg text-gray-800 mb-2"><?php echo $title; ?></h3>
                     <p class="text-sm text-gray-500 mb-4"><?php echo $description; ?></p>
                     <?php if ($doc_type === 'autocertificazione_famiglia'): ?>
@@ -406,6 +406,7 @@ function e($value) {
                 echo render_upload_box('ricevuta_attivita_sportiva', 'Ricevuta Attività Sportiva', 'Fattura o ricevuta che attesti l\'iscrizione e la spesa.', $token_user, $allegati['ricevuta_attivita_sportiva'] ?? []);
                 echo render_upload_box('contratto_affitto', 'Contratto di Affitto', 'Copia del contratto registrato.', $token_user, $allegati['contratto_affitto'] ?? []);
                 echo render_upload_box('autocertificazione_famiglia', 'Autocertificazione Stato di Famiglia', 'Documento che attesta la composizione del nucleo familiare.', $token_user, $allegati['autocertificazione_famiglia'] ?? []);
+                echo render_upload_box('dichiarazione_frequenza', 'Dichiarazione Sostitutiva di Iscrizione e Frequenza', 'Compila la dichiarazione di frequenza per l\'anno scolastico corrente.', $token_user, $allegati['dichiarazione_frequenza'] ?? []);
                 echo render_upload_box('documentazione_sfratto', 'Documentazione Sfratto', 'Ordinanza del giudice o altri documenti ufficiali.', $token_user, $allegati['documentazione_sfratto'] ?? []);
                 ?>
             </div>
@@ -654,6 +655,9 @@ function e($value) {
             document.querySelectorAll('.upload-section-container').forEach(container => {
                 container.classList.add('hidden');
             });
+            
+            // Mostra sempre il box del documento d'identità
+            $('#container-for-documento_identita').removeClass('hidden');
 
             if (requiredDocs) {
                 requiredDocs.forEach(docType => {

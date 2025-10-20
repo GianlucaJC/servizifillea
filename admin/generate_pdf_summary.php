@@ -1,5 +1,7 @@
 <?php
 
+// Includi l'autoloader di Composer per caricare le librerie necessarie (FPDI, FPDI-FPDF)
+require_once __DIR__ . '/../vendor/autoload.php';
 use setasign\Fpdi\Fpdi;
 
 class PDFTemplateFiller {
@@ -25,6 +27,10 @@ class PDFTemplateFiller {
         // Aggiunta per il nuovo modulo di autocertificazione
         if ($module_type === 'autocertificazione_stato_famiglia') {
             return dirname(__DIR__) . '/studi.pdf'; // Usa la pagina 2 di questo file
+        }
+        // Aggiunta per il nuovo modulo di dichiarazione frequenza
+        if ($module_type === 'dichiarazione_frequenza') {
+            return dirname(__DIR__) . '/studi.pdf'; // Usa la pagina 1 di questo file come template
         }
         return dirname(__DIR__) . '/modulo.pdf';
     }
@@ -149,10 +155,47 @@ class PDFTemplateFiller {
         if (!empty($data['firma_data'])) { $this->pdf->Image($data['firma_data'], 60, 175, 60, 15, 'PNG'); }
     }
 
+    private function fillModuloDichiarazioneFrequenza($data) {
+        // Usa la pagina 1 del template 'studi.pdf'
+        $this->pdf->SetFont('Helvetica', '', 9);
+
+        // Dati sottoscrittore
+        $this->pdf->SetXY(30, 50); $this->pdf->Write(0, $data['sottoscrittore_nome_cognome'] ?? '');
+        $this->pdf->SetXY(30, 55); $this->pdf->Write(0, $data['sottoscrittore_luogo_nascita'] ?? '');
+        $this->pdf->SetXY(100, 55); $this->pdf->Write(0, isset($data['sottoscrittore_data_nascita']) ? date('d/m/Y', strtotime($data['sottoscrittore_data_nascita'])) : '');
+        $this->pdf->SetXY(30, 60); $this->pdf->Write(0, $data['sottoscrittore_residenza_comune'] ?? '');
+        $this->pdf->SetXY(30, 65); $this->pdf->Write(0, $data['sottoscrittore_residenza_indirizzo'] ?? '');
+
+        // Qualità dichiarante e dati minore
+        $qualita = $data['qualita_dichiarante'] ?? '';
+        if ($qualita === 'Altro') {
+            $qualita .= ' (' . ($data['qualita_altro_specifica'] ?? '') . ')';
+        }
+        $this->pdf->SetXY(50, 80); $this->pdf->Write(0, $qualita);
+
+        if ($qualita !== 'Dichiarante') {
+            $this->pdf->SetXY(30, 85); $this->pdf->Write(0, $data['minore_nome_cognome'] ?? '');
+            $this->pdf->SetXY(30, 90); $this->pdf->Write(0, $data['minore_luogo_nascita'] ?? '');
+            $this->pdf->SetXY(100, 90); $this->pdf->Write(0, isset($data['minore_data_nascita']) ? date('d/m/Y', strtotime($data['minore_data_nascita'])) : '');
+        }
+
+        // Ciclo studi
+        $ciclo_coords = [
+            'primaria' => [20, 110],
+            'secondaria_primo' => [20, 115],
+            'secondaria_secondo' => [20, 120],
+            'superiore' => [20, 125],
+        ];
+        if (isset($ciclo_coords[$data['ciclo_studi'] ?? ''])) {
+            $this->pdf->SetXY($ciclo_coords[$data['ciclo_studi']][0], $ciclo_coords[$data['ciclo_studi']][1]);
+            $this->pdf->Write(0, 'X');
+        }
+    }
+
     private function process($data, $module_type) {
         // Per l'autocertificazione non c'è una prestazione specifica, per gli altri moduli sì.
         $prestazione = null;
-        if ($module_type !== 'autocertificazione_stato_famiglia') {
+        if (!in_array($module_type, ['autocertificazione_stato_famiglia', 'dichiarazione_frequenza'])) {
             $prestazione = isset($data['prestazioni_decoded']) ? key($data['prestazioni_decoded']) : null;
         }
         $templatePath = $this->getTemplatePath($module_type, $prestazione);
@@ -169,6 +212,15 @@ class PDFTemplateFiller {
             $this->pdf->AddPage();
             $this->pdf->useTemplate($templateId, ['adjustPageSize' => true]);
             $this->fillModuloAutocertificazione($data);
+            return; // Termina qui per questo modulo
+        }
+
+        // Caso speciale per la dichiarazione di frequenza che usa solo la pagina 1
+        if ($module_type === 'dichiarazione_frequenza') {
+            $templateId = $this->pdf->importPage(1);
+            $this->pdf->AddPage();
+            $this->pdf->useTemplate($templateId, ['adjustPageSize' => true]);
+            $this->fillModuloDichiarazioneFrequenza($data);
             return; // Termina qui per questo modulo
         }
 
@@ -201,6 +253,23 @@ class PDFTemplateFiller {
             } catch (Exception $e) {
                 // Se c'è un errore nell'importazione, lo logghiamo ma non blocchiamo la generazione del PDF principale.
                 error_log("Impossibile allegare l'autocertificazione PDF '{$autocert_pdf_path}': " . $e->getMessage());
+            }
+        }
+
+        // --- INIZIO: Logica per allegare la dichiarazione di frequenza (per modulo1 e modulo2) ---
+        $dich_freq_pdf_basename = 'dich_frequenza_' . ($data['form_name'] ?? '');
+        $dich_freq_pdf_path = dirname(__DIR__) . '/servizi/moduli/uploads/' . $dich_freq_pdf_basename . '.pdf';
+
+        if (file_exists($dich_freq_pdf_path)) {
+            try {
+                // Importa la pagina dal PDF della dichiarazione generato
+                $pageCountDich = $this->pdf->setSourceFile($dich_freq_pdf_path);
+                $templateIdDich = $this->pdf->importPage(1);
+                $this->pdf->AddPage();
+                $this->pdf->useTemplate($templateIdDich, ['adjustPageSize' => true]);
+            } catch (Exception $e) {
+                // Se c'è un errore nell'importazione, lo logghiamo ma non blocchiamo la generazione del PDF principale.
+                error_log("Impossibile allegare la dichiarazione di frequenza PDF '{$dich_freq_pdf_path}': " . $e->getMessage());
             }
         }
 

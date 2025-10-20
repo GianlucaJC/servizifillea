@@ -22,18 +22,19 @@ $(document).ready(function() {
 
     function updateUploadSections() {
         // Nascondi tutti i box di upload per sicurezza
-        $('.upload-section').addClass('hidden');
+        $('.upload-section-container').addClass('hidden');
 
         // Mostra i box corretti in base alla prestazione letta dall'URL
         const requiredDocs = uploadRequirements[prestazione];
         if (requiredDocs) {
             requiredDocs.forEach(docType => {
-                $(`#upload-area-${docType}`).removeClass('hidden');
+                $(`#container-for-${docType}`).removeClass('hidden');
             });
         }
     }
-
-    updateUploadSections();
+    // La logica di visualizzazione è già gestita in modulo2.php, quindi questa chiamata non è più necessaria
+    // e potrebbe causare conflitti. La commentiamo.
+    // updateUploadSections();
 
     // --- Logica di Upload ---
     $('.upload-box').on('dragover', function(e) { e.preventDefault(); e.stopPropagation(); $(this).addClass('dragover'); });
@@ -41,7 +42,7 @@ $(document).ready(function() {
     $('.upload-box').on('drop', function(e) {
         e.preventDefault(); e.stopPropagation(); $(this).removeClass('dragover');
         const files = e.originalEvent.dataTransfer.files;
-        if (files.length > 0) handleFiles(files, $(this).closest('.upload-section'));
+        if (files.length > 0) handleFiles(files, $(this).closest('.upload-section-container'));
     });
     $('.upload-box').on('click', function(e) {
         if ($(e.target).is('.upload-box, .upload-box p, .upload-box i, .upload-box span')) {
@@ -49,7 +50,7 @@ $(document).ready(function() {
         }
     });
     $('.file-input').on('change', function() {
-        if (this.files.length > 0) handleFiles(this.files, $(this).closest('.upload-section'));
+        if (this.files.length > 0) handleFiles(this.files, $(this).closest('.upload-section-container'));
     });
 
     function handleFiles(files, section) {

@@ -497,22 +497,33 @@ function e($value) {
                 function render_upload_box($doc_type, $title, $description, $token, $saved_files = []) {
                     ob_start();
                 ?>
-                <div id="container-for-<?php echo $doc_type; ?>" class="upload-section-container upload-section hidden" data-doc-type="<?php echo $doc_type; ?>">
+                
+
+                    
+           
+                <div id="container-for-<?php echo $doc_type; ?>" class="upload-section-container hidden" data-doc-type="<?php echo $doc_type; ?>">
+
                     <h3 class="font-semibold text-lg text-gray-800 mb-2"><?php echo $title; ?></h3>
                     <p class="text-sm text-gray-500 mb-4"><?php echo $description; ?></p>
                     
-                    <?php if ($doc_type === 'autocertificazione_famiglia'): // Caso speciale per l'autocertificazione ?>
+                    <?php if ($doc_type === 'autocertificazione_famiglia' || $doc_type === 'dichiarazione_frequenza'): // Casi speciali per moduli da compilare ?>
+                        <?php
+                            $modal_title = ($doc_type === 'autocertificazione_famiglia') ? 'Autocertificazione Stato di Famiglia' : 'Dichiarazione Sostitutiva di Iscrizione e Frequenza';
+                            $modal_icon = ($doc_type === 'autocertificazione_famiglia') ? 'fa-file-signature' : 'fa-user-check';
+                            $modal_link = ($doc_type === 'autocertificazione_famiglia') ? 'modulo_autocertificazione_stato_famiglia.php' : 'modulo_dichiarazione_frequenza.php';
+                        ?>
                         <div class="mb-2"> 
-                            <a href="modulo_autocertificazione_stato_famiglia.php?token=<?php echo htmlspecialchars($token); ?>&origin_form_name=<?php echo htmlspecialchars($GLOBALS['form_name']); ?>&origin_prestazione=<?php echo htmlspecialchars($GLOBALS['prestazione_selezionata']); ?>&origin_module=modulo1" class="open-autocert-modal inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
-                                <i class="fas fa-file-signature mr-2"></i> Compila autocertificazione
+                            <a href="<?php echo $modal_link; ?>?token=<?php echo htmlspecialchars($token); ?>&origin_form_name=<?php echo htmlspecialchars($GLOBALS['form_name']); ?>&origin_prestazione=<?php echo htmlspecialchars($GLOBALS['prestazione_selezionata']); ?>&origin_module=modulo1" 
+                               class="open-compilation-modal inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+                               data-modal-title="<?php echo htmlspecialchars($modal_title); ?>">
+                                <i class="fas <?php echo $modal_icon; ?> mr-2"></i> Compila il modulo
                             </a>
                             <?php if (!empty($saved_files)): ?>
-                                <span class="ml-3 text-green-500" title="Autocertificazione compilata e salvata.">
+                                <span class="ml-3 text-green-500" title="Modulo compilato e salvato.">
                                     <i class="fas fa-check-circle fa-lg"></i>
                                 </span>
                             <?php endif; ?>
                         </div>
-
                     <?php else: // Box di upload standard per tutti gli altri documenti ?>
                     <div class="upload-box">
                         <input type="file" class="hidden file-input" multiple>
@@ -526,8 +537,8 @@ function e($value) {
                         </div>
                     </div>
                     <?php endif; ?>
-                    <?php if ($doc_type !== 'autocertificazione_famiglia'): ?>
 
+                    <?php if ($doc_type !== 'autocertificazione_famiglia' && $doc_type !== 'dichiarazione_frequenza'): ?>
                     <div class="file-list mt-4">
                         <?php if (!empty($saved_files)): ?>
                             <?php foreach ($saved_files as $file): ?>
@@ -552,10 +563,10 @@ function e($value) {
                 $allegati = $saved_data['allegati'] ?? []; // Recupera gli allegati salvati
                 echo render_upload_box('autocertificazione_famiglia', 'Autocertificazione Stato di Famiglia', 'Documento che attesta la composizione del nucleo familiare.', $token, $allegati['autocertificazione_famiglia'] ?? []);
                 echo render_upload_box('certificato_iscrizione_nido', 'Certificato Iscrizione Asilo Nido', 'Certificato rilasciato dalla struttura.', $token, $allegati['certificato_iscrizione_nido'] ?? []);
+                echo render_upload_box('dichiarazione_frequenza', 'Dichiarazione Sostitutiva di Iscrizione e Frequenza', 'Compila la dichiarazione di frequenza per l\'anno scolastico corrente.', $token, $allegati['dichiarazione_frequenza'] ?? []);
                 echo render_upload_box('attestazione_spesa_centri_estivi', 'Attestazione Spesa Centri Estivi', 'Fattura o ricevuta che comprovi la spesa sostenuta.', $token, $allegati['attestazione_spesa_centri_estivi'] ?? []);
-                echo render_upload_box('autocertificazione_frequenza_obbligo', 'Autocertificazione Frequenza Scuola Obbligo', 'Autocertificazione per la frequenza di scuole elementari o medie.', $token, $allegati['autocertificazione_frequenza_obbligo'] ?? []);
-                echo render_upload_box('autocertificazione_frequenza_superiori', 'Autocertificazione Frequenza Scuole Superiori', 'Autocertificazione per la frequenza delle scuole superiori.', $token, $allegati['autocertificazione_frequenza_superiori'] ?? []);
                 echo render_upload_box('documentazione_universita', 'Documentazione Universitaria', 'Include certificato di iscrizione, piano di studi, superamento esami, ecc.', $token, $allegati['documentazione_universita'] ?? []);
+                echo render_upload_box('documento_identita', 'Documento d\'Identità', 'Copia fronte/retro del documento del richiedente in corso di validità.', $token, $allegati['documento_identita'] ?? []);
                 ?>
             </div>
         </div>
@@ -727,10 +738,10 @@ function e($value) {
 
 <!-- Modale per Iframe Autocertificazione -->
 <div id="autocert-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-[1001] hidden">
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl h-[90vh] mx-4 flex flex-col">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-5xl h-[90vh] mx-4 flex flex-col">
         <div class="flex justify-between items-center p-4 border-b">
-            <h3 class="text-xl font-bold text-gray-800">Compilazione Autocertificazione Stato di Famiglia</h3>
-            <button id="autocert-modal-close-btn" class="text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
+            <h3 id="autocert-modal-title" class="text-xl font-bold text-gray-800">Compilazione Modulo</h3>
+            <button id="autocert-modal-close-btn" class="text-gray-500 hover:text-gray-800 text-3xl leading-none">&times;</button>
         </div>
         <div class="flex-grow p-0">
             <iframe id="autocert-iframe" src="about:blank" class="w-full h-full border-0"></iframe>
@@ -843,12 +854,11 @@ function e($value) {
 
             // Mappa delle prestazioni ai documenti richiesti
             const uploadRequirements = {
-                'asili_nido': ['certificato_iscrizione_nido', 'autocertificazione_famiglia'], // Già presente
+                'asili_nido': ['certificato_iscrizione_nido', 'autocertificazione_famiglia'],
                 'centri_estivi': ['attestazione_spesa_centri_estivi', 'autocertificazione_famiglia'],
-                // CORREZIONE: Allineamento delle chiavi con quelle passate dall'URL
-                'scuole_elementari': ['autocertificazione_frequenza_obbligo', 'autocertificazione_famiglia'], // Corretto
-                'scuole_medie_inferiori': ['autocertificazione_frequenza_obbligo', 'autocertificazione_famiglia'], // Corretto
-                'superiori_iscrizione': ['autocertificazione_frequenza_superiori', 'autocertificazione_famiglia'],
+                'scuole_elementari': ['dichiarazione_frequenza', 'autocertificazione_famiglia'],
+                'scuole_medie_inferiori': ['dichiarazione_frequenza', 'autocertificazione_famiglia'],
+                'superiori_iscrizione': ['dichiarazione_frequenza', 'autocertificazione_famiglia'],
                 'universita_iscrizione': ['documentazione_universita', 'autocertificazione_famiglia']
             };
 
@@ -856,6 +866,9 @@ function e($value) {
             document.querySelectorAll('.upload-section-container').forEach(container => {
                 container.classList.add('hidden');
             });
+            
+            // Mostra sempre il box del documento d'identità
+            $('#container-for-documento_identita').removeClass('hidden');
 
             const requiredDocs = uploadRequirements[prestazione];
             
@@ -900,13 +913,16 @@ function e($value) {
         // Logica per modale autocertificazione
         const autocertModal = document.getElementById('autocert-modal');
         const autocertIframe = document.getElementById('autocert-iframe');
-        const openModalLinks = document.querySelectorAll('.open-autocert-modal');
+        const modalTitleElement = document.getElementById('autocert-modal-title');
+        const openModalLinks = document.querySelectorAll('.open-compilation-modal');
         const closeModalBtn = document.getElementById('autocert-modal-close-btn');
 
         openModalLinks.forEach(link => {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
                 const url = this.href;
+                const modalTitle = this.dataset.modalTitle || 'Compilazione Modulo';
+                modalTitleElement.textContent = modalTitle;
                 autocertIframe.src = url;
                 autocertModal.classList.remove('hidden');
             });

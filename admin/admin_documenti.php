@@ -618,8 +618,6 @@ function get_sort_link($column, $current_sort_by, $current_sort_dir, $label) {
                                                 <span class="badge rounded-pill bg-secondary"><?php echo $req['allegati_count']; ?></span>
                                             </td>
                                             <td class="text-center <?php if ($has_any_issue) echo 'bg-warning'; ?>">
-                                            </td>
-                                            <td class="text-center <?php if ($has_any_issue) echo 'bg-warning'; ?>">
                                                 <div class="dropdown">
                                                     <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="action-dropdown-<?php echo $req['id']; ?>" data-bs-toggle="dropdown" aria-expanded="false">
                                                         <i class="fas fa-cog"></i>

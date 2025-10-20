@@ -3,31 +3,6 @@ $(document).ready(function() {
     const token = new URLSearchParams(window.location.search).get('token');
     const prestazione = new URLSearchParams(window.location.search).get('prestazione');
 
-    // Mappa delle prestazioni e dei documenti richiesti
-    const docMap = {
-        'asili_nido': ['autocertificazione_famiglia', 'certificato_iscrizione_nido'],
-        'centri_estivi': ['autocertificazione_famiglia', 'attestazione_spesa_centri_estivi'],
-        'scuole_elementari': ['autocertificazione_famiglia', 'autocertificazione_frequenza_obbligo'],
-        'scuole_medie_inferiori': ['autocertificazione_famiglia', 'autocertificazione_frequenza_obbligo'],
-        'superiori_iscrizione': ['autocertificazione_famiglia', 'autocertificazione_frequenza_superiori'],
-        'universita_iscrizione': ['autocertificazione_famiglia', 'documentazione_universita']
-    };
-
-    // Funzione per aggiornare la visibilità dei box di upload
-    function updateUploadSections() {
-        // Nascondi tutte le sezioni di upload
-        $('.upload-section-container').addClass('hidden'); 
-
-        // Mostra le sezioni per la prestazione selezionata dall'URL
-        if (prestazione && docMap[prestazione]) {
-            docMap[prestazione].forEach(docType => {
-                $(`#container-for-${docType}`).removeClass('hidden');
-            });
-        }
-    }
-    
-    updateUploadSections();
-
     // --- Logica di Upload ---
 
     // Gestione Drag & Drop
@@ -57,7 +32,7 @@ $(document).ready(function() {
     $('.upload-box').on('click', function(e) {
         // Controlla se l'elemento cliccato è esattamente l'upload-box
         // o un suo figlio diretto che non sia l'input stesso.
-        // Questo previene il ciclo di recursione causato dall'evento click che "risale" dall'input.
+        // Questo previene il ciclo di ricorsione causato dall'evento click che "risale" dall'input.
         if ($(e.target).is('.upload-box, .upload-box p, .upload-box i, .upload-box span')) {
             $(this).find('.file-input').click();
         }
@@ -65,7 +40,7 @@ $(document).ready(function() {
 
     $('.file-input').on('change', function() {
         if (this.files.length > 0) {
-            handleFiles(this.files, $(this).closest('.upload-section'));
+            handleFiles(this.files, $(this).closest('.upload-section-container'));
         }
     });
 
@@ -73,7 +48,7 @@ $(document).ready(function() {
         const docType = section.data('doc-type');
         const progressContainer = section.find('.progress-container');
         const progressBar = section.find('.progress-bar');
-        const fileList = section.find('.file-list');
+        const fileList = section.find('.file-list'); // Assicurati che 'section' sia il contenitore corretto
 
         // Prepara FormData
         const formData = new FormData();

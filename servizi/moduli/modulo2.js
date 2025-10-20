@@ -144,61 +144,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- Logica per la firma digitale ---
-    const canvas = document.getElementById('signature-pad');
-    const signatureImage = document.getElementById('signature-image');
-    const signatureControls = document.getElementById('signature-controls');
-    const helpText = document.getElementById('signature-help-text');
-    let signaturePad = null;
-
-    function initializeSignaturePad() {
-        if (canvas && !signaturePad) {
-            signaturePad = new SignaturePad(canvas, { backgroundColor: 'rgb(249, 250, 251)' });
-            resizeCanvas();
-        }
-    }
-
-    function resizeCanvas() {
-        if (!signaturePad) return;
-        const ratio = Math.max(window.devicePixelRatio || 1, 1);
-        canvas.width = canvas.offsetWidth * ratio;
-        canvas.height = canvas.offsetHeight * ratio;
-        canvas.getContext("2d").scale(ratio, ratio);
-        const data = signaturePad.toData();
-        signaturePad.clear();
-        signaturePad.fromData(data);
-    }
-
-    window.addEventListener("resize", resizeCanvas);
-
-    if (signatureControls) {
-        signatureControls.addEventListener('click', function(event) {
-            const target = event.target.closest('button');
-            if (!target) return;
-
-            event.preventDefault();
-            if (target.id === 'clear-signature') {
-                if (!signaturePad) initializeSignaturePad();
-                signaturePad.clear();
-            }
-
-            if (target.id === 'modify-signature') {
-                signatureImage.classList.add('hidden');
-                target.classList.add('hidden');
-                $('#firma_data').val('');
-                canvas.classList.remove('hidden');
-                if(helpText) helpText.classList.remove('hidden');
-                initializeSignaturePad();
-                signaturePad.clear();
-                signatureControls.innerHTML = '<button type="button" id="clear-signature" class="text-sm text-gray-600 hover:text-primary">Pulisci</button>';
-            }
-        });
-    }
-
-    if (canvas && !canvas.classList.contains('hidden')) {
-        initializeSignaturePad();
-    }
-
     if (form) {
         form.addEventListener('submit', function(event) {            
             // Controlla se ci sono file in coda per l'upload.
@@ -239,9 +184,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            if (signaturePad && !signaturePad.isEmpty()) {
-                document.getElementById('firma_data').value = signaturePad.toDataURL('image/png');
-            }
         });
     }
 });
