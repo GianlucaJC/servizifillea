@@ -410,8 +410,8 @@ function e($value) {
                 echo render_upload_box('autocertificazione_famiglia', 'Autocertificazione Stato di Famiglia', 'Documento che attesta la composizione del nucleo familiare.', $token_user, $allegati['autocertificazione_famiglia'] ?? []);
                 echo render_upload_box('dichiarazione_frequenza', 'Dichiarazione Sostitutiva di Iscrizione e Frequenza', 'Compila la dichiarazione di frequenza per l\'anno scolastico corrente.', $token_user, $allegati['dichiarazione_frequenza'] ?? []);
                 echo render_upload_box('documentazione_sfratto', 'Documentazione Sfratto', 'Ordinanza del giudice o altri documenti ufficiali.', $token_user, $allegati['documentazione_sfratto'] ?? []);
-                echo render_upload_box('autocertificazione_altra_cassa', 'Autocertificazione Altra Cassa Edile', 'Autocertificazione di non aver percepito la prestazione per lo stesso titolo da altra Cassa Edile.', $token_user, $allegati['autocertificazione_altra_cassa'] ?? []);
-                echo render_upload_box('autocertificazione_primo_ingresso', 'Autocertificazione Primo Ingresso', 'Autocertificazione che comprova il primo ingresso nel settore edile o la situazione di reingresso.', $token_user, $allegati['autocertificazione_primo_ingresso'] ?? []);
+             
+                echo render_upload_box('congedo_militare', 'Eventuale fotocopia del congedo', 'Se richiesto, copia del congedo militare.', $token_user, $allegati['congedo_militare'] ?? []);
                 echo render_upload_box('autocertificazione_carico_fiscale', 'Autocertificazione Paternità/Maternità e Carico Fiscale', 'Documento che attesta la paternità/maternità e l\'eventuale carico fiscale del figlio.', $token_user, $allegati['autocertificazione_carico_fiscale'] ?? []);
                 echo render_upload_box('modello_isee', 'Modello ISEE', 'Modello ISEE valido per l\'anno corrente (se richiesto dal regolamento).', $token_user, $allegati['modello_isee'] ?? []);
                 echo render_upload_box('documentazione_stato_necessita', 'Stato di Famiglia e Documentazione Reddituale', 'Documentazione che attesti lo stato di famiglia e lo stato di necessità (es. ISEE, buste paga, etc.).', $token_user, $allegati['documentazione_stato_necessita'] ?? []);
@@ -646,8 +646,8 @@ function e($value) {
         
         // Mappa delle prestazioni ai documenti richiesti
         const uploadRequirements = {
-            'premio_matrimoniale': ['certificato_matrimonio', 'autocertificazione_altra_cassa', 'documento_identita'],
-            'premio_giovani': ['autocertificazione_primo_ingresso', 'documento_identita'],
+            'premio_matrimoniale': ['certificato_matrimonio', 'documento_identita'],
+            'premio_giovani': ['congedo_militare', 'documento_identita'],
             'bonus_nascita': ['certificato_nascita', 'autocertificazione_carico_fiscale', 'documento_identita'],
             'donazioni_sangue': ['attestazione_donazione', 'documento_identita'],
             'contributo_affitto': ['contratto_affitto', 'autocertificazione_famiglia', 'modello_isee', 'documento_identita'],

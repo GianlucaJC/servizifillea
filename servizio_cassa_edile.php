@@ -390,7 +390,7 @@ if (!$is_user_logged_in) {
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
                     <li><strong>Certificato di matrimonio</strong> o di unione civile (o trascrizione se estero).</li>
-                    <li><strong>Autocertificazione</strong> di non aver percepito la prestazione per lo stesso titolo da altra Cassa Edile.</li>
+
                 </ul>
             </div>
             <div class="modal-footer">
@@ -416,8 +416,7 @@ if (!$is_user_logged_in) {
                 </div>
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
-                    <li><strong>Autocertificazione</strong> comprovante il primo ingresso nel settore edile o la situazione di reingresso (se richiesto).</li>
-                    <li><strong>Documento d'identità</strong> che attesti il requisito anagrafico.</li>
+                    <li><strong>Congedo militare</strong> All'occorrenza (se richiesto).</li>
                 </ul>
             </div>
             <div class="modal-footer">
