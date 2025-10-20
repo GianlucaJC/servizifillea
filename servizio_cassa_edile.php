@@ -551,7 +551,7 @@ if (!$is_user_logged_in) {
                 </div>
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
-                    <li><strong>Autocertificazione dello stato di famiglia</strong> e del carico fiscale.</li>
+                    <li><strong>Autocertificazione</strong> che attesti che il lavoratore è il padre.</li>
                     <li><strong>Documentazione sanitaria</strong> (es. Certificazione ex L. 104/92 o verbale della Commissione Medica) che attesti la condizione e la percentuale d'invalidità.</li>
                 </ul>
             </div>
@@ -630,7 +630,7 @@ if (!$is_user_logged_in) {
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
                     <li><strong>Fattura/ricevuta fiscale</strong> (intestata al lavoratore o coniuge) comprovante la spesa sostenuta e il periodo di frequenza.</li>
-                    <li><strong>Autocertificazione</strong> del carico fiscale dei figli.</li>
+                    <li><strong>Documento</strong> che attesta la composizione del nucleo familiare.</li>
                 </ul>
             </div>
             <div class="modal-footer">
@@ -656,8 +656,8 @@ if (!$is_user_logged_in) {
                 </div>
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
-                    <li><strong>Ricevute di pagamento</strong> (bollettini o ricevute postali/telematiche) che comprovino la spesa sostenuta.</li>
-                    <li><strong>Copia del documento</strong> (permesso/carta di soggiorno).</li>
+                    <li>Copia del <strong>permesso di soggiorno</strong> rilasciato / rinnovato dal 1° luglio 2023 o la <strong>ricevuta</strong> di presentazione di richiesta o rinnovo del permesso di soggiorno.</li>
+                    <li>Fotocopia del <strong>Codice Fiscale</strong> del lavoratore.</li>
                 </ul>
             </div>
             <div class="modal-footer">

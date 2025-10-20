@@ -404,7 +404,7 @@ function e($value) {
                 echo render_upload_box('attestazione_donazione', 'Attestazione Donazione', 'Certificato della struttura sanitaria che attesta la donazione.', $token_user, $allegati['attestazione_donazione'] ?? []);
                 echo render_upload_box('certificazione_disabilita', 'Certificazione Disabilità', 'Documentazione sanitaria (es. L. 104/92) che attesti la condizione.', $token_user, $allegati['certificazione_disabilita'] ?? []);
                 echo render_upload_box('lettera_licenziamento', 'Lettera di Licenziamento', 'Lettera con indicazione della causale di superamento comporto.', $token_user, $allegati['lettera_licenziamento'] ?? []);
-                echo render_upload_box('ricevute_soggiorno', 'Ricevute Permesso di Soggiorno', 'Bollettini di pagamento per il rilascio/rinnovo.', $token_user, $allegati['ricevute_soggiorno'] ?? []);
+                
                 echo render_upload_box('ricevuta_attivita_sportiva', 'Ricevuta Attività Sportiva', 'Fattura o ricevuta che attesti l\'iscrizione e la spesa.', $token_user, $allegati['ricevuta_attivita_sportiva'] ?? []);
                 echo render_upload_box('contratto_affitto', 'Contratto di Affitto', 'Copia del contratto registrato.', $token_user, $allegati['contratto_affitto'] ?? []);
                 echo render_upload_box('autocertificazione_famiglia', 'Autocertificazione Stato di Famiglia', 'Documento che attesta la composizione del nucleo familiare.', $token_user, $allegati['autocertificazione_famiglia'] ?? []);
@@ -413,7 +413,7 @@ function e($value) {
                 echo render_upload_box('documentazione_sfratto', 'Documentazione Sfratto', 'Ordinanza del giudice o altri documenti ufficiali.', $token_user, $allegati['documentazione_sfratto'] ?? []);
              
                 echo render_upload_box('congedo_militare', 'Eventuale fotocopia del congedo', 'Se richiesto, copia del congedo militare.', $token_user, $allegati['congedo_militare'] ?? []);
-                echo render_upload_box('autocertificazione_carico_fiscale', 'Autocertificazione Paternità/Maternità e Carico Fiscale', 'Documento che attesta la paternità/maternità e l\'eventuale carico fiscale del figlio.', $token_user, $allegati['autocertificazione_carico_fiscale'] ?? []);
+                echo render_upload_box('autocertificazione_paternita', 'Autocertificazione di Paternità', 'autocertificazione che attesti che il lavoratore è il padre', $token_user, $allegati['autocertificazione_paternita'] ?? []);
                 echo render_upload_box('modello_isee', 'Modello ISEE', 'Modello ISEE valido per l\'anno corrente (se richiesto dal regolamento).', $token_user, $allegati['modello_isee'] ?? []);
                 echo render_upload_box('documentazione_stato_necessita', 'Stato di Famiglia e Documentazione Reddituale', 'Documentazione che attesti lo stato di famiglia e lo stato di necessità (es. ISEE, buste paga, etc.).', $token_user, $allegati['documentazione_stato_necessita'] ?? []);
                 echo render_upload_box('documentazione_medica_comporto', 'Documentazione Medica per Comporto', 'Documentazione medica se il licenziamento è per superamento del comporto.', $token_user, $allegati['documentazione_medica_comporto'] ?? []);
@@ -648,14 +648,14 @@ function e($value) {
         // Mappa delle prestazioni ai documenti richiesti
         const uploadRequirements = {
             'premio_matrimoniale': ['certificato_matrimonio', 'documento_identita'],
-            'premio_giovani': ['congedo_militare', 'documento_identita'],
-            'bonus_nascita': ['certificato_nascita', 'autocertificazione_carico_fiscale', 'documento_identita'],
+            'premio_giovani': ['congedo_militare', 'documento_identita'], 
+            'bonus_nascita': ['certificato_nascita', 'autocertificazione_paternita', 'documento_identita'],
             'donazioni_sangue': ['attestazione_donazione', 'documento_identita'],
             'contributo_affitto': ['contratto_affitto',  'modello_isee', 'documento_identita', 'ricevuta_pagamento_affitto'],
             'contributo_sfratto': ['documentazione_sfratto', 'modello_isee', 'contratto_affitto', 'documento_identita'],
-            'contributo_disabilita': ['certificazione_disabilita', 'autocertificazione_famiglia', 'documento_identita'],
+            'contributo_disabilita': ['certificazione_disabilita', 'autocertificazione_paternita', 'documento_identita'],
             'post_licenziamento': ['lettera_licenziamento', 'documentazione_medica_comporto', 'documento_identita'],
-            'permesso_soggiorno': ['ricevute_soggiorno', 'copia_permesso_soggiorno', 'documento_identita'],
+            'permesso_soggiorno': ['copia_permesso_soggiorno', 'documento_identita'],
             'attivita_sportive': ['ricevuta_attivita_sportiva', 'autocertificazione_famiglia', 'documento_identita']
         };
 
