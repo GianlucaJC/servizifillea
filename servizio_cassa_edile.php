@@ -495,9 +495,9 @@ if (!$is_user_logged_in) {
                 </div>
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
-                    <li><strong>Copia del Contratto di Affitto</strong> ad uso abitativo registrato presso l'Agenzia delle Entrate.</li>
-                    <li><strong>Modello ISEE</strong> valido per l'anno corrente (se richiesto dal regolamento).</li>
-                    <li><strong>Autocertificazione dello stato di famiglia</strong>.</li>
+                    <li>Copia del <strong>contratto di affitto</strong> intestato al lavoratore o ad un componente il nucleo familiare.</li>
+                    <li><strong>Ricevuta ultimo pagamento</strong> riferita al massimo entro i 6 mesi antecedenti il mese in cui viene presentata la domanda.</li>
+                    <li><strong>Attestazione ISEE</strong> inferiore a euro 30.000.</li>
                 </ul>
             </div>
             <div class="modal-footer">
@@ -523,8 +523,9 @@ if (!$is_user_logged_in) {
                 </div>
                 <h6 class="mt-3"><strong>Documentazione da Produrre</strong></h6>
                 <ul>
-                    <li><strong>Documentazione</strong> ufficiale che attesti l'ingiunzione di sfratto esecutivo (es. ordinanza del Giudice).</li>
-                    <li><strong>Stato di famiglia</strong> e documentazione reddituale che attesti lo stato di necessità.</li>
+                    <li>Copia del <strong>contratto di affitto</strong> intestato al lavoratore o ad un componente il nucleo familiare.</li>
+                    <li>Copia atto <strong>ingiunzione sfratto</strong>.</li>
+                    <li><strong>Attestazione ISEE</strong> inferiore a euro 30.000.</li>
                 </ul>
             </div>
             <div class="modal-footer">

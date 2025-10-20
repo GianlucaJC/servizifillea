@@ -408,6 +408,7 @@ function e($value) {
                 echo render_upload_box('ricevuta_attivita_sportiva', 'Ricevuta Attività Sportiva', 'Fattura o ricevuta che attesti l\'iscrizione e la spesa.', $token_user, $allegati['ricevuta_attivita_sportiva'] ?? []);
                 echo render_upload_box('contratto_affitto', 'Contratto di Affitto', 'Copia del contratto registrato.', $token_user, $allegati['contratto_affitto'] ?? []);
                 echo render_upload_box('autocertificazione_famiglia', 'Autocertificazione Stato di Famiglia', 'Documento che attesta la composizione del nucleo familiare.', $token_user, $allegati['autocertificazione_famiglia'] ?? []);
+                echo render_upload_box('ricevuta_pagamento_affitto', 'Ricevuta Ultimo Pagamento Affitto', 'Ricevuta ultimo pagamento riferita al massimo entro i 6 mesi antecedenti il mese in cui viene presentata la domanda.', $token_user, $allegati['ricevuta_pagamento_affitto'] ?? []);
                 echo render_upload_box('dichiarazione_frequenza', 'Dichiarazione Sostitutiva di Iscrizione e Frequenza', 'Compila la dichiarazione di frequenza per l\'anno scolastico corrente.', $token_user, $allegati['dichiarazione_frequenza'] ?? []);
                 echo render_upload_box('documentazione_sfratto', 'Documentazione Sfratto', 'Ordinanza del giudice o altri documenti ufficiali.', $token_user, $allegati['documentazione_sfratto'] ?? []);
              
@@ -650,8 +651,8 @@ function e($value) {
             'premio_giovani': ['congedo_militare', 'documento_identita'],
             'bonus_nascita': ['certificato_nascita', 'autocertificazione_carico_fiscale', 'documento_identita'],
             'donazioni_sangue': ['attestazione_donazione', 'documento_identita'],
-            'contributo_affitto': ['contratto_affitto', 'autocertificazione_famiglia', 'modello_isee', 'documento_identita'],
-            'contributo_sfratto': ['documentazione_sfratto', 'documentazione_stato_necessita', 'documento_identita'],
+            'contributo_affitto': ['contratto_affitto',  'modello_isee', 'documento_identita', 'ricevuta_pagamento_affitto'],
+            'contributo_sfratto': ['documentazione_sfratto', 'modello_isee', 'contratto_affitto', 'documento_identita'],
             'contributo_disabilita': ['certificazione_disabilita', 'autocertificazione_famiglia', 'documento_identita'],
             'post_licenziamento': ['lettera_licenziamento', 'documentazione_medica_comporto', 'documento_identita'],
             'permesso_soggiorno': ['ricevute_soggiorno', 'copia_permesso_soggiorno', 'documento_identita'],
