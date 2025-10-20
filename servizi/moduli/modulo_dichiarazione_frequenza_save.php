@@ -68,7 +68,7 @@ try {
         // Aggiorna il record esistente
         $stmt_update = $pdo1->prepare("
             UPDATE `fillea-app`.richieste_allegati 
-            SET file_path = ?, original_filename = ?, data_invio = NOW() 
+            SET file_path = ?, original_filename = ?
             WHERE id = ?
         ");
         $stmt_update->execute([$file_path, $original_filename, $existing_attachment['id']]);
@@ -76,8 +76,8 @@ try {
         // Inserisci un nuovo record
         $stmt_insert = $pdo1->prepare("
             INSERT INTO `fillea-app`.richieste_allegati 
-            (user_id, form_name, document_type, file_path, original_filename, data_invio) 
-            VALUES (?, ?, 'dichiarazione_frequenza', ?, ?, NOW())
+            (user_id, form_name, document_type, file_path, original_filename) 
+            VALUES (?, ?, 'dichiarazione_frequenza', ?, ?)
         ");
         $stmt_insert->execute([$user_id, $origin_form_name, $file_path, $original_filename]);
     }
