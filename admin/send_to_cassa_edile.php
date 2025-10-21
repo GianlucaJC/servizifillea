@@ -202,7 +202,7 @@ try {
         if (!empty($worker_name)) {
             $altBody .= "Lavoratore: " . htmlspecialchars($worker_name) . ".\n";
         }
-        $altBody .= "\nPuoi scaricare tutta la documentazione visitando il seguente link (scade tra 7 giorni):\n{$download_link}";
+        $altBody .= "\nPuoi scaricare tutta la documentazione visitando il seguente link:\n" . $download_link;
     } else {
         $htmlBody .= '<p>Non sono stati allegati nuovi documenti a questo invio.</p>';
         $altBody = "È stata inviata la pratica {$form_name}.\n\nNon sono stati allegati nuovi documenti a questo invio.";

@@ -23,7 +23,7 @@ $form_name = $_POST['form_name'];
 $new_status = $_POST['new_status'];
 
 // 3. Valida lo stato per sicurezza.
-$allowed_statuses = ['abbandonato', 'inviato_in_cassa_edile'];
+$allowed_statuses = ['abbandonato', 'inviato_in_cassa_edile', 'bozza']; // Aggiunto 'bozza' per il ripristino
 if (!in_array($new_status, $allowed_statuses)) {
     header('Location: admin_documenti.php?error=invalid_status');
     exit;
@@ -45,7 +45,9 @@ $stmt_check_request = $pdo1->prepare("
 $stmt_check_request->execute([$form_name, $funzionario_id]);
 $current_request = $stmt_check_request->fetch(PDO::FETCH_ASSOC);
 
-if (!$current_request || $current_request['status'] === 'bozza' || !$current_request['user_id']) {
+// Se lo stato corrente è 'bozza' e non si sta cercando di ripristinare (il che sarebbe illogico), blocca.
+// Permette l'azione se lo stato corrente è 'abbandonato' e il nuovo stato è 'bozza'.
+if (!$current_request || ($current_request['status'] === 'bozza' && $new_status !== 'bozza') || !$current_request['user_id']) {
     header('Location: admin_documenti.php?error=draft_action_forbidden');
     exit;
 }

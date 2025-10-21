@@ -390,8 +390,8 @@ function e($value) {
         </div>
     <?php elseif ($is_submitted && !$is_admin_view): // Se l'utente visualizza una richiesta inviata ?>
         <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-6 rounded-md" role="alert">
-            <p class="font-bold">In attesa di riscontro</p>
-            <p>Questa richiesta è stata inviata al funzionario e non è più modificabile.</p>
+            <p class="font-bold">Richiesta Ricevuta</p>
+            <p>La tua richiesta è stata ricevuta dal funzionario e non è più modificabile. Sarai avvisato in caso di aggiornamenti.</p>
         </div>
     <?php elseif ($status === 'abbandonato'): // Se la richiesta è stata abbandonata/archiviata ?>
         <div class="bg-gray-200 border-l-4 border-gray-500 text-gray-700 p-4 mb-6 rounded-md" role="alert">

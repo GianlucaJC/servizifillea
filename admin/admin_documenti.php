@@ -21,6 +21,7 @@ $filter_service = $_GET['service_filter'] ?? 'all';
 $filter_user = $_GET['user_filter'] ?? 'all';
 $filter_status = $_GET['status_filter'] ?? 'all';
 $filter_prestazione = $_GET['prestazione_filter'] ?? 'all'; // Nuovo filtro per prestazione
+$view_trash = isset($_GET['view_trash']) && $_GET['view_trash'] == 1; // Parametro per visualizzare il cestino
 
 // 2. Ordinamento
 $allowed_sort_columns = ['modulo_nome', 'form_name', 'data_invio', 'status', 'cognome', 'prestazioni', 'allegati_count'];
@@ -47,10 +48,8 @@ foreach ($servizi_results as $service_name) {
 // Elenco degli stati per il filtro
 $stati = [
     'bozza' => 'Bozza',
-    'inviato' => 'Inviato',
-    'in_lavorazione' => 'In Lavorazione',
-    'completato' => 'Completato',
-    'abbandonato' => 'Abbandonato',
+    'ricevuta' => 'Ricevuta',
+    'letto_da_cassa_edile' => 'Letto da Cassa Edile',
     'inviato_in_cassa_edile' => 'Inviato in Cassa Edile'
 ];
 
@@ -176,6 +175,12 @@ if ($filter_prestazione !== 'all') {
     $params[] = '%"'.$filter_prestazione.'"%';
 }
 
+// Aggiungi la condizione per il cestino
+if ($view_trash) {
+    $conditions[] = "rm.status = 'abbandonato'";
+} else {
+    $conditions[] = "rm.status != 'abbandonato'";
+}
 $where_clause = '';
 if (!empty($conditions)) {
     $where_clause = " WHERE " . implode(' AND ', $conditions);
@@ -240,6 +245,13 @@ function get_sort_link($column, $current_sort_by, $current_sort_dir, $label) {
     
     return '<a href="?' . http_build_query($query_params) . '">' . $label . $icon . '</a>';
 }
+
+// Conta il numero di pratiche nel cestino
+$sql_trash_count = "SELECT COUNT(id) FROM `fillea-app`.richieste_master WHERE status = 'abbandonato' AND id_funzionario = ?";
+$stmt_trash_count = $pdo1->prepare($sql_trash_count);
+$stmt_trash_count->execute([$funzionario_id]);
+$trash_count = $stmt_trash_count->fetchColumn();
+
 ?>
 <!DOCTYPE html>
 <html lang="it">
@@ -524,8 +536,17 @@ function get_sort_link($column, $current_sort_by, $current_sort_dir, $label) {
 
             <!-- Tabella Documenti -->
             <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Elenco Documenti</h5>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><?php echo $view_trash ? 'Cestino - Pratiche Archiviate' : 'Elenco Documenti'; ?></h5>
+                    <?php if ($view_trash): ?>
+                        <a href="admin_documenti.php" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-arrow-left me-2"></i>Torna all'elenco
+                        </a>
+                    <?php else: ?>
+                        <a href="?view_trash=1" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-trash me-2"></i>Cestino (<?php echo $trash_count; ?>)
+                        </a>
+                    <?php endif; ?>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive table-min-height">
@@ -585,15 +606,20 @@ function get_sort_link($column, $current_sort_by, $current_sort_dir, $label) {
                                             <td class="text-center"><?php echo date('d/m/Y H:i', strtotime($req['data_invio'])); ?></td>
                                             <td class="text-center">
                                                 <?php
-                                                    $status_class = 'bg-secondary';
-                                                    if ($req['status'] === 'bozza') $status_class = 'bg-secondary';
-                                                    if ($req['status'] === 'inviato') $status_class = 'bg-info';
-                                                    if ($req['status'] === 'in_lavorazione') $status_class = 'bg-warning';
-                                                    if ($req['status'] === 'completato') $status_class = 'bg-success';
-                                                    if ($req['status'] === 'abbandonato') $status_class = 'bg-dark';
-                                                    if ($req['status'] === 'inviato_in_cassa_edile') $status_class = 'bg-purple';
+                                                    $status_label = ucfirst(str_replace('_', ' ', $req['status']));
+                                                    $status_class = 'bg-dark'; // Default
+                                                    switch ($req['status']) {
+                                                        case 'bozza': $status_class = 'bg-secondary'; break;
+                                                        case 'ricevuta':
+                                                            $status_class = 'bg-info';
+                                                            $status_label = 'Ricevuta';
+                                                            break;
+                                                        case 'letto_da_cassa_edile': $status_class = 'bg-primary'; $status_label = 'Letto'; break;
+                                                        case 'abbandonato': $status_class = 'bg-danger'; $status_label = 'Archiviato'; break;
+                                                        case 'inviato_in_cassa_edile': $status_class = 'bg-purple'; break;
+                                                    }
                                                 ?>
-                                                <span class="badge <?php echo $status_class; ?>"><?php echo ucfirst(str_replace('_', ' ', $req['status'])); ?></span>
+                                                <span class="badge <?php echo $status_class; ?>"><?php echo $status_label; ?></span>
                                             </td>
                                             <td class="text-center">
                                                 <?php 
@@ -652,12 +678,21 @@ function get_sort_link($column, $current_sort_by, $current_sort_dir, $label) {
                                                         <li><a class="dropdown-item" href="<?php echo $view_link; ?>"><i class="fas fa-eye me-2"></i>Visualizza Dettagli</a></li>
                                                         <li><hr class="dropdown-divider"></li>
                                                         <?php if ($req['status'] !== 'bozza'): ?>
-                                                            <li><button type="button" class="dropdown-item send-to-cassa-btn" data-bs-toggle="modal" data-bs-target="#cassaEdileModal" data-form-name="<?php echo htmlspecialchars($req['form_name']); ?>"><i class="fas fa-university me-2"></i>Invia a Cassa Edile</button></li>
-                                                            <form action="update_request_status.php" method="POST" class="d-inline">
-                                                                <input type="hidden" name="form_name" value="<?php echo htmlspecialchars($req['form_name']); ?>">
-                                                                <input type="hidden" name="new_status" value="abbandonato">
-                                                                <li><button type="submit" class="dropdown-item text-danger"><i class="fas fa-times-circle me-2"></i>Imposta come Abbandonato</button></li>
-                                                            </form>
+                                                            <?php if (!$view_trash): ?>
+                                                                <li><button type="button" class="dropdown-item send-to-cassa-btn" data-bs-toggle="modal" data-bs-target="#cassaEdileModal" data-form-name="<?php echo htmlspecialchars($req['form_name']); ?>"><i class="fas fa-university me-2"></i>Invia a Cassa Edile</button></li>
+                                                                <form action="update_request_status.php" method="POST" class="d-inline">
+                                                                    <input type="hidden" name="form_name" value="<?php echo htmlspecialchars($req['form_name']); ?>">
+                                                                    <input type="hidden" name="new_status" value="abbandonato">
+                                                                    <li><button type="submit" class="dropdown-item text-danger"><i class="fas fa-trash-alt me-2"></i>Sposta nel Cestino</button></li>
+                                                                </form>
+                                                            <?php else: ?>
+                                                                <!-- Azioni per il cestino, es. Ripristina -->
+                                                                <form action="update_request_status.php" method="POST" class="d-inline">
+                                                                    <input type="hidden" name="form_name" value="<?php echo htmlspecialchars($req['form_name']); ?>">
+                                                                    <input type="hidden" name="new_status" value="bozza">
+                                                                    <li><button type="submit" class="dropdown-item text-success"><i class="fas fa-undo me-2"></i>Ripristina Pratica</button></li>
+                                                                </form>
+                                                            <?php endif; ?>
                                                         <?php else: ?>
                                                             <li><span class="dropdown-item disabled text-muted" title="Questa azione non è disponibile per le bozze"><i class="fas fa-university me-2"></i>Invia a Cassa Edile</span></li>
                                                             <li><span class="dropdown-item disabled text-muted" title="Questa azione non è disponibile per le bozze"><i class="fas fa-times-circle me-2"></i>Imposta come Abbandonato</span></li>
@@ -719,6 +754,10 @@ function get_sort_link($column, $current_sort_by, $current_sort_dir, $label) {
           <div class="mb-3">
             <label for="additionalRecipients" class="form-label">Altri destinatari (separati da virgola)</label>
             <input type="text" class="form-control" id="additionalRecipients" name="additional_recipients" placeholder="es. email1@esempio.com, email2@esempio.com">
+          </div>
+          <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="trackDownload" name="track_download" value="1" checked>
+            <label class="form-check-label" for="trackDownload">Invio con richiesta di ricevuta di lettura</label>
           </div>
           <div id="attachmentWarning" class="alert alert-warning p-2 small hidden" role="alert">
             <i class="fas fa-exclamation-triangle me-1"></i>

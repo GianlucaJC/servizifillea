@@ -43,10 +43,8 @@ foreach ($stats_raw as $row) {
 // Elenco di tutti gli stati possibili per avere colonne consistenti
 $stati_possibili = [
     'bozza',
-    'inviato',
-    'in_lavorazione',
-    'completato',
-    'abbandonato',
+    'ricevuta',
+    'letto_da_cassa_edile',
     'inviato_in_cassa_edile'
 ];
 
@@ -54,11 +52,10 @@ $stati_possibili = [
 function get_status_badge($status) {
     $status_map = [
         'bozza' => ['class' => 'bg-secondary', 'text' => 'Bozza'],
-        'inviato' => ['class' => 'bg-primary', 'text' => 'Inviato'],
-        'in_lavorazione' => ['class' => 'bg-info text-dark', 'text' => 'In Lavorazione'],
-        'completato' => ['class' => 'bg-success', 'text' => 'Completato'],
-        'abbandonato' => ['class' => 'bg-warning text-dark', 'text' => 'Abbandonato'],
-        'inviato_in_cassa_edile' => ['class' => 'bg-dark', 'text' => 'Inviato in Cassa Edile']
+        'ricevuta' => ['class' => 'bg-info', 'text' => 'Ricevuta'],
+        'letto_da_cassa_edile' => ['class' => 'bg-primary', 'text' => 'Letto'],
+        'inviato_in_cassa_edile' => ['class' => 'bg-dark', 'text' => 'Inviato in Cassa Edile'],
+        'abbandonato' => ['class' => 'bg-danger', 'text' => 'Archiviato'],
     ];
     $display_text = $status_map[$status]['text'] ?? ucfirst(str_replace('_', ' ', $status));
     $class = $status_map[$status]['class'] ?? 'bg-light text-dark';
