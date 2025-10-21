@@ -24,13 +24,11 @@ class PDFTemplateFiller {
         if ($module_type === 'modulo1_richieste' && in_array($prestazione, $studi_prestazioni)) {
             return dirname(__DIR__) . '/studi.pdf';
         }
-        // Aggiunta per il nuovo modulo di autocertificazione
         if ($module_type === 'autocertificazione_stato_famiglia') {
-            return dirname(__DIR__) . '/autocertificazione_template.pdf'; // Usa il nuovo template dedicato
+            return dirname(__DIR__) . '/autocertificazione_template.pdf';
         }
-        // Aggiunta per il nuovo modulo di dichiarazione frequenza
         if ($module_type === 'dichiarazione_frequenza') {
-            return dirname(__DIR__) . '/studi.pdf'; // Usa la pagina 1 di questo file come template
+            return dirname(__DIR__) . '/studi.pdf';
         }
         return dirname(__DIR__) . '/modulo.pdf';
     }
@@ -121,36 +119,37 @@ class PDFTemplateFiller {
     }
 
     private function fillModuloAutocertificazione($data) {
-        // Usa il template 'autocertificazione_template.pdf'
-        $this->pdf->SetFont('Helvetica', '', 9);
+        // Coordinate per il template fornito dall'utente (autocertificazione_template.pdf)
+        // Queste coordinate sono indicative e andranno aggiustate in base al layout esatto del PDF.
+        $this->pdf->SetFont('Helvetica', '', 8); // Ridotto leggermente il font per adattarsi meglio
 
         // Dati sottoscrittore
-        $this->pdf->SetXY(90, 750); $this->pdf->Write(0, ($data['sottoscrittore_nome_cognome'] ?? '') . ' nato/a a ' . ($data['sottoscrittore_luogo_nascita'] ?? '') . ' il ' . (isset($data['sottoscrittore_data_nascita']) && $data['sottoscrittore_data_nascita'] ? date('d/m/Y', strtotime($data['sottoscrittore_data_nascita'])) : ''));
-        $this->pdf->SetXY(135, 630); $this->pdf->Write(0, $data['sottoscrittore_residenza_comune'] ?? '');
-        $this->pdf->SetXY(50, 618); $this->pdf->Write(0, $data['sottoscrittore_residenza_indirizzo'] ?? '');
+        $this->pdf->SetXY(38, 47); $this->pdf->Write(0, $data['sottoscrittore_nome_cognome'] ?? '');
+        $this->pdf->SetXY(30, 53); $this->pdf->Write(0, $data['sottoscrittore_luogo_nascita'] ?? '');
+        $this->pdf->SetXY(120, 53); $this->pdf->Write(0, isset($data['sottoscrittore_data_nascita']) && $data['sottoscrittore_data_nascita'] ? date('d/m/Y', strtotime($data['sottoscrittore_data_nascita'])) : '');
 
         // Membri famiglia
-        // Correzione: $data['membri_famiglia'] è già un array quando viene passato dal modulo di salvataggio.
-        // Non è necessario un json_decode.
         if (isset($data['membri_famiglia']) && is_string($data['membri_famiglia'])) {
             $membri = json_decode($data['membri_famiglia'], true);
         } else {
             $membri = $data['membri_famiglia'] ?? [];
         }
         if (is_array($membri)) {
-            $y = 560; // Posizione Y iniziale della prima riga della tabella
+            $y = 91.5; // Posizione Y iniziale della prima riga della tabella
             foreach ($membri as $membro) {
-                $this->pdf->SetXY(25, $y); $this->pdf->Write(0, $membro['nome_cognome'] ?? '');
-                $this->pdf->SetXY(150, $y); $this->pdf->Write(0, isset($membro['data_nascita']) && $membro['data_nascita'] ? date('d/m/Y', strtotime($membro['data_nascita'])) : '');
-                $this->pdf->SetXY(250, $y); $this->pdf->Write(0, $membro['luogo_nascita'] ?? '');
-                $this->pdf->SetXY(380, $y); $this->pdf->Write(0, $membro['parentela'] ?? '');
-                $y -= 12; // Incrementa Y per la riga successiva
+                $this->pdf->SetXY(23, $y); $this->pdf->Write(0, $membro['nome_cognome'] ?? '');
+                $this->pdf->SetXY(78, $y); $this->pdf->Write(0, isset($membro['data_nascita']) && $membro['data_nascita'] ? date('d/m/Y', strtotime($membro['data_nascita'])) : '');
+                $this->pdf->SetXY(113, $y); $this->pdf->Write(0, $membro['luogo_nascita'] ?? '');
+                $this->pdf->SetXY(156, $y); $this->pdf->Write(0, $membro['parentela'] ?? '');
+                $y += 5.8; // Incrementa Y per la riga successiva (5.8mm per riga circa)
             }
         }
 
         // Data, luogo e firma
-        $this->pdf->SetXY(80, 250); $this->pdf->Write(0, ($data['luogo_firma'] ?? '') . ', ' . (isset($data['data_firma']) && $data['data_firma'] ? date('d/m/Y', strtotime($data['data_firma'])) : ''));
-        if (!empty($data['firma_data'])) { $this->pdf->Image($data['firma_data'], 120, 200, 60, 15, 'PNG'); }
+        $this->pdf->SetXY(40, 238); $this->pdf->Write(0, ($data['luogo_firma'] ?? '') . ', ' . (isset($data['data_firma']) && $data['data_firma'] ? date('d/m/Y', strtotime($data['data_firma'])) : ''));
+        // Aggiunto controllo di sicurezza: inserisce l'immagine solo se i dati della firma sono validi e non vuoti.
+        $firma_data = $data['firma_data'] ?? '';
+        if (!empty($firma_data) && $firma_data !== 'data:,') { $this->pdf->Image($firma_data, 40, 245, 60, 15, 'PNG'); }
     }
 
     private function fillModuloDichiarazioneFrequenza($data) {
@@ -204,12 +203,8 @@ class PDFTemplateFiller {
 
         $pageCount = $this->pdf->setSourceFile($templatePath);
 
-        // Caso speciale per l'autocertificazione che usa solo la pagina 2
+        // Caso speciale per l'autocertificazione
         if ($module_type === 'autocertificazione_stato_famiglia') {
-            if ($pageCount > 1) {
-                // Questo non dovrebbe accadere con il nuovo template, ma è una sicurezza
-                throw new Exception("Il template per l'autocertificazione ha più di una pagina.");
-            }
             $this->pdf->AddPage();
             $templateId = $this->pdf->importPage(1);
             $this->pdf->useTemplate($templateId, ['adjustPageSize' => true]);

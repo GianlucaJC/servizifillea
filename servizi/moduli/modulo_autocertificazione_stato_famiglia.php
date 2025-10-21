@@ -6,6 +6,7 @@ $token = $_GET['token'] ?? null;
 $origin_form_name = $_GET['origin_form_name'] ?? null;
 $origin_prestazione = $_GET['origin_prestazione'] ?? null;
 $origin_module = $_GET['origin_module'] ?? null;
+$is_admin_view = isset($_GET['is_admin_view']) && $_GET['is_admin_view'] == 1; // Rileva la modalità admin
 
 $user_id = null;
 $saved_data = [];
@@ -103,34 +104,34 @@ function e($value) {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label for="sottoscrittore_nome_cognome" class="form-label">Nome e Cognome</label>
-                    <input type="text" id="sottoscrittore_nome_cognome" name="sottoscrittore_nome_cognome" class="form-input" value="<?php e($saved_data['sottoscrittore_nome_cognome'] ?? ''); ?>" required>
+                    <input type="text" id="sottoscrittore_nome_cognome" name="sottoscrittore_nome_cognome" class="form-input" value="<?php e($saved_data['sottoscrittore_nome_cognome'] ?? ''); ?>" required <?php if ($is_admin_view) echo 'disabled'; ?>>
                 </div>
                 <div>
                     <label for="sottoscrittore_luogo_nascita" class="form-label">Luogo di Nascita</label>
-                    <input type="text" id="sottoscrittore_luogo_nascita" name="sottoscrittore_luogo_nascita" class="form-input" value="<?php e($saved_data['sottoscrittore_luogo_nascita'] ?? ''); ?>" required>
+                    <input type="text" id="sottoscrittore_luogo_nascita" name="sottoscrittore_luogo_nascita" class="form-input" value="<?php e($saved_data['sottoscrittore_luogo_nascita'] ?? ''); ?>" required <?php if ($is_admin_view) echo 'disabled'; ?>>
                 </div>
                 <div>
                     <label for="sottoscrittore_data_nascita" class="form-label">Data di Nascita</label>
                     <div class="grid grid-cols-3 gap-2">
                         <div>
-                            <select id="sottoscrittore_data_nascita_giorno" class="form-input text-sm" aria-label="Giorno di nascita"><option value="">Giorno</option></select>
+                            <select id="sottoscrittore_data_nascita_giorno" class="form-input text-sm" aria-label="Giorno di nascita" <?php if ($is_admin_view) echo 'disabled'; ?>><option value="">Giorno</option></select>
                         </div>
                         <div>
-                            <select id="sottoscrittore_data_nascita_mese" class="form-input text-sm" aria-label="Mese di nascita"><option value="">Mese</option></select>
+                            <select id="sottoscrittore_data_nascita_mese" class="form-input text-sm" aria-label="Mese di nascita" <?php if ($is_admin_view) echo 'disabled'; ?>><option value="">Mese</option></select>
                         </div>
                         <div>
-                            <select id="sottoscrittore_data_nascita_anno" class="form-input text-sm" aria-label="Anno di nascita"><option value="">Anno</option></select>
+                            <select id="sottoscrittore_data_nascita_anno" class="form-input text-sm" aria-label="Anno di nascita" <?php if ($is_admin_view) echo 'disabled'; ?>><option value="">Anno</option></select>
                         </div>
                     </div>
                     <input type="hidden" id="sottoscrittore_data_nascita" name="sottoscrittore_data_nascita" value="<?php e($saved_data['sottoscrittore_data_nascita'] ?? ''); ?>" required>
                 </div>
                 <div>
                     <label for="sottoscrittore_residenza_comune" class="form-label">Comune di Residenza</label>
-                    <input type="text" id="sottoscrittore_residenza_comune" name="sottoscrittore_residenza_comune" class="form-input" value="<?php e($saved_data['sottoscrittore_residenza_comune'] ?? ''); ?>" required>
+                    <input type="text" id="sottoscrittore_residenza_comune" name="sottoscrittore_residenza_comune" class="form-input" value="<?php e($saved_data['sottoscrittore_residenza_comune'] ?? ''); ?>" required <?php if ($is_admin_view) echo 'disabled'; ?>>
                 </div>
                 <div class="md:col-span-2">
                     <label for="sottoscrittore_residenza_indirizzo" class="form-label">Indirizzo di Residenza (Via/Piazza e n.)</label>
-                    <input type="text" id="sottoscrittore_residenza_indirizzo" name="sottoscrittore_residenza_indirizzo" class="form-input" value="<?php e($saved_data['sottoscrittore_residenza_indirizzo'] ?? ''); ?>" required>
+                    <input type="text" id="sottoscrittore_residenza_indirizzo" name="sottoscrittore_residenza_indirizzo" class="form-input" value="<?php e($saved_data['sottoscrittore_residenza_indirizzo'] ?? ''); ?>" required <?php if ($is_admin_view) echo 'disabled'; ?>>
                 </div>
             </div>
         </div>
@@ -139,7 +140,9 @@ function e($value) {
         <div class="form-section">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="form-section-title !border-0 !mb-0">Composizione Nucleo Familiare</h2>
+                <?php if (!$is_admin_view): ?>
                 <button type="button" id="add-member-btn" class="btn-secondary text-sm"><i class="fas fa-plus mr-2"></i>Aggiungi Membro</button>
+                <?php endif; ?>
             </div>
             <p class="text-sm text-gray-600 mb-6">Elenca tutti i componenti del nucleo familiare, incluso il dichiarante.</p>
             <div id="family-members-container" class="space-y-4">
@@ -153,11 +156,11 @@ function e($value) {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label for="luogo_firma" class="form-label">Luogo</label>
-                    <input type="text" id="luogo_firma" name="luogo_firma" class="form-input" value="<?php e($saved_data['luogo_firma'] ?? 'Firenze'); ?>" required>
+                    <input type="text" id="luogo_firma" name="luogo_firma" class="form-input" value="<?php e($saved_data['luogo_firma'] ?? 'Firenze'); ?>" required <?php if ($is_admin_view) echo 'disabled'; ?>>
                 </div>
                 <div>
                     <label for="data_firma" class="form-label">Data</label>
-                    <input type="date" id="data_firma" name="data_firma" class="form-input" value="<?php e($saved_data['data_firma'] ?? ''); ?>" required>
+                    <input type="date" id="data_firma" name="data_firma" class="form-input" value="<?php e($saved_data['data_firma'] ?? ''); ?>" required <?php if ($is_admin_view) echo 'disabled'; ?>>
                 </div>
                 <div class="md:col-span-2">
                     <label class="form-label">Firma Digitale</label>
@@ -167,24 +170,28 @@ function e($value) {
                         <canvas id="signature-pad" class="w-full h-48 <?php if ($has_signature) echo 'hidden'; ?>"></canvas>
                     </div>
                     <div id="signature-controls" class="flex justify-end mt-2">
-                        <?php if ($has_signature): ?>
-                            <button type="button" id="modify-signature" class="text-sm text-blue-600 hover:text-blue-800 font-semibold"><i class="fas fa-pencil-alt mr-1"></i> Modifica Firma</button>
-                        <?php else: ?>
-                            <div class="space-x-4">
-                                <button type="button" id="undo-signature" class="text-sm text-gray-600 hover:text-primary">Annulla tratto</button>
-                                <button type="button" id="clear-signature" class="text-sm text-gray-600 hover:text-primary">Pulisci</button>
-                            </div>
+                        <?php if (!$is_admin_view): ?>
+                            <?php if ($has_signature): ?>
+                                <button type="button" id="modify-signature" class="text-sm text-blue-600 hover:text-blue-800 font-semibold"><i class="fas fa-pencil-alt mr-1"></i> Modifica Firma</button>
+                            <?php else: ?>
+                                <div class="space-x-4">
+                                    <button type="button" id="undo-signature" class="text-sm text-gray-600 hover:text-primary">Annulla tratto</button>
+                                    <button type="button" id="clear-signature" class="text-sm text-gray-600 hover:text-primary">Pulisci</button>
+                                </div>
+                            <?php endif; ?>
                         <?php endif; ?>
                     </div>
                 </div>
             </div>
         </div>
 
+        <?php if (!$is_admin_view): ?>
         <div class="mt-8 text-center">
             <button type="submit" id="save-btn" class="btn-primary w-full md:w-auto">
                 <i class="fas fa-save mr-2"></i> Salva e Genera Autocertificazione
             </button>
         </div>
+        <?php endif; ?>
     </form>
 </div>
 
@@ -192,32 +199,34 @@ function e($value) {
 <template id="family-member-template">
     <div class="family-member-card border border-gray-200 rounded-lg p-4 bg-gray-50 relative">
         <button type="button" class="remove-member-btn absolute top-2 right-2 text-red-500 hover:text-red-700" title="Rimuovi membro">
+            <?php if (!$is_admin_view): ?>
             <i class="fas fa-trash-alt"></i>
+            <?php endif; ?>
         </button>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label class="form-label text-sm">Nome e Cognome</label>
-                <input type="text" class="form-input member-nome" placeholder="Mario Rossi" required>
+                <input type="text" class="form-input member-nome" placeholder="Mario Rossi" required <?php if ($is_admin_view) echo 'disabled'; ?>>
             </div>
             <div>
                 <label class="form-label text-sm">Parentela</label>
-                <input type="text" class="form-input member-parentela" placeholder="Padre, Figlio, ecc." required>
+                <input type="text" class="form-input member-parentela" placeholder="Padre, Figlio, ecc." required <?php if ($is_admin_view) echo 'disabled'; ?>>
             </div>
             <div>
                 <label class="form-label text-sm">Luogo di Nascita</label>
-                <input type="text" class="form-input member-luogo-nascita" placeholder="Firenze" required>
+                <input type="text" class="form-input member-luogo-nascita" placeholder="Firenze" required <?php if ($is_admin_view) echo 'disabled'; ?>>
             </div>
             <div>
                 <label class="form-label text-sm">Data di Nascita</label>
                 <div class="grid grid-cols-3 gap-2">
                     <div>
-                        <select class="form-input text-sm member-data-nascita-giorno" aria-label="Giorno di nascita membro"><option value="">Giorno</option></select>
+                        <select class="form-input text-sm member-data-nascita-giorno" aria-label="Giorno di nascita membro" <?php if ($is_admin_view) echo 'disabled'; ?>><option value="">Giorno</option></select>
                     </div>
                     <div>
-                        <select class="form-input text-sm member-data-nascita-mese" aria-label="Mese di nascita membro"><option value="">Mese</option></select>
+                        <select class="form-input text-sm member-data-nascita-mese" aria-label="Mese di nascita membro" <?php if ($is_admin_view) echo 'disabled'; ?>><option value="">Mese</option></select>
                     </div>
                     <div>
-                        <select class="form-input text-sm member-data-nascita-anno" aria-label="Anno di nascita membro"><option value="">Anno</option></select>
+                        <select class="form-input text-sm member-data-nascita-anno" aria-label="Anno di nascita membro" <?php if ($is_admin_view) echo 'disabled'; ?>><option value="">Anno</option></select>
                     </div>
                 </div>
                 <input type="hidden" class="member-data-nascita" required>
@@ -231,6 +240,7 @@ function e($value) {
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 
 <script>
+
 document.addEventListener('DOMContentLoaded', function() {
     // --- IMPOSTAZIONI INIZIALI ---
     const dataFirmaInput = document.getElementById('data_firma');
@@ -307,9 +317,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         setupDateInputs(daySelect, monthSelect, yearSelect, hiddenInput, data.data_nascita || '');
 
-        card.querySelector('.remove-member-btn').addEventListener('click', () => {
-            card.remove();
-        });
+        const removeBtn = card.querySelector('.remove-member-btn');
+        if (removeBtn) {
+            removeBtn.addEventListener('click', () => card.remove());
+        }
 
         container.appendChild(card);
     }
@@ -354,7 +365,11 @@ document.addEventListener('DOMContentLoaded', function() {
     let signaturePad = null;
 
     function initializeSignaturePad() {
-        if (canvas && !signaturePad) {
+        if (canvas) {
+            // Se l'istanza esiste già, la disattiviamo per ricrearla.
+            if (signaturePad) {
+                signaturePad.off();
+            }
             signaturePad = new SignaturePad(canvas, { penColor: 'blue' });
             resizeCanvas();
         }
@@ -391,12 +406,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         if (target.id === 'modify-signature') {
+
             event.preventDefault();
             signatureImage.classList.add('hidden');
-            target.style.display = 'none';
             $('#firma_data').val('');
             canvas.classList.remove('hidden');
             initializeSignaturePad();
+            
+            // Sostituisce il contenuto del div dei controlli con i nuovi pulsanti, rendendoli visibili.
             signatureControls.innerHTML = `<div class="space-x-4">
                                             <button type="button" id="undo-signature" class="text-sm text-gray-600 hover:text-primary">Annulla tratto</button>
                                             <button type="button" id="clear-signature" class="text-sm text-gray-600 hover:text-primary">Pulisci</button>
@@ -404,25 +421,33 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // --- GESTIONE VISTA ADMIN ---
+    // Se è la vista admin, nascondi i controlli non necessari.
+    // La disabilitazione degli input è già gestita in PHP.
+    <?php if ($is_admin_view): ?>
+        $('#add-member-btn, #signature-controls, #save-btn').hide();
+    <?php endif; ?>
+
     // --- GESTIONE SUBMIT ---
     $('#autocert-form').on('submit', function(e) {
         e.preventDefault();
 
-        // 1. Raccogli dati famiglia
+        // 1. Raccogli i dati dei membri della famiglia e li inserisce nel campo nascosto
         collectFamilyData();
 
-        // 2. Salva la firma
+        // 2. Salva la firma dal canvas al campo nascosto, se è stata disegnata
         if (signaturePad && !signaturePad.isEmpty()) {
             $('#firma_data').val(signaturePad.toDataURL('image/png'));
         }
 
-        // 3. Validazione firma
-        if (!$('#firma_data').val()) {
+        // 3. Validazione: controlla che la firma esista e non sia un'immagine vuota
+        const firmaData = $('#firma_data').val();
+        if (!firmaData || firmaData === 'data:,') {
             alert('La firma è obbligatoria.');
             return;
         }
 
-        // 4. Invia i dati con AJAX
+        // 4. Prepara e invia i dati con AJAX
         const formData = new FormData(this);
         const saveBtn = $('#save-btn');
         saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Salvataggio in corso...');
@@ -433,13 +458,14 @@ document.addEventListener('DOMContentLoaded', function() {
             data: formData,
             processData: false,
             contentType: false,
+            dataType: 'json', // Specifica che ci aspettiamo una risposta JSON
             success: function(response) {
                 if (response.status === 'success') {
                     // Comunica alla finestra genitore di mostrare il toast e ricaricare
                     if (window.parent && typeof window.parent.showToast === 'function') {
                         window.parent.showToast('Autocertificazione salvata con successo!');
                     }
-                     // Ricarica la pagina del modulo principale per vedere l'allegato aggiornato
+                     // Ricarica la pagina del modulo principale per vedere l'allegato aggiornato e chiudere la modale
                     setTimeout(() => {
                         if (window.parent) {
                            window.parent.location.reload();
@@ -452,10 +478,7 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 let errorMsg = 'Si è verificato un errore durante il salvataggio.';
-                if (jqXHR.responseJSON && jqXHR.responseJSON.message) {
-                    errorMsg = jqXHR.responseJSON.message;
-                }
-                alert(errorMsg);
+                alert(errorMsg + "\nDettagli: " + (jqXHR.responseJSON ? jqXHR.responseJSON.message : errorThrown));
                 saveBtn.prop('disabled', false).html('<i class="fas fa-save mr-2"></i> Salva e Genera Autocertificazione');
             }
         });

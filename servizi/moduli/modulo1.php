@@ -495,12 +495,13 @@ function e($value) {
                 <!-- I box di upload verranno inseriti qui da JavaScript -->
                 <?php
                 function render_upload_box($doc_type, $title, $description, $token, $saved_files = []) {
+                    global $is_admin_view; // Rende visibile la variabile globale
                     ob_start();
                 ?>
                 
 
                     
-           
+
                 <div id="container-for-<?php echo $doc_type; ?>" class="upload-section-container hidden" data-doc-type="<?php echo $doc_type; ?>">
 
                     <h3 class="font-semibold text-lg text-gray-800 mb-2"><?php echo $title; ?></h3>
@@ -512,8 +513,20 @@ function e($value) {
                             $modal_icon = ($doc_type === 'autocertificazione_famiglia') ? 'fa-file-signature' : 'fa-user-check';
                             $modal_link = ($doc_type === 'autocertificazione_famiglia') ? 'modulo_autocertificazione_stato_famiglia.php' : 'modulo_dichiarazione_frequenza.php';
                         ?>
-                        <div class="mb-2"> 
-                            <a href="<?php echo $modal_link; ?>?token=<?php echo htmlspecialchars($token); ?>&origin_form_name=<?php echo htmlspecialchars($GLOBALS['form_name']); ?>&origin_prestazione=<?php echo htmlspecialchars($GLOBALS['prestazione_selezionata']); ?>&origin_module=modulo1" 
+                        <?php
+                            $iframe_url_params = [
+                                'token' => $token,
+                                'origin_form_name' => $GLOBALS['form_name'],
+                                'origin_prestazione' => $GLOBALS['prestazione_selezionata'],
+                                'origin_module' => 'modulo1'
+                            ];
+                            if ($is_admin_view) {
+                                $iframe_url_params['is_admin_view'] = 1;
+                            }
+                            $iframe_url = $modal_link . '?' . http_build_query($iframe_url_params);
+                        ?>
+                        <div class="mb-2">
+                            <a href="<?php echo htmlspecialchars($iframe_url); ?>" 
                                class="open-compilation-modal inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
                                data-modal-title="<?php echo htmlspecialchars($modal_title); ?>">
                                 <i class="fas <?php echo $modal_icon; ?> mr-2"></i> Compila il modulo
@@ -559,8 +572,8 @@ function e($value) {
                 <?php
                     return ob_get_clean();
                 }
-
                 $allegati = $saved_data['allegati'] ?? []; // Recupera gli allegati salvati
+                // Correzione: la funzione accetta 5 parametri, non 6. $is_admin_view è ora globale all'interno della funzione.
                 echo render_upload_box('autocertificazione_famiglia', 'Autocertificazione Stato di Famiglia', 'Documento che attesta la composizione del nucleo familiare.', $token, $allegati['autocertificazione_famiglia'] ?? []);
                 echo render_upload_box('certificato_iscrizione_nido', 'Certificato Iscrizione Asilo Nido', 'Certificato rilasciato dalla struttura.', $token, $allegati['certificato_iscrizione_nido'] ?? []);
                 echo render_upload_box('dichiarazione_frequenza', 'Dichiarazione Sostitutiva di Iscrizione e Frequenza', 'Compila la dichiarazione di frequenza per l\'anno scolastico corrente.', $token, $allegati['dichiarazione_frequenza'] ?? []);

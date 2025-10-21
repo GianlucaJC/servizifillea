@@ -6,6 +6,7 @@ $token = $_GET['token'] ?? null;
 $origin_form_name = $_GET['origin_form_name'] ?? null;
 $origin_prestazione = $_GET['origin_prestazione'] ?? null;
 $origin_module = $_GET['origin_module'] ?? null;
+$is_admin_view = isset($_GET['is_admin_view']) && $_GET['is_admin_view'] == 1; // Rileva la modalità admin
 
 $user_id = null;
 $saved_data = [];
@@ -95,36 +96,36 @@ function e($value) {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label for="sottoscrittore_nome_cognome" class="form-label">Cognome e Nome</label>
-                    <input type="text" id="sottoscrittore_nome_cognome" name="sottoscrittore_nome_cognome" class="form-input" value="<?php e($saved_data['sottoscrittore_nome_cognome'] ?? ''); ?>" required>
+                    <input type="text" id="sottoscrittore_nome_cognome" name="sottoscrittore_nome_cognome" class="form-input" value="<?php e($saved_data['sottoscrittore_nome_cognome'] ?? ''); ?>" required <?php if ($is_admin_view) echo 'disabled'; ?>>
                 </div>
                 <div>
                     <label class="form-label">Data di Nascita</label>
                     <div class="grid grid-cols-3 gap-2">
-                        <select id="sottoscrittore_data_nascita_giorno" class="form-input text-sm"><option value="">Giorno</option></select>
-                        <select id="sottoscrittore_data_nascita_mese" class="form-input text-sm"><option value="">Mese</option></select>
-                        <select id="sottoscrittore_data_nascita_anno" class="form-input text-sm"><option value="">Anno</option></select>
+                        <select id="sottoscrittore_data_nascita_giorno" class="form-input text-sm" <?php if ($is_admin_view) echo 'disabled'; ?>><option value="">Giorno</option></select>
+                        <select id="sottoscrittore_data_nascita_mese" class="form-input text-sm" <?php if ($is_admin_view) echo 'disabled'; ?>><option value="">Mese</option></select>
+                        <select id="sottoscrittore_data_nascita_anno" class="form-input text-sm" <?php if ($is_admin_view) echo 'disabled'; ?>><option value="">Anno</option></select>
                     </div>
                     <input type="hidden" id="sottoscrittore_data_nascita" name="sottoscrittore_data_nascita" value="<?php e($saved_data['sottoscrittore_data_nascita'] ?? ''); ?>">
                 </div>
                 <div>
                     <label for="sottoscrittore_luogo_nascita" class="form-label">Luogo di Nascita</label>
-                    <input type="text" id="sottoscrittore_luogo_nascita" name="sottoscrittore_luogo_nascita" class="form-input" value="<?php e($saved_data['sottoscrittore_luogo_nascita'] ?? ''); ?>" required>
+                    <input type="text" id="sottoscrittore_luogo_nascita" name="sottoscrittore_luogo_nascita" class="form-input" value="<?php e($saved_data['sottoscrittore_luogo_nascita'] ?? ''); ?>" required <?php if ($is_admin_view) echo 'disabled'; ?>>
                 </div>
                 <div>
                     <label for="sottoscrittore_prov_nascita" class="form-label">Prov. di Nascita</label>
-                    <input type="text" id="sottoscrittore_prov_nascita" name="sottoscrittore_prov_nascita" class="form-input" value="<?php e($saved_data['sottoscrittore_prov_nascita'] ?? ''); ?>" maxlength="2" required>
+                    <input type="text" id="sottoscrittore_prov_nascita" name="sottoscrittore_prov_nascita" class="form-input" value="<?php e($saved_data['sottoscrittore_prov_nascita'] ?? ''); ?>" maxlength="2" required <?php if ($is_admin_view) echo 'disabled'; ?>>
                 </div>
                 <div>
                     <label for="sottoscrittore_residenza_comune" class="form-label">Comune di Residenza</label>
-                    <input type="text" id="sottoscrittore_residenza_comune" name="sottoscrittore_residenza_comune" class="form-input" value="<?php e($saved_data['sottoscrittore_residenza_comune'] ?? ''); ?>" required>
+                    <input type="text" id="sottoscrittore_residenza_comune" name="sottoscrittore_residenza_comune" class="form-input" value="<?php e($saved_data['sottoscrittore_residenza_comune'] ?? ''); ?>" required <?php if ($is_admin_view) echo 'disabled'; ?>>
                 </div>
                 <div>
                     <label for="sottoscrittore_residenza_prov" class="form-label">Prov. di Residenza</label>
-                    <input type="text" id="sottoscrittore_residenza_prov" name="sottoscrittore_residenza_prov" class="form-input" value="<?php e($saved_data['sottoscrittore_residenza_prov'] ?? ''); ?>" maxlength="2" required>
+                    <input type="text" id="sottoscrittore_residenza_prov" name="sottoscrittore_residenza_prov" class="form-input" value="<?php e($saved_data['sottoscrittore_residenza_prov'] ?? ''); ?>" maxlength="2" required <?php if ($is_admin_view) echo 'disabled'; ?>>
                 </div>
                 <div class="md:col-span-2">
                     <label for="sottoscrittore_residenza_indirizzo" class="form-label">Indirizzo e n. civico</label>
-                    <input type="text" id="sottoscrittore_residenza_indirizzo" name="sottoscrittore_residenza_indirizzo" class="form-input" value="<?php e($saved_data['sottoscrittore_residenza_indirizzo'] ?? ''); ?>" required>
+                    <input type="text" id="sottoscrittore_residenza_indirizzo" name="sottoscrittore_residenza_indirizzo" class="form-input" value="<?php e($saved_data['sottoscrittore_residenza_indirizzo'] ?? ''); ?>" required <?php if ($is_admin_view) echo 'disabled'; ?>>
                 </div>
             </div>
         </div>
@@ -137,13 +138,13 @@ function e($value) {
                 <div>
                     <label class="form-label">In qualità di:</label>
                     <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <label class="radio-label"><input type="radio" name="qualita_dichiarante" value="Dichiarante" class="mr-2" <?php if (($saved_data['qualita_dichiarante'] ?? '') === 'Dichiarante') echo 'checked'; ?>>Dichiarante</label>
-                        <label class="radio-label"><input type="radio" name="qualita_dichiarante" value="Genitore" class="mr-2" <?php if (($saved_data['qualita_dichiarante'] ?? 'Genitore') === 'Genitore') echo 'checked'; ?>>Genitore</label>
-                        <label class="radio-label"><input type="radio" name="qualita_dichiarante" value="Altro" class="mr-2" <?php if (($saved_data['qualita_dichiarante'] ?? '') === 'Altro') echo 'checked'; ?>>Altro</label>
+                        <label class="radio-label"><input type="radio" name="qualita_dichiarante" value="Dichiarante" class="mr-2" <?php if (($saved_data['qualita_dichiarante'] ?? '') === 'Dichiarante') echo 'checked'; ?> <?php if ($is_admin_view) echo 'disabled'; ?>>Dichiarante</label>
+                        <label class="radio-label"><input type="radio" name="qualita_dichiarante" value="Genitore" class="mr-2" <?php if (($saved_data['qualita_dichiarante'] ?? 'Genitore') === 'Genitore') echo 'checked'; ?> <?php if ($is_admin_view) echo 'disabled'; ?>>Genitore</label>
+                        <label class="radio-label"><input type="radio" name="qualita_dichiarante" value="Altro" class="mr-2" <?php if (($saved_data['qualita_dichiarante'] ?? '') === 'Altro') echo 'checked'; ?> <?php if ($is_admin_view) echo 'disabled'; ?>>Altro</label>
                     </div>
                     <div id="qualita_altro_container" class="mt-4 <?php if (($saved_data['qualita_dichiarante'] ?? '') !== 'Altro') echo 'hidden'; ?>">
                         <label for="qualita_altro_specifica" class="form-label">Specificare (es. Tutore, Legale Rapp.)</label>
-                        <input type="text" id="qualita_altro_specifica" name="qualita_altro_specifica" class="form-input" value="<?php e($saved_data['qualita_altro_specifica'] ?? ''); ?>">
+                        <input type="text" id="qualita_altro_specifica" name="qualita_altro_specifica" class="form-input" value="<?php e($saved_data['qualita_altro_specifica'] ?? ''); ?>" <?php if ($is_admin_view) echo 'disabled'; ?>>
                     </div>
                 </div>
 
@@ -153,24 +154,24 @@ function e($value) {
                     <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-6 border p-4 rounded-md bg-gray-50">
                         <div>
                             <label for="minore_nome_cognome" class="form-label text-sm">Cognome e Nome</label>
-                            <input type="text" id="minore_nome_cognome" name="minore_nome_cognome" class="form-input" value="<?php e($saved_data['minore_nome_cognome'] ?? ''); ?>">
+                            <input type="text" id="minore_nome_cognome" name="minore_nome_cognome" class="form-input" value="<?php e($saved_data['minore_nome_cognome'] ?? ''); ?>" <?php if ($is_admin_view) echo 'disabled'; ?>>
                         </div>
                         <div>
                             <label class="form-label text-sm">Data di Nascita</label>
                             <div class="grid grid-cols-3 gap-2">
-                                <select id="minore_data_nascita_giorno" class="form-input text-sm"><option value="">Giorno</option></select>
-                                <select id="minore_data_nascita_mese" class="form-input text-sm"><option value="">Mese</option></select>
-                                <select id="minore_data_nascita_anno" class="form-input text-sm"><option value="">Anno</option></select>
+                                <select id="minore_data_nascita_giorno" class="form-input text-sm" <?php if ($is_admin_view) echo 'disabled'; ?>><option value="">Giorno</option></select>
+                                <select id="minore_data_nascita_mese" class="form-input text-sm" <?php if ($is_admin_view) echo 'disabled'; ?>><option value="">Mese</option></select>
+                                <select id="minore_data_nascita_anno" class="form-input text-sm" <?php if ($is_admin_view) echo 'disabled'; ?>><option value="">Anno</option></select>
                             </div>
                             <input type="hidden" id="minore_data_nascita" name="minore_data_nascita" value="<?php e($saved_data['minore_data_nascita'] ?? ''); ?>">
                         </div>
                         <div>
                             <label for="minore_luogo_nascita" class="form-label text-sm">Luogo di Nascita</label>
-                            <input type="text" id="minore_luogo_nascita" name="minore_luogo_nascita" class="form-input" value="<?php e($saved_data['minore_luogo_nascita'] ?? ''); ?>">
+                            <input type="text" id="minore_luogo_nascita" name="minore_luogo_nascita" class="form-input" value="<?php e($saved_data['minore_luogo_nascita'] ?? ''); ?>" <?php if ($is_admin_view) echo 'disabled'; ?>>
                         </div>
                         <div>
                             <label for="minore_prov_nascita" class="form-label text-sm">Prov. di Nascita</label>
-                            <input type="text" id="minore_prov_nascita" name="minore_prov_nascita" class="form-input" value="<?php e($saved_data['minore_prov_nascita'] ?? ''); ?>" maxlength="2">
+                            <input type="text" id="minore_prov_nascita" name="minore_prov_nascita" class="form-input" value="<?php e($saved_data['minore_prov_nascita'] ?? ''); ?>" maxlength="2" <?php if ($is_admin_view) echo 'disabled'; ?>>
                         </div>
                     </div>
                 </div>
@@ -189,7 +190,7 @@ function e($value) {
                         $selected_ciclo = $saved_data['ciclo_studi'] ?? '';
                         foreach ($cicli as $key => $label):
                         ?>
-                        <label class="radio-label"><input type="radio" name="ciclo_studi" value="<?php echo $key; ?>" class="mr-2" <?php if ($selected_ciclo === $key) echo 'checked'; ?>> <?php echo $label; ?></label>
+                        <label class="radio-label"><input type="radio" name="ciclo_studi" value="<?php echo $key; ?>" class="mr-2" <?php if ($selected_ciclo === $key) echo 'checked'; ?> <?php if ($is_admin_view) echo 'disabled'; ?>> <?php echo $label; ?></label>
                         <?php endforeach; ?>
                     </div>
                 </div>
@@ -200,19 +201,19 @@ function e($value) {
                     <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 border p-4 rounded-md bg-gray-50">
                         <div>
                             <label for="frequenza_classe" class="form-label text-sm">della classe</label>
-                            <input type="text" id="frequenza_classe" name="frequenza_classe" class="form-input" value="<?php e($saved_data['frequenza_classe'] ?? ''); ?>">
+                            <input type="text" id="frequenza_classe" name="frequenza_classe" class="form-input" value="<?php e($saved_data['frequenza_classe'] ?? ''); ?>" <?php if ($is_admin_view) echo 'disabled'; ?>>
                         </div>
                         <div>
                             <label for="frequenza_sezione" class="form-label text-sm">Sezione</label>
-                            <input type="text" id="frequenza_sezione" name="frequenza_sezione" class="form-input" value="<?php e($saved_data['frequenza_sezione'] ?? ''); ?>">
+                            <input type="text" id="frequenza_sezione" name="frequenza_sezione" class="form-input" value="<?php e($saved_data['frequenza_sezione'] ?? ''); ?>" <?php if ($is_admin_view) echo 'disabled'; ?>>
                         </div>
                         <div class="sm:col-span-2">
                             <label for="frequenza_istituto" class="form-label text-sm">dell'Istituto</label>
-                            <input type="text" id="frequenza_istituto" name="frequenza_istituto" class="form-input" value="<?php e($saved_data['frequenza_istituto'] ?? ''); ?>">
+                            <input type="text" id="frequenza_istituto" name="frequenza_istituto" class="form-input" value="<?php e($saved_data['frequenza_istituto'] ?? ''); ?>" <?php if ($is_admin_view) echo 'disabled'; ?>>
                         </div>
                         <div class="sm:col-span-2 md:col-span-4">
                             <label for="frequenza_comune_istituto" class="form-label text-sm">di (Comune ove è ubicato l'Istituto)</label>
-                            <input type="text" id="frequenza_comune_istituto" name="frequenza_comune_istituto" class="form-input" value="<?php e($saved_data['frequenza_comune_istituto'] ?? ''); ?>">
+                            <input type="text" id="frequenza_comune_istituto" name="frequenza_comune_istituto" class="form-input" value="<?php e($saved_data['frequenza_comune_istituto'] ?? ''); ?>" <?php if ($is_admin_view) echo 'disabled'; ?>>
                         </div>
                     </div>
                 </div>
@@ -223,19 +224,19 @@ function e($value) {
                     <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 border p-4 rounded-md bg-gray-50">
                         <div>
                             <label for="frequenza_triennio_classe" class="form-label text-sm">della classe</label>
-                            <input type="text" id="frequenza_triennio_classe" name="frequenza_triennio_classe" class="form-input" value="<?php e($saved_data['frequenza_triennio_classe'] ?? ''); ?>">
+                            <input type="text" id="frequenza_triennio_classe" name="frequenza_triennio_classe" class="form-input" value="<?php e($saved_data['frequenza_triennio_classe'] ?? ''); ?>" <?php if ($is_admin_view) echo 'disabled'; ?>>
                         </div>
                         <div>
                             <label for="frequenza_triennio_sezione" class="form-label text-sm">Sezione</label>
-                            <input type="text" id="frequenza_triennio_sezione" name="frequenza_triennio_sezione" class="form-input" value="<?php e($saved_data['frequenza_triennio_sezione'] ?? ''); ?>">
+                            <input type="text" id="frequenza_triennio_sezione" name="frequenza_triennio_sezione" class="form-input" value="<?php e($saved_data['frequenza_triennio_sezione'] ?? ''); ?>" <?php if ($is_admin_view) echo 'disabled'; ?>>
                         </div>
                         <div class="sm:col-span-2">
                             <label for="frequenza_triennio_istituto" class="form-label text-sm">dell'Istituto</label>
-                            <input type="text" id="frequenza_triennio_istituto" name="frequenza_triennio_istituto" class="form-input" value="<?php e($saved_data['frequenza_triennio_istituto'] ?? ''); ?>">
+                            <input type="text" id="frequenza_triennio_istituto" name="frequenza_triennio_istituto" class="form-input" value="<?php e($saved_data['frequenza_triennio_istituto'] ?? ''); ?>" <?php if ($is_admin_view) echo 'disabled'; ?>>
                         </div>
                         <div class="sm:col-span-2 md:col-span-4">
                             <label for="frequenza_triennio_comune_istituto" class="form-label text-sm">di (Comune ove è ubicato l'Istituto)</label>
-                            <input type="text" id="frequenza_triennio_comune_istituto" name="frequenza_triennio_comune_istituto" class="form-input" value="<?php e($saved_data['frequenza_triennio_comune_istituto'] ?? ''); ?>">
+                            <input type="text" id="frequenza_triennio_comune_istituto" name="frequenza_triennio_comune_istituto" class="form-input" value="<?php e($saved_data['frequenza_triennio_comune_istituto'] ?? ''); ?>" <?php if ($is_admin_view) echo 'disabled'; ?>>
                         </div>
                     </div>
                 </div>
@@ -248,11 +249,11 @@ function e($value) {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label for="luogo_firma" class="form-label">Luogo</label>
-                    <input type="text" id="luogo_firma" name="luogo_firma" class="form-input" value="<?php e($saved_data['luogo_firma'] ?? 'Firenze'); ?>" required>
+                    <input type="text" id="luogo_firma" name="luogo_firma" class="form-input" value="<?php e($saved_data['luogo_firma'] ?? 'Firenze'); ?>" required <?php if ($is_admin_view) echo 'disabled'; ?>>
                 </div>
                 <div>
                     <label for="data_firma" class="form-label">Data</label>
-                    <input type="date" id="data_firma" name="data_firma" class="form-input" value="<?php e($saved_data['data_firma'] ?? ''); ?>" required>
+                    <input type="date" id="data_firma" name="data_firma" class="form-input" value="<?php e($saved_data['data_firma'] ?? ''); ?>" required <?php if ($is_admin_view) echo 'disabled'; ?>>
                 </div>
                 <div class="md:col-span-2">
                     <label class="form-label">Firma Digitale</label>
@@ -262,24 +263,28 @@ function e($value) {
                         <canvas id="signature-pad" class="w-full h-48 <?php if ($has_signature) echo 'hidden'; ?>"></canvas>
                     </div>
                     <div id="signature-controls" class="flex justify-end mt-2">
-                        <?php if ($has_signature): ?>
-                            <button type="button" id="modify-signature" class="text-sm text-blue-600 hover:text-blue-800 font-semibold"><i class="fas fa-pencil-alt mr-1"></i> Modifica Firma</button>
-                        <?php else: ?>
-                            <div class="space-x-4">
-                                <button type="button" id="undo-signature" class="text-sm text-gray-600 hover:text-primary">Annulla tratto</button>
-                                <button type="button" id="clear-signature" class="text-sm text-gray-600 hover:text-primary">Pulisci</button>
-                            </div>
+                        <?php if (!$is_admin_view): ?>
+                            <?php if ($has_signature): ?>
+                                <button type="button" id="modify-signature" class="text-sm text-blue-600 hover:text-blue-800 font-semibold"><i class="fas fa-pencil-alt mr-1"></i> Modifica Firma</button>
+                            <?php else: ?>
+                                <div class="space-x-4">
+                                    <button type="button" id="undo-signature" class="text-sm text-gray-600 hover:text-primary">Annulla tratto</button>
+                                    <button type="button" id="clear-signature" class="text-sm text-gray-600 hover:text-primary">Pulisci</button>
+                                </div>
+                            <?php endif; ?>
                         <?php endif; ?>
                     </div>
                 </div>
             </div>
         </div>
 
+        <?php if (!$is_admin_view): ?>
         <div class="mt-8 text-center">
             <button type="submit" id="save-btn" class="btn-primary w-full md:w-auto">
                 <i class="fas fa-save mr-2"></i> Salva e Genera Dichiarazione
             </button>
         </div>
+        <?php endif; ?>
     </form>
 </div>
 
@@ -358,12 +363,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const signatureControls = document.getElementById('signature-controls');
     let signaturePad = null;
 
+
     function initializeSignaturePad() {
-        if (canvas && !signaturePad) {
+        if (canvas) {
+            // Se l'istanza esiste già, la disattiviamo per ricrearla.
+            if (signaturePad) {
+                signaturePad.off();
+            }
             signaturePad = new SignaturePad(canvas, { penColor: 'blue' });
             resizeCanvas();
         }
-    }
+    }    
 
     function resizeCanvas() {
         if (!signaturePad) return;

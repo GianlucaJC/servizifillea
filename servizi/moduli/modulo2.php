@@ -366,9 +366,15 @@ function e($value) {
                 <div id="container-for-<?php echo $doc_type; ?>" class="upload-section-container hidden" data-doc-type="<?php echo $doc_type; ?>">
                     <h3 class="font-semibold text-lg text-gray-800 mb-2"><?php echo $title; ?></h3>
                     <p class="text-sm text-gray-500 mb-4"><?php echo $description; ?></p>
+                    <?php global $is_admin_view; // Access the global variable ?>
                     <?php if ($doc_type === 'autocertificazione_famiglia'): ?>
                         <div class="mb-2">
-                            <a href="modulo_autocertificazione_stato_famiglia.php?token=<?php echo htmlspecialchars($token_user); ?>&origin_form_name=<?php echo htmlspecialchars($GLOBALS['form_name']); ?>&origin_prestazione=<?php echo htmlspecialchars($GLOBALS['prestazione_selezionata']); ?>&origin_module=modulo2" class="open-autocert-modal inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
+                            <?php
+                                $iframe_url_params = ['token' => $token_user, 'origin_form_name' => $GLOBALS['form_name'], 'origin_prestazione' => $GLOBALS['prestazione_selezionata'], 'origin_module' => 'modulo2'];
+                                if ($is_admin_view) { $iframe_url_params['is_admin_view'] = 1; }
+                                $iframe_url = 'modulo_autocertificazione_stato_famiglia.php?' . http_build_query($iframe_url_params);
+                            ?>
+                            <a href="<?php echo htmlspecialchars($iframe_url); ?>" class="open-autocert-modal inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
                                 <i class="fas fa-file-signature mr-2"></i> Compila autocertificazione
                             </a>
                         </div>
@@ -396,29 +402,26 @@ function e($value) {
                     return ob_get_clean();
                 }
                 $allegati = $saved_data['allegati'] ?? []; // Recupera gli allegati salvati
-                echo render_upload_box('certificato_matrimonio', 'Certificato di Matrimonio/Unione Civile', 'Certificato ufficiale o autocertificazione.', $token_user, $allegati['certificato_matrimonio'] ?? []);
-
-                
-                echo render_upload_box('documento_identita', 'Documento d\'Identità', 'Copia fronte/retro del documento del richiedente.', $token_user, $allegati['documento_identita'] ?? []);
-                echo render_upload_box('certificato_nascita', 'Certificato di Nascita/Adozione', 'Estratto di nascita o provvedimento di adozione.', $token_user, $allegati['certificato_nascita'] ?? []);
-                echo render_upload_box('attestazione_donazione', 'Attestazione Donazione', 'Certificato della struttura sanitaria che attesta la donazione.', $token_user, $allegati['attestazione_donazione'] ?? []);
-                echo render_upload_box('certificazione_disabilita', 'Certificazione Disabilità', 'Documentazione sanitaria (es. L. 104/92) che attesti la condizione.', $token_user, $allegati['certificazione_disabilita'] ?? []);
-                echo render_upload_box('lettera_licenziamento', 'Lettera di Licenziamento', 'Lettera con indicazione della causale di superamento comporto.', $token_user, $allegati['lettera_licenziamento'] ?? []);
-                
-                echo render_upload_box('ricevuta_attivita_sportiva', 'Ricevuta Attività Sportiva', 'Fattura o ricevuta che attesti l\'iscrizione e la spesa.', $token_user, $allegati['ricevuta_attivita_sportiva'] ?? []);
-                echo render_upload_box('certificato_frequenza_sport', 'Certificato di Frequenza Attività Sportiva', 'Certificato di frequenza alla attività sportiva o ricreativa, per un tempo non inferiore a quattro mesi continuativi', $token_user, $allegati['certificato_frequenza_sport'] ?? []);
-                echo render_upload_box('contratto_affitto', 'Contratto di Affitto', 'Copia del contratto registrato.', $token_user, $allegati['contratto_affitto'] ?? []);
-                echo render_upload_box('autocertificazione_famiglia', 'Autocertificazione Stato di Famiglia', 'Documento che attesta la composizione del nucleo familiare.', $token_user, $allegati['autocertificazione_famiglia'] ?? []);
-                echo render_upload_box('ricevuta_pagamento_affitto', 'Ricevuta Ultimo Pagamento Affitto', 'Ricevuta ultimo pagamento riferita al massimo entro i 6 mesi antecedenti il mese in cui viene presentata la domanda.', $token_user, $allegati['ricevuta_pagamento_affitto'] ?? []);
-                echo render_upload_box('dichiarazione_frequenza', 'Dichiarazione Sostitutiva di Iscrizione e Frequenza', 'Compila la dichiarazione di frequenza per l\'anno scolastico corrente.', $token_user, $allegati['dichiarazione_frequenza'] ?? []);
-                echo render_upload_box('documentazione_sfratto', 'Documentazione Sfratto', 'Ordinanza del giudice o altri documenti ufficiali.', $token_user, $allegati['documentazione_sfratto'] ?? []);
-             
-                echo render_upload_box('congedo_militare', 'Eventuale fotocopia del congedo', 'Se richiesto, copia del congedo militare.', $token_user, $allegati['congedo_militare'] ?? []);
-                echo render_upload_box('autocertificazione_paternita', 'Autocertificazione di Paternità', 'autocertificazione che attesti che il lavoratore è il padre', $token_user, $allegati['autocertificazione_paternita'] ?? []);
-                echo render_upload_box('modello_isee', 'Modello ISEE', 'Modello ISEE valido per l\'anno corrente (se richiesto dal regolamento).', $token_user, $allegati['modello_isee'] ?? []);
-                echo render_upload_box('documentazione_stato_necessita', 'Stato di Famiglia e Documentazione Reddituale', 'Documentazione che attesti lo stato di famiglia e lo stato di necessità (es. ISEE, buste paga, etc.).', $token_user, $allegati['documentazione_stato_necessita'] ?? []);
-                echo render_upload_box('documentazione_medica_comporto', 'Documentazione Medica per Comporto', 'Documentazione medica se il licenziamento è per superamento del comporto.', $token_user, $allegati['documentazione_medica_comporto'] ?? []);
-                echo render_upload_box('copia_permesso_soggiorno', 'Copia Permesso/Carta di Soggiorno', 'Copia del documento di soggiorno per cui si richiede il rimborso.', $token_user, $allegati['copia_permesso_soggiorno'] ?? []);
+                // Passa la variabile $is_admin_view alla funzione render_upload_box
+                echo render_upload_box('certificato_matrimonio', 'Certificato di Matrimonio/Unione Civile', 'Certificato ufficiale o autocertificazione.', $token_user, $is_admin_view, $allegati['certificato_matrimonio'] ?? []);
+                echo render_upload_box('documento_identita', 'Documento d\'Identità', 'Copia fronte/retro del documento del richiedente.', $token_user, $is_admin_view, $allegati['documento_identita'] ?? []);
+                echo render_upload_box('certificato_nascita', 'Certificato di Nascita/Adozione', 'Estratto di nascita o provvedimento di adozione.', $token_user, $is_admin_view, $allegati['certificato_nascita'] ?? []);
+                echo render_upload_box('attestazione_donazione', 'Attestazione Donazione', 'Certificato della struttura sanitaria che attesta la donazione.', $token_user, $is_admin_view, $allegati['attestazione_donazione'] ?? []);
+                echo render_upload_box('certificazione_disabilita', 'Certificazione Disabilità', 'Documentazione sanitaria (es. L. 104/92) che attesti la condizione.', $token_user, $is_admin_view, $allegati['certificazione_disabilita'] ?? []);
+                echo render_upload_box('lettera_licenziamento', 'Lettera di Licenziamento', 'Lettera con indicazione della causale di superamento comporto.', $token_user, $is_admin_view, $allegati['lettera_licenziamento'] ?? []);
+                echo render_upload_box('ricevuta_attivita_sportiva', 'Ricevuta Attività Sportiva', 'Fattura o ricevuta che attesti l\'iscrizione e la spesa.', $token_user, $is_admin_view, $allegati['ricevuta_attivita_sportiva'] ?? []);
+                echo render_upload_box('certificato_frequenza_sport', 'Certificato di Frequenza Attività Sportiva', 'Certificato di frequenza alla attività sportiva o ricreativa, per un tempo non inferiore a quattro mesi continuativi', $token_user, $is_admin_view, $allegati['certificato_frequenza_sport'] ?? []);
+                echo render_upload_box('contratto_affitto', 'Contratto di Affitto', 'Copia del contratto registrato.', $token_user, $is_admin_view, $allegati['contratto_affitto'] ?? []);
+                echo render_upload_box('autocertificazione_famiglia', 'Autocertificazione Stato di Famiglia', 'Documento che attesta la composizione del nucleo familiare.', $token_user, $is_admin_view, $allegati['autocertificazione_famiglia'] ?? []);
+                echo render_upload_box('ricevuta_pagamento_affitto', 'Ricevuta Ultimo Pagamento Affitto', 'Ricevuta ultimo pagamento riferita al massimo entro i 6 mesi antecedenti il mese in cui viene presentata la domanda.', $token_user, $is_admin_view, $allegati['ricevuta_pagamento_affitto'] ?? []);
+                echo render_upload_box('dichiarazione_frequenza', 'Dichiarazione Sostitutiva di Iscrizione e Frequenza', 'Compila la dichiarazione di frequenza per l\'anno scolastico corrente.', $token_user, $is_admin_view, $allegati['dichiarazione_frequenza'] ?? []);
+                echo render_upload_box('documentazione_sfratto', 'Documentazione Sfratto', 'Ordinanza del giudice o altri documenti ufficiali.', $token_user, $is_admin_view, $allegati['documentazione_sfratto'] ?? []);
+                echo render_upload_box('congedo_militare', 'Eventuale fotocopia del congedo', 'Se richiesto, copia del congedo militare.', $token_user, $is_admin_view, $allegati['congedo_militare'] ?? []);
+                echo render_upload_box('autocertificazione_paternita', 'Autocertificazione di Paternità', 'autocertificazione che attesti che il lavoratore è il padre', $token_user, $is_admin_view, $allegati['autocertificazione_paternita'] ?? []);
+                echo render_upload_box('modello_isee', 'Modello ISEE', 'Modello ISEE valido per l\'anno corrente (se richiesto dal regolamento).', $token_user, $is_admin_view, $allegati['modello_isee'] ?? []);
+                echo render_upload_box('documentazione_stato_necessita', 'Stato di Famiglia e Documentazione Reddituale', 'Documentazione che attesti lo stato di famiglia e lo stato di necessità (es. ISEE, buste paga, etc.).', $token_user, $is_admin_view, $allegati['documentazione_stato_necessita'] ?? []);
+                echo render_upload_box('documentazione_medica_comporto', 'Documentazione Medica per Comporto', 'Documentazione medica se il licenziamento è per superamento del comporto.', $token_user, $is_admin_view, $allegati['documentazione_medica_comporto'] ?? []);
+                echo render_upload_box('copia_permesso_soggiorno', 'Copia Permesso/Carta di Soggiorno', 'Copia del documento di soggiorno per cui si richiede il rimborso.', $token_user, $is_admin_view, $allegati['copia_permesso_soggiorno'] ?? []);
                 ?>
             </div>
         </div>
