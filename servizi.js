@@ -294,4 +294,24 @@ $(document).ready(function() {
 
     // Mostra il modale delle notifiche dopo un ritardo maggiore
     setTimeout(showNotificationModal, 10000); // 10 secondi di ritardo
+
+    // --- NUOVA LOGICA PER GESTIONE NOTIFICHE ---
+    $('#notification-bell').on('click', function() {
+        const badge = $('#notification-badge');
+        const token = $("#token").val();
+
+        if (badge.length > 0 && token) {
+            // Chiamata AJAX per marcare le notifiche come lette
+            $.post('mark_notifications_read.php', { token: token })
+                .done(function(response) {
+                    if (response.status === 'success') {
+                        // Rimuovi il badge e nascondi l'area alert con un'animazione
+                        badge.remove();
+                        $('#notification-alerts-container').slideUp();
+                    } else {
+                        console.error('Errore nel marcare le notifiche come lette.');
+                    }
+                });
+        }
+    });
 });

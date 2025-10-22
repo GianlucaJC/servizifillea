@@ -23,23 +23,6 @@ if (!empty($token)) {
         $user_id = $user['id'];
         $_SESSION['user_token'] = $token; // Memorizza il token nella sessione per un accesso consistente
 
-        // Recupera le notifiche non lette per l'utente
-        $stmt_notifications = $pdo1->prepare("
-            SELECT 
-                rm.form_name, 
-                rm.status, 
-                COALESCE(m1.prestazioni, m2.prestazioni) AS prestazioni,
-                rm.modulo_nome
-            FROM `fillea-app`.richieste_master rm
-            LEFT JOIN `fillea-app`.modulo1_richieste m1 ON rm.form_name = m1.form_name COLLATE utf8mb4_unicode_ci
-            LEFT JOIN `fillea-app`.modulo2_richieste m2 ON rm.form_name = m2.form_name COLLATE utf8mb4_unicode_ci
-            WHERE rm.user_id = :user_id AND rm.user_notification_unseen = 1
-            ORDER BY rm.data_invio DESC
-        ");
-        $stmt_notifications->execute([':user_id' => $user_id]);
-        $unread_notifications = $stmt_notifications->fetchAll(PDO::FETCH_ASSOC);
-        $unread_notifications_count = count($unread_notifications);
-
         // Recupera lo stato dell'ultima richiesta e il conteggio totale per ogni tipo di prestazione
         // MODIFICA: La query ora unisce i dati da modulo1 e modulo2 per includere anche le bozze non ancora inviate (che non sono in richieste_master).
         $stmt_forms = $pdo1->prepare("
@@ -333,16 +316,6 @@ function get_count_badge($prestazione_key, $user_forms) {
         <div class="d-flex justify-content-between align-items-center py-3">
             <div>
                 <a href="servizi.php?token=<?php echo htmlspecialchars($token); ?>" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Torna ai Servizi</a>
-            </div>
-            <div class="d-flex align-items-center">
-                <!-- Icona Notifiche -->
-                <div id="notification-bell" class="position-relative me-3" style="cursor: pointer;">
-                    <i class="fas fa-bell fa-lg text-secondary"></i>
-                    <?php if ($unread_notifications_count > 0): ?>
-                        <span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"><?php echo $unread_notifications_count; ?></span>
-                    <?php endif; ?>
-                </div>
-                <!-- Menu Utente -->
                 <div class="dropdown">
                     <button class="btn rounded-circle" type="button" id="userMenuButton" data-bs-toggle="dropdown" aria-expanded="false" style="background-color: #d0112b; color: white; width: 48px; height: 48px;">
                         <i class="fas fa-user fa-lg"></i>
@@ -363,43 +336,6 @@ function get_count_badge($prestazione_key, $user_forms) {
         <i class="fas fa-hand-holding-dollar fa-3x service-header"></i>
         <h2 class="mt-3">Prestazioni Cassa Edile</h2>
         <p class="text-muted">Seleziona il tipo di prestazione che desideri richiedere.</p>
-    </div>
-
-    <!-- Area Alert Notifiche -->
-    <div id="notification-alerts-container" class="mb-4 <?php if ($unread_notifications_count === 0) echo 'd-none'; ?>">
-        <h5 class="text-danger"><i class="fas fa-bell me-2"></i>Avvisi Importanti</h5>
-        <?php foreach ($unread_notifications as $notification): ?>
-            <?php
-                // Logica per costruire il link corretto alla pratica
-                $module_file = ($notification['modulo_nome'] === 'Contributi di Studio') ? 'modulo1.php' : 'modulo2.php';
-                $prestazione_key = '';
-                $prestazione_label = 'N/D'; // Etichetta di default
-                if (!empty($notification['prestazioni'])) {
-                    $prest_array = json_decode($notification['prestazioni'], true);
-                    if (is_array($prest_array)) {
-                        $prestazione_key = key($prest_array);
-                        if (isset($prestazioni_config[$prestazione_key]['label'])) {
-                            $prestazione_label = $prestazioni_config[$prestazione_key]['label'];
-                        }
-                    }
-                }
-                $link = "servizi/moduli/{$module_file}?token=" . htmlspecialchars($token) . "&form_name=" . urlencode($notification['form_name']) . "&prestazione=" . urlencode($prestazione_key);
-                
-                // Messaggio in base allo stato
-                $status_message = 'aggiornato';
-                switch ($notification['status']) {
-                    case 'bozza': $status_message = 'stato <strong>sbloccato per modifiche</strong>'; break;
-                    case 'inviato_in_cassa_edile': $status_message = 'stato <strong>inoltrato a Cassa Edile</strong>'; break;
-                    case 'abbandonato': $status_message = 'stato <strong>archiviato</strong>'; break;
-                }
-            ?>
-            <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                La tua pratica per il servizio 
-                <a href="<?php echo $link; ?>" class="alert-link">"<?php echo htmlspecialchars($prestazione_label); ?>"</a> 
-                è <?php echo $status_message; ?>.
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        <?php endforeach; ?>
     </div>
 
 
@@ -936,27 +872,6 @@ function get_count_badge($prestazione_key, $user_forms) {
 <!-- FINE DEFINIZIONE MODALI -->
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script>
-$(document).ready(function() {
-    $('#notification-bell').on('click', function() {
-        const badge = $('#notification-badge');
-        if (badge.length > 0) {
-            // Chiamata AJAX per marcare le notifiche come lette
-            $.post('mark_notifications_read.php', { token: '<?php echo htmlspecialchars($token); ?>' })
-                .done(function(response) {
-                    if (response.status === 'success') {
-                        // Rimuovi il badge e nascondi l'area alert
-                        badge.remove();
-                        $('#notification-alerts-container').slideUp();
-                    } else {
-                        console.error('Errore nel marcare le notifiche come lette.');
-                    }
-                });
-        }
-    });
-});
-</script>
 
 </body>
 </html>

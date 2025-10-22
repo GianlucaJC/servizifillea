@@ -1,24 +1,62 @@
 
 <?php
     session_start();
-    $token="";
-    if (isset($_GET['token'])) $token=$_GET['token'];
+    $token = $_GET['token'] ?? '';
     $is_user_logged_in = false;
+    $unread_notifications = [];
+    $unread_notifications_count = 0;
+
+    // Array di configurazione delle prestazioni (necessario per gli alert)
+    $prestazioni_config = [
+        'premio_matrimoniale' => ['label' => 'Premio Matrimoniale / Unioni Civili'],
+        'premio_giovani' => ['label' => 'Premio Giovani e Inserimento'],
+        'bonus_nascita' => ['label' => 'Bonus Nascita o Adozione'],
+        'donazioni_sangue' => ['label' => 'Donazioni del Sangue'],
+        'contributo_affitto' => ['label' => 'Contributo Affitto Casa'],
+        'contributo_sfratto' => ['label' => 'Contributo per Ingiunzione Sfratto'],
+        'contributo_disabilita' => ['label' => 'Contributo Figli con Diversa Abilità'],
+        'post_licenziamento' => ['label' => 'Contributo Post Licenziamento'],
+        'centri_estivi' => ['label' => 'Bonus Centri Estivi'],
+        'permesso_soggiorno' => ['label' => 'Rimborso Permesso di Soggiorno'],
+        'attivita_sportive' => ['label' => 'Attività Sportive e Ricreative'],
+        'asili_nido' => ['label' => 'Contributi Asilo Nido'],
+        'scuole_elementari' => ['label' => 'Contributi Studio Scuole Elementari'],
+        'scuole_medie_inferiori' => ['label' => 'Contributi Studio Scuole Medie'],
+        'superiori_iscrizione' => ['label' => 'Contributi Studio Scuole Superiori'],
+        'universita_iscrizione' => ['label' => 'Contributi Studio Università'],
+    ];
+
     if (!empty($token)) {
         include("database.php");
         $pdo1 = Database::getInstance('fillea');
         
-        // Query per verificare che il token esista e non sia scaduto.
-        // Usiamo NOW() per confrontare la data di scadenza con l'ora attuale del server DB.
         $sql = "SELECT id FROM `fillea-app`.users WHERE token = ? AND token_expiry > NOW() LIMIT 1";
         $stmt = $pdo1->prepare($sql);
         $stmt->execute([$token]);
         
-        // Se la query trova una riga, il token è valido.
-        if ($stmt->fetch()) {
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($user) {
             $is_user_logged_in = true;
+            $user_id = $user['id'];
+
+            // Recupera le notifiche non lette per l'utente
+            $stmt_notifications = $pdo1->prepare("
+                SELECT 
+                    rm.form_name, 
+                    rm.status, 
+                    COALESCE(m1.prestazioni, m2.prestazioni) AS prestazioni,
+                    rm.modulo_nome
+                FROM `fillea-app`.richieste_master rm
+                LEFT JOIN `fillea-app`.modulo1_richieste m1 ON rm.form_name = m1.form_name COLLATE utf8mb4_unicode_ci
+                LEFT JOIN `fillea-app`.modulo2_richieste m2 ON rm.form_name = m2.form_name COLLATE utf8mb4_unicode_ci
+                WHERE rm.user_id = :user_id AND rm.user_notification_unseen = 1
+                ORDER BY rm.data_invio DESC
+            ");
+            $stmt_notifications->execute([':user_id' => $user_id]);
+            $unread_notifications = $stmt_notifications->fetchAll(PDO::FETCH_ASSOC);
+            $unread_notifications_count = count($unread_notifications);
+
         } else {
-            // Se il token non è valido (non trovato o scaduto), lo invalidiamo.
             header("Location: servizi.php");
         }
         $pdo1 = null; // Chiudi la connessione
@@ -98,13 +136,21 @@
         <div class="sticky top-0 bg-white/95 backdrop-blur-sm z-20 shadow-sm">
             <div class="container mx-auto px-4 py-4">
                 <?php if ($is_user_logged_in==true): ?>
-                <!-- Icona utente -->
-                <div class="absolute top-16 right-4">
+                <!-- Icone Utente e Notifiche -->
+                <div class="absolute top-4 right-4 flex items-center space-x-4">
+                    <!-- Icona Notifiche -->
+                    <div id="notification-bell" class="relative cursor-pointer">
+                        <i class="fas fa-bell fa-lg text-gray-600"></i>
+                        <?php if ($unread_notifications_count > 0): ?>
+                            <span id="notification-badge" class="absolute -top-2 -right-2 h-5 w-5 bg-red-600 text-white text-xs rounded-full flex items-center justify-center border-2 border-white"><?php echo $unread_notifications_count; ?></span>
+                        <?php endif; ?>
+                    </div>
+                    <!-- Icona Utente -->
                     <div class="relative">
-                        <button id="user-menu-button" class="text-white bg-primary hover:bg-primary-dark rounded-full p-3 shadow-lg flex items-center justify-center focus:outline-none">
-                            <i class="fas fa-user fa-lg"></i>
+                        <button id="user-menu-button" class="text-white bg-primary hover:bg-red-700 rounded-full w-10 h-10 shadow-lg flex items-center justify-center focus:outline-none">
+                            <i class="fas fa-user"></i>
                         </button>
-                        <div id="user-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                        <div id="user-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 ring-1 ring-black ring-opacity-5">
                             <a href="profilo.php?token=<?php echo htmlspecialchars($token);?>" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profilo</a>
                             <a href="logout.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</a>
                         </div>
@@ -121,6 +167,40 @@
 
         <!-- Griglia dei 13 Servizi -->
         <div class="container mx-auto pt-8 pb-20"> <!-- Aggiunto padding per distanziare dalla barra fissa -->
+            <!-- Area Alert Notifiche -->
+            <div id="notification-alerts-container" class="max-w-3xl mx-auto px-4 mb-8 <?php if ($unread_notifications_count === 0) echo 'hidden'; ?>">
+                <h3 class="text-xl font-bold text-primary mb-4"><i class="fas fa-bell mr-2"></i>Avvisi Importanti</h3>
+                <div class="space-y-3">
+                <?php foreach ($unread_notifications as $notification): ?>
+                    <?php
+                        // Logica per costruire il link corretto alla pratica
+                        $module_file = ($notification['modulo_nome'] === 'Contributi di Studio') ? 'modulo1.php' : 'modulo2.php';
+                        $prestazione_key = '';
+                        $prestazione_label = 'N/D'; // Etichetta di default
+                        if (!empty($notification['prestazioni'])) {
+                            $prest_array = json_decode($notification['prestazioni'], true);
+                            if (is_array($prest_array)) {
+                                $prestazione_key = key($prest_array);
+                                if (isset($prestazioni_config[$prestazione_key]['label'])) {
+                                    $prestazione_label = $prestazioni_config[$prestazione_key]['label'];
+                                }
+                            }
+                        }
+                        $link = "servizi/moduli/{$module_file}?token=" . htmlspecialchars($token) . "&form_name=" . urlencode($notification['form_name']) . "&prestazione=" . urlencode($prestazione_key);
+                        
+                        $status_message = 'aggiornato';
+                        switch ($notification['status']) {
+                            case 'bozza': $status_message = 'stato <strong>sbloccato per modifiche</strong>'; break;
+                            case 'inviato_in_cassa_edile': $status_message = 'stato <strong>inoltrato a Cassa Edile</strong>'; break;
+                            case 'abbandonato': $status_message = 'stato <strong>archiviato</strong>'; break;
+                        }
+                    ?>
+                    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded-md shadow-sm" role="alert">
+                        <p>La tua pratica per il servizio <a href="<?php echo $link; ?>" class="font-bold underline hover:text-yellow-900">"<?php echo htmlspecialchars($prestazione_label); ?>"</a> è <?php echo $status_message; ?>.</p>
+                    </div>
+                <?php endforeach; ?>
+                </div>
+            </div>
             <p class="text-center text-gray-600 mb-8 px-4">Scegli il servizio di cui hai bisogno. Clicca su una delle card per iniziare.</p>
             <!-- CLASSI AGGIORNATE: 
                  - grid-cols-2 (2 colonne su MOBILE - Nuovo Default)
