@@ -137,7 +137,7 @@
             <div class="container mx-auto px-4 py-4">
                 <?php if ($is_user_logged_in==true): ?>
                 <!-- Icone Utente e Notifiche -->
-                <div class="absolute top-10 right-4 flex items-center space-x-4">
+                <div class="absolute top-16 right-4 flex items-center space-x-4">
                     <!-- Icona Notifiche -->
                     <div id="notification-bell" class="relative cursor-pointer">
                         <i class="fas fa-bell fa-lg text-gray-600"></i>
