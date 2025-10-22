@@ -365,7 +365,7 @@ function e($value) {
 
     <?php
         $status = $saved_data['status'] ?? 'bozza';
-        $is_submitted = ($status === 'inviato' || $status === 'inviato_in_cassa_edile');
+        $is_submitted = in_array($status, ['ricevuta', 'inviato_in_cassa_edile', 'letto_da_cassa_edile']);
 
         // Se è un admin, mostra sempre la sezione delle azioni admin.
         if ($is_admin_view):
@@ -373,7 +373,7 @@ function e($value) {
         <div class="form-section">
             <h2 class="form-section-title">Azioni Amministratore</h2>
             <?php if ($is_submitted): // Se la richiesta è stata inviata (o inoltrata), l'admin può modificare e sbloccare ?>
-                <p class="text-gray-600 mb-4">Questa richiesta è stata inviata dall'utente. Puoi sbloccarla per consentire ulteriori modifiche.</p>
+                <p class="text-gray-600 mb-4">Questa richiesta è stata inviata dall'utente (Stato: <strong><?php echo htmlspecialchars(ucfirst(str_replace('_', ' ', $status))); ?></strong>). Puoi sbloccarla per consentire ulteriori modifiche.</p>
                 <div class="mb-4">
                     <label for="admin_notification" class="form-label">Aggiungi una notifica per l'utente (opzionale)</label>
                     <textarea id="admin_notification" name="admin_notification" rows="2" class="form-input" placeholder="Es: Sbloccato. Per favore, correggi il tuo IBAN."></textarea>
@@ -687,7 +687,7 @@ function e($value) {
             // Per l'admin: il pulsante appare se la richiesta è stata 'inviata' dall'utente, per permettere modifiche.
             $can_edit = false;
             if (!$is_admin_view && $status === 'bozza') $can_edit = true;
-            if ($is_admin_view && ($status === 'inviato' || $status === 'inviato_in_cassa_edile')) $can_edit = true;
+            if ($is_admin_view && in_array($status, ['ricevuta', 'letto_da_cassa_edile'])) $can_edit = true;
 
             if ($can_edit):            
         ?>
@@ -950,8 +950,8 @@ function e($value) {
             // L'utente può modificare solo se lo stato è 'bozza'.
             // L'admin può modificare solo se lo stato è 'inviato'.
             $can_edit = false;
-            if (!$is_admin_view && $status === 'bozza') $can_edit = true;
-            if ($is_admin_view && ($status === 'inviato' || $status === 'inviato_in_cassa_edile')) $can_edit = true; 
+            if (!$is_admin_view && $status === 'bozza') $can_edit = true; 
+            if ($is_admin_view && in_array($status, ['ricevuta', 'letto_da_cassa_edile'])) $can_edit = true; 
 
             if (!$can_edit):
         ?>

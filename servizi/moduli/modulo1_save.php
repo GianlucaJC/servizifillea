@@ -90,7 +90,7 @@ try {
     // Determina lo stato finale della richiesta
     $status = $existing_record['status'] ?? 'bozza'; // Default a bozza se nuovo
     if ($action === 'submit_official') {
-        $status = 'inviato';
+        $status = 'ricevuta';
     } elseif ($action === 'unlock') {
         $status = 'bozza';
     }
@@ -105,6 +105,9 @@ try {
 
         $stmt_unlock = $pdo1->prepare("UPDATE `fillea-app`.`modulo1_richieste` SET status = 'bozza', admin_notification = ? WHERE form_name = ? AND user_id = ?");
         $stmt_unlock->execute([$admin_notification, $form_name, $user_id]);
+
+        $stmt_master_unlock = $pdo1->prepare("UPDATE `fillea-app`.`richieste_master` SET status = 'bozza', is_new = 0 WHERE form_name = ? AND user_id = ?");
+        $stmt_master_unlock->execute([$form_name, $user_id]);
 
         // --- INIZIO LOGICA INVIO NOTIFICA PUSH DI SBLOCCO ---
         // Per costruire l'URL corretto per la notifica, dobbiamo recuperare il token dell'utente.
@@ -154,7 +157,7 @@ try {
             $data['id'] = $existing_record['id'];
 
             // CONTROLLO DI SICUREZZA: L'admin può salvare solo se lo stato è 'inviato'.
-            if ($is_admin_save && $existing_record['status'] !== 'inviato') {
+            if ($is_admin_save && !in_array($existing_record['status'], ['ricevuta', 'letto_da_cassa_edile'])) {
                 throw new Exception("L'amministratore può modificare una richiesta solo se si trova nello stato 'Inviato'.");
             }
 
@@ -196,8 +199,8 @@ try {
         // ESEGUI SEMPRE L'INSERIMENTO/AGGIORNAMENTO NELLA TABELLA MASTER
         // CORREZIONE: Aggiunto richiesta_id per risolvere il bug della sovrascrittura.
         $sql_master = "INSERT INTO `fillea-app`.`richieste_master` (user_id, id_funzionario, modulo_nome, form_name, richiesta_id, data_invio, status, is_new) 
-                       VALUES (:user_id, :id_funzionario, 'Contributi di Studio', :form_name, :richiesta_id, NOW(), 'inviato', 1) 
-                       ON DUPLICATE KEY UPDATE data_invio = NOW(), status = 'inviato', is_new = 1, id_funzionario = :id_funzionario_upd";
+                       VALUES (:user_id, :id_funzionario, 'Contributi di Studio', :form_name, :richiesta_id, NOW(), 'ricevuta', 1) 
+                       ON DUPLICATE KEY UPDATE data_invio = NOW(), status = 'ricevuta', is_new = 1, id_funzionario = :id_funzionario_upd";
         $stmt_master = $pdo1->prepare($sql_master);
         $stmt_master->execute(['user_id' => $user_id, 'id_funzionario' => $id_funzionario_scelto, 'form_name' => $form_name, 'richiesta_id' => $richiesta_id, 'id_funzionario_upd' => $id_funzionario_scelto]);
 
@@ -245,10 +248,6 @@ try {
             error_log("Errore invio notifica push al funzionario: " . $e->getMessage());
         }
     } elseif ($action === 'unlock') {
-        // Se l'admin sblocca, aggiorna lo stato anche nella tabella master
-        $sql_master_unlock = "UPDATE `fillea-app`.`richieste_master` SET status = 'bozza' WHERE form_name = ? AND user_id = ?";
-        $stmt_master_unlock = $pdo1->prepare($sql_master_unlock);
-        $stmt_master_unlock->execute([$form_name, $user_id]);
     }
 
     // Se l'azione è un salvataggio (non invio ufficiale), aggiorna solo la data di modifica nella master

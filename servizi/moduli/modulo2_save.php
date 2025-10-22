@@ -74,16 +74,23 @@ try {
         }
         $stmt_unlock = $pdo1->prepare("UPDATE `fillea-app`.`modulo2_richieste` SET status = 'bozza', admin_notification = ? WHERE form_name = ? AND user_id = ?");
         $stmt_unlock->execute([$admin_notification, $form_name, $user_id]);
+
+        // Aggiorna anche la tabella master
+        $stmt_master_unlock = $pdo1->prepare("UPDATE `fillea-app`.`richieste_master` SET status = 'bozza', is_new = 0 WHERE form_name = ? AND user_id = ?");
+        $stmt_master_unlock->execute([$form_name, $user_id]);
     } else if ($action === 'save' || $action === 'submit_official') {
         $status = $existing_record['status'] ?? 'bozza';
         if ($action === 'submit_official') {
-            $status = 'inviato';
+            $status = 'ricevuta';
         }
         $data['status'] = $status;
 
         if ($existing_record) {
             // UPDATE
             $data['id'] = $existing_record['id'];
+            if ($is_admin_save && !in_array($existing_record['status'], ['ricevuta', 'letto_da_cassa_edile'])) {
+                throw new Exception("L'amministratore può modificare una richiesta solo se è stata ricevuta o è in lettura.");
+            }
             $firma_sql_part = !empty($data['firma_data']) ? ", firma_data = :firma_data" : "";
             $admin_notification_sql = ($action === 'submit_official') ? ", admin_notification = NULL" : "";
 
@@ -115,8 +122,8 @@ try {
 
         // CORREZIONE: Aggiunto richiesta_id per risolvere il bug della sovrascrittura.
         $sql_master = "INSERT INTO `fillea-app`.`richieste_master` (user_id, id_funzionario, modulo_nome, form_name, richiesta_id, data_invio, status, is_new) 
-                       VALUES (:user_id, :id_funzionario, 'Prestazioni Varie', :form_name, :richiesta_id, NOW(), 'inviato', 1) 
-                       ON DUPLICATE KEY UPDATE data_invio = NOW(), status = 'inviato', is_new = 1, id_funzionario = :id_funzionario_upd";
+                       VALUES (:user_id, :id_funzionario, 'Prestazioni Varie', :form_name, :richiesta_id, NOW(), 'ricevuta', 1) 
+                       ON DUPLICATE KEY UPDATE data_invio = NOW(), status = 'ricevuta', is_new = 1, id_funzionario = :id_funzionario_upd";
         $stmt_master = $pdo1->prepare($sql_master);
         $master_params = ['user_id' => $user_id, 'id_funzionario' => $id_funzionario_scelto, 'form_name' => $form_name, 'richiesta_id' => $richiesta_id, 'id_funzionario_upd' => $id_funzionario_scelto];
         log_sql($sql_master, $master_params, 'Salvataggio in richieste_master');
@@ -124,8 +131,6 @@ try {
     } elseif ($action === 'unlock') {
         // Se l'admin sblocca, aggiorna lo stato anche nella tabella master
         $sql_master_unlock = "UPDATE `fillea-app`.`richieste_master` SET status = 'bozza' WHERE form_name = ? AND user_id = ?";
-        $stmt_master_unlock = $pdo1->prepare($sql_master_unlock);
-        $stmt_master_unlock->execute([$form_name, $user_id]);
     }
 
     $pdo1->commit();

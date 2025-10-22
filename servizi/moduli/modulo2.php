@@ -252,7 +252,7 @@ function e($value) {
 
     <?php
         $status = $saved_data['status'] ?? 'bozza';
-        $is_submitted = ($status === 'inviato' || $status === 'inviato_in_cassa_edile');
+        $is_submitted = in_array($status, ['ricevuta', 'inviato_in_cassa_edile', 'letto_da_cassa_edile']);
 
         // Mostra la notifica dell'admin all'utente, se presente.
         if (!$is_admin_view && !empty($saved_data['admin_notification'])):
@@ -275,7 +275,7 @@ function e($value) {
     ?>
         <div class="form-section">
             <h2 class="form-section-title">Azioni Amministratore</h2>
-            <?php if ($is_submitted): // Se la richiesta è stata inviata (o inoltrata), l'admin può sbloccare ?>
+            <?php if (in_array($status, ['ricevuta', 'inviato_in_cassa_edile', 'letto_da_cassa_edile'])): // Se la richiesta è stata inviata (o inoltrata), l'admin può sbloccare ?>
                 <p class="text-gray-600 mb-4">Questa richiesta è stata inviata dall'utente. Puoi sbloccarla per consentire ulteriori modifiche.</p>
                 <div class="mb-4">
                     <label for="admin_notification" class="form-label">Aggiungi una notifica per l'utente (opzionale)</label>
@@ -495,7 +495,7 @@ function e($value) {
         <?php
             $can_edit = false;
             if (!$is_admin_view && $status === 'bozza') $can_edit = true;
-            if ($is_admin_view && ($status === 'inviato' || $status === 'inviato_in_cassa_edile')) $can_edit = true;
+            if ($is_admin_view && in_array($status, ['ricevuta', 'letto_da_cassa_edile'])) $can_edit = true;
 
             if ($can_edit):
         ?>
@@ -504,7 +504,7 @@ function e($value) {
             <button type="submit" id="save-btn" class="w-full md:w-auto bg-primary text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-red-700 transition-colors duration-300" name="action" value="save">
                 <i class="fas fa-save mr-2"></i> Salva Dati
             </button>
-            <?php if (!$is_admin_view): // Il pulsante di invio è solo per l'utente ?>
+            <?php if (!$is_admin_view && $status === 'bozza'): // Il pulsante di invio è solo per l'utente in stato di bozza ?>
             <button type="button" id="submit-official-btn" class="w-full md:w-auto bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-green-700 transition-colors duration-300 mt-4 md:mt-0 md:ml-4">
                 <i class="fas fa-paper-plane mr-2"></i> Invia dati al funzionario
             </button>
@@ -809,8 +809,8 @@ function handleFormSelection(selectedValue) {
 document.addEventListener('DOMContentLoaded', function() {
         <?php
             $can_edit = false;
-            if (!$is_admin_view && $status === 'bozza') $can_edit = true; 
-            if ($is_admin_view && ($status === 'inviato' || $status === 'inviato_in_cassa_edile')) $can_edit = true; 
+            if (!$is_admin_view && $status === 'bozza') $can_edit = true;
+            if ($is_admin_view && in_array($status, ['ricevuta', 'letto_da_cassa_edile'])) $can_edit = true;
 
             if (!$can_edit && $form_name !== null):
         ?>

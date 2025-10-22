@@ -5,6 +5,8 @@ session_start(); // Avvia la sessione DOPO aver impostato i parametri
 // 1. Recupera e verifica il token per la sicurezza
 $token = $_GET['token'] ?? '';
 $is_user_logged_in = false;
+$user_id = null;
+$user_forms_by_prestazione = [];
 
 if (!empty($token)) {
     include_once("database.php");
@@ -14,9 +16,56 @@ if (!empty($token)) {
     $stmt = $pdo1->prepare($sql);
     $stmt->execute([$token]);
 
-    if ($stmt->fetch()) {
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($user) {
         $is_user_logged_in = true;
+        $user_id = $user['id'];
         $_SESSION['user_token'] = $token; // Memorizza il token nella sessione per un accesso consistente
+
+        // Recupera lo stato dell'ultima richiesta e il conteggio totale per ogni tipo di prestazione
+        // MODIFICA: La query ora unisce i dati da modulo1 e modulo2 per includere anche le bozze non ancora inviate (che non sono in richieste_master).
+        $stmt_forms = $pdo1->prepare("
+            WITH AllRequests AS (
+                SELECT user_id, 
+                       prestazioni COLLATE utf8mb4_unicode_ci AS prestazioni, 
+                       status COLLATE utf8mb4_unicode_ci AS status, 
+                       last_update 
+                FROM `fillea-app`.`modulo1_richieste` 
+                WHERE user_id = :user_id AND status != 'abbandonato'
+                UNION ALL
+                SELECT user_id, 
+                       prestazioni COLLATE utf8mb4_unicode_ci AS prestazioni, 
+                       status COLLATE utf8mb4_unicode_ci AS status, 
+                       last_update 
+                FROM `fillea-app`.`modulo2_richieste` 
+                WHERE user_id = :user_id AND status != 'abbandonato'
+            ),
+            RankedRequests AS (
+                SELECT 
+                    SUBSTRING_INDEX(SUBSTRING_INDEX(prestazioni, '\"', 2), '\"', -1) AS prestazione_key,
+                    status,
+                    ROW_NUMBER() OVER(PARTITION BY SUBSTRING_INDEX(SUBSTRING_INDEX(prestazioni, '\"', 2), '\"', -1) ORDER BY last_update DESC) as rn,
+                    COUNT(*) OVER(PARTITION BY SUBSTRING_INDEX(SUBSTRING_INDEX(prestazioni, '\"', 2), '\"', -1)) as total_count
+                FROM AllRequests
+                WHERE prestazioni IS NOT NULL AND prestazioni != '[]' AND prestazioni != '{}'
+            )
+            SELECT 
+                prestazione_key, 
+                status,
+                total_count AS count
+            FROM RankedRequests 
+            WHERE rn = 1
+        ");
+        $stmt_forms->execute([':user_id' => $user_id]);
+        $results = $stmt_forms->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($results as $key => $value) {
+            $user_forms_by_prestazione[$value['prestazione_key']] = [
+                'status' => $value['status'],
+                'count' => $value['count']
+            ];
+        }
     }
     $pdo1 = null;
 }
@@ -26,6 +75,59 @@ if (!$is_user_logged_in) {
     header("Location: login.php");
     exit;
 }
+
+// Array associativo per la configurazione delle prestazioni
+$prestazioni_config = [
+    'premio_matrimoniale' => ['label' => 'Premio Matrimoniale / Unioni Civili', 'icon' => 'fa-solid fa-ring', 'module' => 'modulo2', 'modal_target' => '#modal_matrimonio', 'active' => true],
+    'premio_giovani' => ['label' => 'Premio Giovani e Inserimento', 'icon' => 'fa-solid fa-person-running', 'module' => 'modulo2', 'modal_target' => '#modal_premiogiovani', 'active' => true],
+    'bonus_nascita' => ['label' => 'Bonus Nascita o Adozione', 'icon' => 'fa-solid fa-baby', 'module' => 'modulo2', 'modal_target' => '#modal_nascita', 'active' => true],
+    'donazioni_sangue' => ['label' => 'Donazioni del Sangue', 'icon' => 'fa-solid fa-pills', 'module' => 'modulo2', 'modal_target' => '#modal_donazioni', 'active' => true],
+    'contributo_affitto' => ['label' => 'Contributo Affitto Casa', 'icon' => 'fa-solid fa-house-chimney', 'module' => 'modulo2', 'modal_target' => '#modal_affitto', 'active' => true],
+    'contributo_sfratto' => ['label' => 'Contributo per Ingiunzione Sfratto', 'icon' => 'fa-solid fa-gavel', 'module' => 'modulo2', 'modal_target' => '#modal_sfratto', 'active' => true],
+    'contributo_disabilita' => ['label' => 'Contributo Figli con Diversa Abilità', 'icon' => 'fa-solid fa-wheelchair', 'module' => 'modulo2', 'modal_target' => '#modal_disabilita', 'active' => true],
+    'insinuazioni_passivo' => ['label' => 'Insinuazioni al Passivo Procedure', 'icon' => 'fa-solid fa-file-invoice', 'module' => null, 'modal_target' => '#modal_passivo', 'active' => false],
+    'post_licenziamento' => ['label' => 'Contributo Post Licenziamento', 'icon' => 'fa-solid fa-briefcase', 'module' => 'modulo2', 'modal_target' => '#modal_licenziamento', 'active' => true],
+    'centri_estivi' => ['label' => 'Bonus Centri Estivi', 'icon' => 'fa-solid fa-sun', 'module' => 'modulo1', 'modal_target' => '#modal_centriestivi', 'active' => true],
+    'permesso_soggiorno' => ['label' => 'Rimborso Permesso di Soggiorno', 'icon' => 'fa-solid fa-passport', 'module' => 'modulo2', 'modal_target' => '#modal_soggiorno', 'active' => true],
+    'premio_fedelta' => ['label' => 'Premio Fedeltà Una Tantum', 'icon' => 'fa-solid fa-medal', 'module' => null, 'modal_target' => '#modal_fedelta', 'active' => false],
+    'attivita_sportive' => ['label' => 'Attività Sportive e Ricreative', 'icon' => 'fa-solid fa-futbol', 'module' => 'modulo2', 'modal_target' => '#modal_sportive', 'active' => true],
+    'asili_nido' => ['label' => 'Contributi Asilo Nido', 'icon' => 'fa-solid fa-child-reaching', 'module' => 'modulo1', 'modal_target' => '#modal_nido', 'active' => true],
+    'scuole_elementari' => ['label' => 'Contributi Studio Scuole Elementari', 'icon' => 'fa-solid fa-book-open-reader', 'module' => 'modulo1', 'modal_target' => '#modal_elementari', 'active' => true],
+    'scuole_medie_inferiori' => ['label' => 'Contributi Studio Scuole Medie', 'icon' => 'fa-solid fa-user-graduate', 'module' => 'modulo1', 'modal_target' => '#modal_medie', 'active' => true],
+    'superiori_iscrizione' => ['label' => 'Contributi Studio Scuole Superiori', 'icon' => 'fa-solid fa-school-flag', 'module' => 'modulo1', 'modal_target' => '#modal_superiori', 'active' => true],
+    'universita_iscrizione' => ['label' => 'Contributi Studio Università', 'icon' => 'fa-solid fa-building-columns', 'module' => 'modulo1', 'modal_target' => '#modal_universita', 'active' => true],
+];
+
+// Funzione helper per generare gli attributi del badge di stato
+function get_status_attributes($prestazione_key, $user_forms) {
+    if (isset($user_forms[$prestazione_key])) {
+        $status = $user_forms[$prestazione_key]['status'];
+        $label = '';
+
+        switch ($status) {
+            case 'bozza': $label = 'IN COMPILAZIONE'; break;
+            case 'ricevuta': $label = 'INVIATA'; break;
+            case 'inviato_in_cassa_edile': $label = 'INOLTRATA A CASSA EDILE'; break;
+            case 'letto_da_cassa_edile': $label = 'PRESA IN CARICO'; break;
+            default: $label = ''; // Nessun badge per altri stati
+        }
+
+        if ($label) {
+            return " data-status=\"{$status}\" data-status-label=\"{$label}\"";
+        }
+    }
+    return '';
+}
+
+// Funzione helper per generare il contatore delle pratiche
+function get_count_badge($prestazione_key, $user_forms) {
+    if (isset($user_forms[$prestazione_key]['count']) && $user_forms[$prestazione_key]['count'] > 0) {
+        $count = $user_forms[$prestazione_key]['count'];
+        return "<span class=\"pratiche-counter\">{$count}</span>";
+    }
+    return '';
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="it">
@@ -152,6 +254,48 @@ if (!$is_user_logged_in) {
             padding: 2px 5px;
             border-radius: 4px;
         }
+        .prestazione-card[data-status]::before {
+            content: attr(data-status-label);
+            position: absolute;
+            top: 28px; /* Posizionato sotto il badge 'ONLINE' */
+            right: 8px;
+            font-size: 0.55rem;
+            font-weight: bold;
+            padding: 2px 5px;
+            border-radius: 4px;
+            color: white;
+        }
+        /* Colori specifici per stato */
+        .prestazione-card[data-status="bozza"]::before {
+            background-color: #ffc107; /* Giallo */
+            color: #212529;
+        }
+        .prestazione-card[data-status="ricevuta"]::before {
+            background-color: #0d6efd; /* Blu */
+        }
+        .prestazione-card[data-status="inviato_in_cassa_edile"]::before {
+            background-color: #6f42c1; /* Viola */
+        }
+        .prestazione-card[data-status="letto_da_cassa_edile"]::before {
+            background-color: #198754; /* Verde */
+        }
+        /* Stile per il contatore delle pratiche */
+        .prestazione-card .pratiche-counter {
+            position: absolute;
+            top: 5px;
+            left: 8px;
+            background-color: #dc3545; /* Rosso per attenzione */
+            color: white;
+            font-size: 0.65rem;
+            font-weight: bold;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         /* Stile per il bollino del modulo */
         .module-dot {
             position: absolute;
@@ -161,7 +305,6 @@ if (!$is_user_logged_in) {
             height: 12px;
             border-radius: 50%;
             border: 1px solid rgba(0,0,0,0.1);
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
     </style>
 </head>
@@ -220,147 +363,20 @@ if (!$is_user_logged_in) {
         
         <div class="row g-4">
 
-            <div class="col-6">
-                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_matrimonio">
-                    <div class="prestazione-icon"><i class="fa-solid fa-ring"></i></div>
-                    <div class="prestazione-text">Premio Matrimoniale / Unioni Civili</div>
-                    <span class="module-dot" style="background-color: #28a745;" title="Modulo Prestazioni Varie"></span>
+            <?php foreach ($prestazioni_config as $key => $config): ?>
+                <div class="col-6">
+                    <?php
+                        $card_classes = 'prestazione-card';
+                        if ($config['active']) $card_classes .= ' attiva';
+                        else $card_classes .= ' disabled';
+                    ?>
+                    <div class="<?php echo $card_classes; ?>" <?php echo get_status_attributes($key, $user_forms_by_prestazione); ?> data-bs-toggle="modal" data-bs-target="<?php echo $config['modal_target']; ?>">
+                        <?php echo get_count_badge($key, $user_forms_by_prestazione); ?>
+                        <div class="prestazione-icon"><i class="<?php echo $config['icon']; ?>"></i></div>
+                        <div class="prestazione-text"><?php echo htmlspecialchars($config['label']); ?></div>
+                    </div>
                 </div>
-            </div>
-
-            <div class="col-6">
-                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_premiogiovani">
-                    <div class="prestazione-icon"><i class="fa-solid fa-person-running"></i></div>
-                    <div class="prestazione-text">Premio Giovani e Inserimento</div>
-                    <span class="module-dot" style="background-color: #28a745;" title="Modulo Prestazioni Varie"></span>
-                </div>
-            </div>
-
-            <div class="col-6">
-                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_nascita">
-                    <div class="prestazione-icon"><i class="fa-solid fa-baby"></i></div>
-                    <div class="prestazione-text">Bonus Nascita o Adozione</div>
-                    <span class="module-dot" style="background-color: #28a745;" title="Modulo Prestazioni Varie"></span>
-                </div>
-            </div>
-
-            <div class="col-6">
-                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_donazioni">
-                    <div class="prestazione-icon"><i class="fa-solid fa-pills"></i></div>
-                    <div class="prestazione-text">Donazioni del Sangue</div>
-                    <span class="module-dot" style="background-color: #28a745;" title="Modulo Prestazioni Varie"></span>
-                </div>
-            </div>
-
-            <div class="col-6">
-                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_affitto">
-                    <div class="prestazione-icon"><i class="fa-solid fa-house-chimney"></i></div>
-                    <div class="prestazione-text">Contributo Affitto Casa</div>
-                    <span class="module-dot" style="background-color: #28a745;" title="Modulo Prestazioni Varie"></span>
-                </div>
-            </div>
-
-            <div class="col-6">
-                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_sfratto">
-                    <div class="prestazione-icon"><i class="fa-solid fa-gavel"></i></div>
-                    <div class="prestazione-text">Contributo per Ingiunzione Sfratto</div>
-                    <span class="module-dot" style="background-color: #28a745;" title="Modulo Prestazioni Varie"></span>
-                </div>
-            </div>
-
-            <div class="col-6">
-                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_disabilita">
-                    <div class="prestazione-icon"><i class="fa-solid fa-wheelchair"></i></div>
-                    <div class="prestazione-text">Contributo Figli con Diversa Abilità</div>
-                    <span class="module-dot" style="background-color: #28a745;" title="Modulo Prestazioni Varie"></span>
-                </div>
-            </div>
-
-            <div class="col-6">
-                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_passivo">
-                    <div class="prestazione-icon"><i class="fa-solid fa-file-invoice"></i></div>
-                    <div class="prestazione-text">Insinuazioni al Passivo Procedure</div>
-                </div>
-            </div>
-
-            <div class="col-6">
-                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_licenziamento">
-                    <div class="prestazione-icon"><i class="fa-solid fa-briefcase"></i></div>
-                    <div class="prestazione-text">Contributo Post Licenziamento</div>
-                    <span class="module-dot" style="background-color: #28a745;" title="Modulo Prestazioni Varie"></span>
-                </div>
-            </div>
-
-            <div class="col-6">
-                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_centriestivi">
-                    <div class="prestazione-icon"><i class="fa-solid fa-sun"></i></div>
-                    <div class="prestazione-text">Bonus Centri Estivi</div>
-                    <span class="module-dot" style="background-color: #0d6efd;" title="Modulo Contributi di Studio"></span>
-                </div>
-            </div>
-
-            <div class="col-6">
-                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_soggiorno">
-                    <div class="prestazione-icon"><i class="fa-solid fa-passport"></i></div>
-                    <div class="prestazione-text">Rimborso Permesso di Soggiorno</div>
-                    <span class="module-dot" style="background-color: #28a745;" title="Modulo Prestazioni Varie"></span>
-                </div>
-            </div>
-
-            <div class="col-6">
-                <div class="prestazione-card" data-bs-toggle="modal" data-bs-target="#modal_fedelta">
-                    <div class="prestazione-icon"><i class="fa-solid fa-medal"></i></div>
-                    <div class="prestazione-text">Premio Fedeltà Una Tantum</div>
-                </div>
-            </div>
-
-            <div class="col-6">
-                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_sportive">
-                    <div class="prestazione-icon"><i class="fa-solid fa-futbol"></i></div>
-                    <div class="prestazione-text">Attività Sportive e Ricreative</div>
-                    <span class="module-dot" style="background-color: #28a745;" title="Modulo Prestazioni Varie"></span>
-                </div>
-            </div>
-
-            <div class="col-6">
-                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_nido">
-                    <div class="prestazione-icon"><i class="fa-solid fa-child-reaching"></i></div>
-                    <div class="prestazione-text">Contributi Asilo Nido</div>
-                    <span class="module-dot" style="background-color: #0d6efd;" title="Modulo Contributi di Studio"></span>
-                </div>
-            </div>
-
-            <div class="col-6">
-                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_elementari">
-                    <div class="prestazione-icon"><i class="fa-solid fa-book-open-reader"></i></div>
-                    <div class="prestazione-text">Contributi Studio Scuole Elementari</div>
-                    <span class="module-dot" style="background-color: #0d6efd;" title="Modulo Contributi di Studio"></span>
-                </div>
-            </div>
-            
-            <div class="col-6">
-                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_medie">
-                    <div class="prestazione-icon"><i class="fa-solid fa-user-graduate"></i></div>
-                    <div class="prestazione-text">Contributi Studio Scuole Medie</div>
-                    <span class="module-dot" style="background-color: #0d6efd;" title="Modulo Contributi di Studio"></span>
-                </div>
-            </div>
-
-            <div class="col-6">
-                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_superiori">
-                    <div class="prestazione-icon"><i class="fa-solid fa-school-flag"></i></div>
-                    <div class="prestazione-text">Contributi Studio Scuole Superiori</div>
-                    <span class="module-dot" style="background-color: #0d6efd;" title="Modulo Contributi di Studio"></span>
-                </div>
-            </div>
-
-            <div class="col-6">
-                <div class="prestazione-card attiva" data-bs-toggle="modal" data-bs-target="#modal_universita">
-                    <div class="prestazione-icon"><i class="fa-solid fa-building-columns"></i></div>
-                    <div class="prestazione-text">Contributi Studio Università</div>
-                    <span class="module-dot" style="background-color: #0d6efd;" title="Modulo Contributi di Studio"></span>
-                </div>
-            </div>
+            <?php endforeach; ?>
 
         </div>
     </div>    
