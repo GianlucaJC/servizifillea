@@ -7,6 +7,13 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use Minishlink\WebPush\WebPush;
 use Minishlink\WebPush\Subscription;
 
+// Funzione di logging dedicata per le notifiche push
+function log_push($message) {
+    $log_file = __DIR__ . '/../push_debug.log';
+    $timestamp = date('Y-m-d H:i:s');
+    file_put_contents($log_file, "[$timestamp] - $message\n", FILE_APPEND);
+}
+
 // 1. Proteggi lo script: solo gli admin possono accedervi.
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
     header('HTTP/1.0 403 Forbidden');
@@ -67,12 +74,14 @@ try {
 
     // --- INIZIO LOGICA INVIO NOTIFICA PUSH ---
     try {
+        log_push("[CAMBIO STATO] Avvio invio notifica per user_id: {$current_request['user_id']}, form_name: $form_name, nuovo stato: $new_status.");
         // 1. Recupera le sottoscrizioni dell'utente specifico
         $stmt_subs = $pdo1->prepare("SELECT * FROM `fillea-app`.push_subscriptions WHERE user_id = ?");
         $stmt_subs->execute([$current_request['user_id']]);
         $subscriptions = $stmt_subs->fetchAll(PDO::FETCH_ASSOC);
 
         if (!empty($subscriptions)) {
+            log_push("[CAMBIO STATO] Trovate " . count($subscriptions) . " sottoscrizioni per user_id: " . $current_request['user_id']);
             include_once(__DIR__ . '/../push_config.php');
             $webPush = PushService::getInstance();
 
@@ -84,7 +93,7 @@ try {
             // 3. Prepara il payload della notifica
             $payload = json_encode([
                 'title' => 'Aggiornamento Pratica',
-                'body' => "Lo stato della tua pratica è cambiato in: " . str_replace('_', ' ', $new_status),
+                'body' => "Lo stato della tua pratica '$form_name' è cambiato in: " . str_replace('_', ' ', $new_status),
                 // URL corretto che porta l'utente alla lista dei suoi servizi
                 'url' => "https://www.filleaoffice.it:8013/servizifillea/servizi.php?token={$user_token}"
             ]);
@@ -105,14 +114,17 @@ try {
                 $endpoint = $report->getRequest()->getUri()->__toString();
                 if (!$report->isSuccess()) {
                     // Logga l'errore specifico per ogni invio fallito
-                    error_log("[Web-Push Aggiornamento Stato] Invio fallito per {$endpoint}: {$report->getReason()}");
+                    log_push("[CAMBIO STATO] Invio fallito per {$endpoint}: {$report->getReason()}");
+                } else {
+                    log_push("[CAMBIO STATO] Invio riuscito per {$endpoint}.");
                 }
             }
+        } else {
+            log_push("[CAMBIO STATO] Nessuna sottoscrizione push trovata per user_id: " . $current_request['user_id']);
         }
     } catch (Exception $e) {
-        // Non bloccare il flusso principale se l'invio della notifica fallisce.
-        // Logga l'errore per il debug.
-        error_log("Errore invio notifica push: " . $e->getMessage());
+        // Logga l'errore per il debug senza bloccare il flusso principale.
+        log_push("[CAMBIO STATO] ERRORE: " . $e->getMessage());
     }
     // --- FINE LOGICA INVIO NOTIFICA PUSH ---
 

@@ -5,6 +5,13 @@ session_start();
 require_once __DIR__ . '/../../vendor/autoload.php'; // Corretto per raggiungere la root
 use Minishlink\WebPush\WebPush;
 use Minishlink\WebPush\Subscription;
+
+// Funzione di logging dedicata per le notifiche push
+function log_push($message) {
+    $log_file = __DIR__ . '/../../push_debug.log';
+    $timestamp = date('Y-m-d H:i:s');
+    file_put_contents($log_file, "[$timestamp] - $message\n", FILE_APPEND);
+}
  
 // 1. Inizializzazione e recupero dati
 $token = $_SESSION['user_token'] ?? null; // Leggi il token dalla sessione, non dall'URL
@@ -115,15 +122,19 @@ try {
         $stmt_get_token->execute([$user_id]);
         $user_for_token = $stmt_get_token->fetch(PDO::FETCH_ASSOC);
         $user_token_for_notification = $user_for_token['token'] ?? '';
+        log_push("[SBLOCCO UTENTE] Avvio invio notifica per user_id: $user_id, form_name: $form_name.");
         try {
             $stmt_subs = $pdo1->prepare("SELECT * FROM `fillea-app`.push_subscriptions WHERE user_id = ?");
             $stmt_subs->execute([$user_id]);
             $subscriptions = $stmt_subs->fetchAll(PDO::FETCH_ASSOC);
 
             if (!empty($subscriptions)) {
+                log_push("[SBLOCCO UTENTE] Trovate " . count($subscriptions) . " sottoscrizioni per user_id: $user_id.");
                 include_once(__DIR__ . '/../../push_config.php');
                 $webPush = PushService::getInstance();
-                $url_to_open = "https://www.filleaoffice.it:8013/servizifillea/servizi/moduli/modulo1.php?token={$user_token_for_notification}&form_name={$form_name}";
+                // Correzione URL per puntare alla pagina corretta con la prestazione
+                $prestazione_param = urlencode($_POST['prestazione'] ?? '');
+                $url_to_open = "https://www.filleaoffice.it:8013/servizifillea/servizi/moduli/modulo1.php?token={$user_token_for_notification}&form_name={$form_name}&prestazione={$prestazione_param}";
                 $payload = json_encode(['title' => 'Pratica Sbloccata', 'body' => $admin_notification, 'url' => $url_to_open]);
 
                 foreach ($subscriptions as $sub_data) {
@@ -140,12 +151,16 @@ try {
                 foreach ($webPush->flush() as $report) {
                     $endpoint = $report->getRequest()->getUri()->__toString();
                     if (!$report->isSuccess()) {
-                        error_log("[Web-Push Sblocco] Invio fallito per {$endpoint}: {$report->getReason()}");
+                        log_push("[SBLOCCO UTENTE] Invio fallito per {$endpoint}: {$report->getReason()}");
+                    } else {
+                        log_push("[SBLOCCO UTENTE] Invio riuscito per {$endpoint}.");
                     }
                 }
+            } else {
+                log_push("[SBLOCCO UTENTE] Nessuna sottoscrizione push trovata per user_id: $user_id.");
             }
         } catch (Exception $e) {
-            error_log("Errore invio notifica push di sblocco: " . $e->getMessage());
+            log_push("[SBLOCCO UTENTE] ERRORE: " . $e->getMessage());
         }
         // --- FINE LOGICA INVIO NOTIFICA PUSH ---
     }
@@ -206,6 +221,7 @@ try {
 
         // --- INVIA NOTIFICA PUSH AL FUNZIONARIO ---
         try {
+            log_push("[INVIO FUNZIONARIO] Avvio invio notifica per pratica: $form_name, funzionario_id: $id_funzionario_scelto.");
             // 1. Recupera l'ID del funzionario associato all'utente
             $stmt_funzionario = $pdo1->prepare("SELECT id_funzionario FROM `fillea-app`.users WHERE id = ?");
             $stmt_funzionario->execute([$user_id]);
@@ -213,17 +229,21 @@ try {
 
             if ($funzionario && $funzionario['id_funzionario']) {
                 // 2. Recupera le sottoscrizioni del funzionario
-                // CORREZIONE: I funzionari sono anch'essi utenti. Le loro sottoscrizioni
-                // sono salvate con il loro user_id, non con un campo 'funzionario_id'.
+                // L'ID del funzionario è l'user_id del funzionario nella tabella push_subscriptions
                 $stmt_subs = $pdo1->prepare("SELECT * FROM `fillea-app`.push_subscriptions WHERE user_id = ?");
-                $stmt_subs->execute([$funzionario['id_funzionario']]); // L'ID del funzionario è l'user_id del funzionario
+                $stmt_subs->execute([$funzionario['id_funzionario']]);
                 $subscriptions = $stmt_subs->fetchAll(PDO::FETCH_ASSOC);
 
                 if (!empty($subscriptions)) {
+                    log_push("[INVIO FUNZIONARIO] Trovate " . count($subscriptions) . " sottoscrizioni per funzionario_id: " . $funzionario['id_funzionario']);
                     include_once(__DIR__ . '/../../push_config.php');
                     $webPush = PushService::getInstance();
-                    $url_to_open = "https://www.filleaoffice.it:8013/servizifillea/admin/admin_documenti.php"; // L'admin atterra sulla lista documenti
-                    $payload = json_encode(['title' => 'Nuova Pratica Ricevuta', 'body' => "L'utente ha inviato una nuova pratica da visionare.", 'url' => $url_to_open]);
+                    $url_to_open = "https://www.filleaoffice.it:8013/servizifillea/admin/admin_documenti.php";
+                    // Recupera il nome dell'utente per un messaggio più chiaro
+                    $stmt_user_name = $pdo1->prepare("SELECT CONCAT(nome, ' ', cognome) FROM `fillea-app`.users WHERE id = ?");
+                    $stmt_user_name->execute([$user_id]);
+                    $user_full_name = $stmt_user_name->fetchColumn();
+                    $payload = json_encode(['title' => 'Nuova Pratica Ricevuta', 'body' => "L'utente {$user_full_name} ha inviato una nuova pratica da visionare.", 'url' => $url_to_open]);
 
                     foreach ($subscriptions as $sub_data) {
                         // Mappa i campi del DB ai nomi attesi dalla libreria
@@ -239,13 +259,17 @@ try {
                     foreach ($webPush->flush() as $report) {
                         $endpoint = $report->getRequest()->getUri()->__toString();
                         if (!$report->isSuccess()) {
-                            error_log("[Web-Push Funzionario] Invio fallito per {$endpoint}: {$report->getReason()}");
+                            log_push("[INVIO FUNZIONARIO] Invio fallito per {$endpoint}: {$report->getReason()}");
+                        } else {
+                            log_push("[INVIO FUNZIONARIO] Invio riuscito per {$endpoint}.");
                         }
                     }
+                } else {
+                    log_push("[INVIO FUNZIONARIO] Nessuna sottoscrizione push trovata per funzionario_id: " . $funzionario['id_funzionario']);
                 }
             }
         } catch (Exception $e) {
-            error_log("Errore invio notifica push al funzionario: " . $e->getMessage());
+            log_push("[INVIO FUNZIONARIO] ERRORE: " . $e->getMessage());
         }
     } elseif ($action === 'unlock') {
     }
