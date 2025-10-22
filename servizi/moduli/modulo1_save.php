@@ -106,7 +106,7 @@ try {
         $stmt_unlock = $pdo1->prepare("UPDATE `fillea-app`.`modulo1_richieste` SET status = 'bozza', admin_notification = ? WHERE form_name = ? AND user_id = ?");
         $stmt_unlock->execute([$admin_notification, $form_name, $user_id]);
 
-        $stmt_master_unlock = $pdo1->prepare("UPDATE `fillea-app`.`richieste_master` SET status = 'bozza', is_new = 0 WHERE form_name = ? AND user_id = ?");
+        $stmt_master_unlock = $pdo1->prepare("UPDATE `fillea-app`.`richieste_master` SET status = 'bozza', is_new = 0, user_notification_unseen = 1 WHERE form_name = ? AND user_id = ?");
         $stmt_master_unlock->execute([$form_name, $user_id]);
 
         // --- INIZIO LOGICA INVIO NOTIFICA PUSH DI SBLOCCO ---

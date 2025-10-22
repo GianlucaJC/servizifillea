@@ -230,8 +230,8 @@ try {
     $mail->send();
 
     // 7. Aggiorna lo stato della pratica nel database
-    $stmt_master = $pdo1->prepare("UPDATE `fillea-app`.`richieste_master` SET status = 'inviato_in_cassa_edile' WHERE form_name = ?");
-    $stmt_master->execute([$form_name]);
+    $stmt_master = $pdo1->prepare("UPDATE `fillea-app`.`richieste_master` SET status = 'inviato_in_cassa_edile', user_notification_unseen = 1 WHERE form_name = ? AND id_funzionario = ?");
+    $stmt_master->execute([$form_name, $funzionario_id]);
 
     // Determina la tabella del modulo specifico (modulo1 o modulo2)
     $table_name = strpos($form_name, 'form2_') === 0 ? 'modulo2_richieste' : 'modulo1_richieste';

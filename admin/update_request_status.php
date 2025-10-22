@@ -56,8 +56,8 @@ try {
     $pdo1->beginTransaction();
 
     // 4. Aggiorna lo stato nella tabella master.
-    $stmt_master = $pdo1->prepare("UPDATE `fillea-app`.`richieste_master` SET status = ? WHERE form_name = ?");
-    $stmt_master->execute([$new_status, $form_name]);
+    $stmt_master = $pdo1->prepare("UPDATE `fillea-app`.`richieste_master` SET status = ?, user_notification_unseen = 1 WHERE form_name = ? AND id_funzionario = ?");
+    $stmt_master->execute([$new_status, $form_name, $funzionario_id]);
 
     // 5. Aggiorna lo stato nella tabella specifica del modulo (es. modulo1).
     $stmt_modulo = $pdo1->prepare("UPDATE `fillea-app`.`modulo1_richieste` SET status = ? WHERE form_name = ?");
