@@ -1,6 +1,17 @@
 <?php
 session_start();
 
+require_once __DIR__ . '/../../vendor/autoload.php'; // Includi autoloader per WebPush
+use Minishlink\WebPush\WebPush;
+use Minishlink\WebPush\Subscription;
+
+// Funzione di logging dedicata per le notifiche push
+function log_push($message) {
+    $log_file = __DIR__ . '/../../push_debug.log';
+    $timestamp = date('Y-m-d H:i:s');
+    file_put_contents($log_file, "[$timestamp] - $message\n", FILE_APPEND);
+}
+
 function log_sql($sql, $params, $context = '') {
     $log_file = __DIR__ . '/../../sql_debug.log';
     $timestamp = date('Y-m-d H:i:s');
@@ -78,6 +89,45 @@ try {
         // Aggiorna anche la tabella master, impostando il flag di notifica per l'utente
         $stmt_master_unlock = $pdo1->prepare("UPDATE `fillea-app`.`richieste_master` SET status = 'bozza', is_new = 0, user_notification_unseen = 1 WHERE form_name = ? AND user_id = ?");
         $stmt_master_unlock->execute([$form_name, $user_id]);
+
+        // --- INIZIO LOGICA INVIO NOTIFICA PUSH DI SBLOCCO ---
+        log_push("[SBLOCCO UTENTE - M2] Avvio invio notifica per user_id: $user_id, form_name: $form_name.");
+        try {
+            $stmt_get_token = $pdo1->prepare("SELECT token FROM `fillea-app`.users WHERE id = ?");
+            $stmt_get_token->execute([$user_id]);
+            $user_token_for_notification = $stmt_get_token->fetchColumn();
+
+            $stmt_subs = $pdo1->prepare("SELECT * FROM `fillea-app`.push_subscriptions WHERE user_id = ?");
+            $stmt_subs->execute([$user_id]);
+            $subscriptions = $stmt_subs->fetchAll(PDO::FETCH_ASSOC);
+
+            if (!empty($subscriptions)) {
+                log_push("[SBLOCCO UTENTE - M2] Trovate " . count($subscriptions) . " sottoscrizioni per user_id: $user_id.");
+                include_once(__DIR__ . '/../../push_config.php');
+                $webPush = PushService::getInstance();
+                $prestazione_param = urlencode($_POST['prestazione'] ?? '');
+                $url_to_open = "https://www.filleaoffice.it:8013/servizifillea/servizi/moduli/modulo2.php?token={$user_token_for_notification}&form_name={$form_name}&prestazione={$prestazione_param}";
+                $payload = json_encode(['title' => 'Pratica Sbloccata', 'body' => $admin_notification, 'url' => $url_to_open]);
+
+                foreach ($subscriptions as $sub_data) {
+                    $subscription = Subscription::create(['endpoint' => $sub_data['endpoint'], 'publicKey' => $sub_data['p256dh'], 'authToken' => $sub_data['auth'], 'contentEncoding' => $sub_data['content_encoding'] ?? 'aesgcm']);
+                    $webPush->queueNotification($subscription, $payload);
+                }
+                foreach ($webPush->flush() as $report) {
+                    $endpoint = $report->getRequest()->getUri()->__toString();
+                    if (!$report->isSuccess()) {
+                        log_push("[SBLOCCO UTENTE - M2] Invio fallito per {$endpoint}: {$report->getReason()}");
+                    } else {
+                        log_push("[SBLOCCO UTENTE - M2] Invio riuscito per {$endpoint}.");
+                    }
+                }
+            } else {
+                log_push("[SBLOCCO UTENTE - M2] Nessuna sottoscrizione push trovata per user_id: $user_id.");
+            }
+        } catch (Exception $e) {
+            log_push("[SBLOCCO UTENTE - M2] ERRORE: " . $e->getMessage());
+        }
+        // --- FINE LOGICA INVIO NOTIFICA PUSH ---
     } else if ($action === 'save' || $action === 'submit_official') {
         $status = $existing_record['status'] ?? 'bozza';
         if ($action === 'submit_official') {
@@ -128,9 +178,44 @@ try {
         $master_params = ['user_id' => $user_id, 'id_funzionario' => $id_funzionario_scelto, 'form_name' => $form_name, 'richiesta_id' => $richiesta_id, 'id_funzionario_upd' => $id_funzionario_scelto];
         log_sql($sql_master, $master_params, 'Salvataggio in richieste_master');
         $stmt_master->execute($master_params);
-    } elseif ($action === 'unlock') {
-        // Se l'admin sblocca, aggiorna lo stato anche nella tabella master
-        $sql_master_unlock = "UPDATE `fillea-app`.`richieste_master` SET status = 'bozza' WHERE form_name = ? AND user_id = ?";
+
+        // --- INVIA NOTIFICA PUSH AL FUNZIONARIO ---
+        try {
+            log_push("[INVIO FUNZIONARIO - M2] Avvio invio notifica per pratica: $form_name, funzionario_id: $id_funzionario_scelto.");
+            $stmt_subs = $pdo1->prepare("SELECT * FROM `fillea-app`.push_subscriptions WHERE user_id = ?");
+            $stmt_subs->execute([$id_funzionario_scelto]);
+            $subscriptions = $stmt_subs->fetchAll(PDO::FETCH_ASSOC);
+
+            if (!empty($subscriptions)) {
+                log_push("[INVIO FUNZIONARIO - M2] Trovate " . count($subscriptions) . " sottoscrizioni per funzionario_id: " . $id_funzionario_scelto);
+                include_once(__DIR__ . '/../../push_config.php');
+                $webPush = PushService::getInstance();
+                $url_to_open = "https://www.filleaoffice.it:8013/servizifillea/admin/admin_documenti.php";
+                $stmt_user_name = $pdo1->prepare("SELECT CONCAT(nome, ' ', cognome) FROM `fillea-app`.users WHERE id = ?");
+                $stmt_user_name->execute([$user_id]);
+                $user_full_name = $stmt_user_name->fetchColumn();
+                $payload = json_encode(['title' => 'Nuova Pratica Ricevuta', 'body' => "L'utente {$user_full_name} ha inviato una nuova pratica da visionare.", 'url' => $url_to_open]);
+
+                foreach ($subscriptions as $sub_data) {
+                    $subscription = Subscription::create(['endpoint' => $sub_data['endpoint'], 'publicKey' => $sub_data['p256dh'], 'authToken' => $sub_data['auth'], 'contentEncoding' => $sub_data['content_encoding'] ?? 'aesgcm']);
+                    $webPush->queueNotification($subscription, $payload);
+                }
+                foreach ($webPush->flush() as $report) {
+                    $endpoint = $report->getRequest()->getUri()->__toString();
+                    if (!$report->isSuccess()) {
+                        log_push("[INVIO FUNZIONARIO - M2] Invio fallito per {$endpoint}: {$report->getReason()}");
+                    } else {
+                        log_push("[INVIO FUNZIONARIO - M2] Invio riuscito per {$endpoint}.");
+                    }
+                }
+            } else {
+                log_push("[INVIO FUNZIONARIO - M2] Nessuna sottoscrizione push trovata per funzionario_id: " . $id_funzionario_scelto);
+            }
+        } catch (Exception $e) {
+            log_push("[INVIO FUNZIONARIO - M2] ERRORE: " . $e->getMessage());
+        }
+        // --- FINE NOTIFICA PUSH ---
+
     }
 
     $pdo1->commit();
