@@ -11,21 +11,36 @@ $is_admin_view = isset($_GET['is_admin_view']) && $_GET['is_admin_view'] == 1; /
 $user_id = null;
 $saved_data = [];
 
-if (!$token || !$origin_form_name) {
+if ((!$token && !$is_admin_view) || !$origin_form_name) {
     die("Accesso non autorizzato o parametri mancanti.");
 }
 
-$_SESSION['user_token'] = $token;
+if ($token) {
+    $_SESSION['user_token'] = $token;
+}
 
 include_once("../../database.php");
 $pdo1 = Database::getInstance('fillea');
 
-$stmt_user = $pdo1->prepare("SELECT id, codfisc FROM `fillea-app`.users WHERE token = ? AND token_expiry > NOW()");
-$stmt_user->execute([$token]);
-$user = $stmt_user->fetch(PDO::FETCH_ASSOC);
+if ($is_admin_view && isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true) {
+    // VISTA ADMIN: L'admin è loggato. Recuperiamo l'ID utente dal form_name.
+    $stmt_get_user_from_form = $pdo1->prepare("
+        SELECT u.id, u.codfisc 
+        FROM `fillea-app`.users u
+        JOIN `fillea-app`.richieste_master rm ON u.id = rm.user_id
+        WHERE rm.form_name = ?
+    ");
+    $stmt_get_user_from_form->execute([$origin_form_name]);
+    $user = $stmt_get_user_from_form->fetch(PDO::FETCH_ASSOC);
+} else {
+    // VISTA UTENTE: L'utente è loggato tramite token.
+    $stmt_user = $pdo1->prepare("SELECT id, codfisc FROM `fillea-app`.users WHERE token = ? AND token_expiry > NOW()");
+    $stmt_user->execute([$token]);
+    $user = $stmt_user->fetch(PDO::FETCH_ASSOC);
+}
 
 if (!$user) {
-    die("Utente non valido o sessione scaduta.");
+    die("Utente non valido o sessione scaduta. Impossibile identificare il proprietario della pratica.");
 }
 $user_id = $user['id'];
 
