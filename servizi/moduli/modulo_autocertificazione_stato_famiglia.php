@@ -22,7 +22,7 @@ include_once("../../database.php");
 $pdo1 = Database::getInstance('fillea');
 
 // Recupera user_id dal token
-$stmt_user = $pdo1->prepare("SELECT id FROM `fillea-app`.users WHERE token = ? AND token_expiry > NOW()");
+$stmt_user = $pdo1->prepare("SELECT id, codfisc FROM `fillea-app`.users WHERE token = ? AND token_expiry > NOW()");
 $stmt_user->execute([$token]);
 $user = $stmt_user->fetch(PDO::FETCH_ASSOC);
 
@@ -31,6 +31,7 @@ if (!$user) {
 }
 $user_id = $user['id'];
 
+
 // Cerca dati salvati per questa autocertificazione
 $json_filename = 'autocert_' . $origin_form_name . '.json';
 $json_filepath = __DIR__ . '/autocertificazioni_data/' . $json_filename;
@@ -38,6 +39,27 @@ $json_filepath = __DIR__ . '/autocertificazioni_data/' . $json_filename;
 if (file_exists($json_filepath)) {
     $json_content = file_get_contents($json_filepath);
     $saved_data = json_decode($json_content, true);
+} else {
+    // Se non ci sono dati salvati, pre-compila con i dati dell'anagrafe
+    $codfisc = $user['codfisc'] ?? null;
+    if ($codfisc) {
+        $pdo_anagrafe = Database::getInstance('anagrafe');
+        $stmt_anagrafe = $pdo_anagrafe->prepare("
+            SELECT NOME, VIA, LOC, DATANASC, COMUNENASC 
+            FROM anagrafe.t2_tosc_a 
+            WHERE codfisc = ? LIMIT 1
+        ");
+        $stmt_anagrafe->execute([$codfisc]);
+        $anagrafe_data = $stmt_anagrafe->fetch(PDO::FETCH_ASSOC);
+
+        if ($anagrafe_data) {
+            $saved_data['sottoscrittore_nome_cognome'] = $anagrafe_data['NOME'];
+            $saved_data['sottoscrittore_luogo_nascita'] = $anagrafe_data['COMUNENASC'];
+            $saved_data['sottoscrittore_data_nascita'] = $anagrafe_data['DATANASC'];
+            $saved_data['sottoscrittore_residenza_comune'] = $anagrafe_data['LOC'];
+            $saved_data['sottoscrittore_residenza_indirizzo'] = $anagrafe_data['VIA'];
+        }
+    }
 }
 
 function e($value) {

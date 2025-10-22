@@ -41,7 +41,7 @@ $pdo1 = Database::getInstance('fillea');
 
 // 3. Validazione del token e recupero dati utente
 // VISTA UTENTE: L'utente è loggato tramite token.
-$sql_user = "SELECT id, nome, cognome, email, id_funzionario FROM `fillea-app`.users WHERE token = ? AND token_expiry > NOW() LIMIT 1";
+$sql_user = "SELECT id, nome, cognome, email, codfisc, id_funzionario FROM `fillea-app`.users WHERE token = ? AND token_expiry > NOW() LIMIT 1";
 $stmt_user_token = $pdo1->prepare($sql_user);
 $stmt_user_token->execute([$token_user]);
 $user_from_token = $stmt_user_token->fetch(PDO::FETCH_ASSOC);
@@ -60,6 +60,7 @@ if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true
 } elseif ($user_from_token) {
     // VISTA UTENTE: L'utente è loggato tramite token.
     $user_info = $user_from_token;
+    $_SESSION['user_codfisc'] = $user_info['codfisc'] ?? null; // Salva il CF in sessione
     $user_id = $user_from_token['id'];
     $default_funzionario_id = $user_from_token['id_funzionario'];
     // Assicura che il token sia sempre salvato nella sessione per le pagine successive
@@ -108,6 +109,66 @@ if ($user_id) {
         if ($master_record = $stmt_master_check->fetch(PDO::FETCH_ASSOC)) {
             $id_funzionario_assegnato = $master_record['id_funzionario'];
         }
+
+        // Se non sono stati trovati dati salvati per questo form_name, è una nuova richiesta.
+        // Prova a pre-compilare i dati dall'anagrafe.
+        if (empty($saved_data)) {
+            $codfisc = $_SESSION['user_codfisc'] ?? null;
+            if ($codfisc) {
+                $pdo_anagrafe = Database::getInstance('anagrafe');
+                $stmt_anagrafe = $pdo_anagrafe->prepare("
+                    SELECT 
+                        NOME, VIA, CAP, LOC, PRO, DATANASC, COMUNENASC, DENOM as azienda,
+                        COALESCE(NULLIF(TRIM(C1), ''), NULLIF(TRIM(tel_ce), ''), NULLIF(TRIM(tel_gps), ''), NULLIF(TRIM(tel_sin), '')) as telefono
+                    FROM anagrafe.t2_tosc_a 
+                    WHERE codfisc = ?
+                    LIMIT 1
+                ");
+                $stmt_anagrafe->execute([$codfisc]);
+                $anagrafe_data = $stmt_anagrafe->fetch(PDO::FETCH_ASSOC);
+
+                if ($anagrafe_data) {
+                    $saved_data['nome_completo'] = $anagrafe_data['NOME'];
+                    $saved_data['data_nascita'] = $anagrafe_data['DATANASC'];
+                    $saved_data['via_piazza'] = $anagrafe_data['VIA'];
+                    $saved_data['domicilio_a'] = $anagrafe_data['LOC'];
+                    $saved_data['cap'] = $anagrafe_data['CAP'];
+                    $saved_data['codice_fiscale'] = $codfisc; // Aggiunto mapping per il codice fiscale
+                    $saved_data['telefono'] = normalize_phone_number($anagrafe_data['telefono']);
+                    $saved_data['impresa_occupazione'] = $anagrafe_data['azienda'];
+                }
+            }
+        }
+    } else {
+    
+        // È una nuova richiesta, prova a pre-compilare i dati dall'anagrafe
+        $codfisc = $_SESSION['user_codfisc'] ?? null;        
+        
+        if ($codfisc) {
+            $pdo_anagrafe = Database::getInstance('anagrafe');
+            $stmt_anagrafe = $pdo_anagrafe->prepare("
+                SELECT 
+                    NOME, VIA, CAP, LOC, PRO, DATANASC, COMUNENASC, DENOM as azienda,
+                    COALESCE(NULLIF(TRIM(C1), ''), NULLIF(TRIM(tel_ce), ''), NULLIF(TRIM(tel_gps), ''), NULLIF(TRIM(tel_sin), '')) as telefono
+                FROM anagrafe.t2_tosc_a 
+                WHERE codfisc = ?
+                LIMIT 1
+            ");
+            $stmt_anagrafe->execute([$codfisc]);
+            $anagrafe_data = $stmt_anagrafe->fetch(PDO::FETCH_ASSOC);
+
+            if ($anagrafe_data) {
+                $saved_data['nome_completo'] = $anagrafe_data['NOME'];
+                $saved_data['data_nascita'] = $anagrafe_data['DATANASC'];
+                $saved_data['via_piazza'] = $anagrafe_data['VIA'];
+                $saved_data['domicilio_a'] = $anagrafe_data['LOC'];
+                $saved_data['cap'] = $anagrafe_data['CAP'];
+                $saved_data['codice_fiscale'] = $codfisc; // Aggiunto mapping per il codice fiscale
+                $saved_data['telefono'] = normalize_phone_number($anagrafe_data['telefono']);
+                $saved_data['impresa_occupazione'] = $anagrafe_data['azienda'];
+            }
+
+        }
     }
 
     // Recupera tutti i form di tipo modulo2 compilati dall'utente
@@ -129,6 +190,18 @@ if ($user_id) {
     $stmt_funzionari = $pdo1->prepare("SELECT id, funzionario, zona FROM `fillea-app`.funzionari WHERE is_super_admin = 0 ORDER BY funzionario ASC");
     $stmt_funzionari->execute();
     $funzionari_list = $stmt_funzionari->fetchAll(PDO::FETCH_ASSOC);
+}
+
+// Funzione per normalizzare il numero di telefono
+function normalize_phone_number($phone) {
+    if (empty($phone)) return null;
+    // Rimuove tutto tranne i numeri
+    $cleaned = preg_replace('/[^0-9]/', '', $phone);
+    // Se è un cellulare italiano (inizia con 3 e ha 10 cifre), formatta con +39
+    if (preg_match('/^3\d{9}$/', $cleaned)) {
+        return '+39' . $cleaned;
+    }
+    return $cleaned; // Altrimenti restituisce il numero pulito
 }
 
 // 5. Funzione helper per stampare in modo sicuro i valori
