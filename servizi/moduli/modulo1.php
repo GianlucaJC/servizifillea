@@ -112,10 +112,6 @@ if ($user_id) {
                     $saved_data['lavoratore_data_nascita'] = $anagrafe_data['DATANASC'];
                     $saved_data['lavoratore_telefono'] = normalize_phone_number($anagrafe_data['telefono']);
                     $saved_data['lavoratore_impresa'] = $anagrafe_data['azienda'];
-                    $saved_data['studente_codice_fiscale'] = $codfisc; // Aggiunto mapping per il codice fiscale
-                    $saved_data['studente_indirizzo'] = $anagrafe_data['VIA'];
-                    $saved_data['studente_cap'] = $anagrafe_data['CAP'];
-                    $saved_data['studente_comune'] = $anagrafe_data['LOC'];
                 }
             }
         }
