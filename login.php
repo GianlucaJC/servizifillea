@@ -12,6 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
+    $remember_me = isset($_POST['remember_me']); // Controlla se la checkbox "Ricordami" è stata selezionata
     // 1. Recuperare la password criptata (hashed) dell'utente.
     // 2. Verificare la password usando `password_verify()`.
 
@@ -38,16 +39,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Autenticazione riuscita:
             // Genera un token casuale (ad esempio, 32 caratteri esadecimali)
             $token = bin2hex(random_bytes(16)); 
-            // Imposta una scadenza per il token (ad esempio, 1 ora da adesso)
-            $expiry = time() + 3600; // 3600 secondi = 1 ora
-            $data_ora_formattata = date('Y/m/d H:i:s', $expiry);
+
+            // Imposta una scadenza per il token in base alla scelta dell'utente
+            if ($remember_me) {
+                // Scadenza lunga (30 giorni) se "Ricordami" è selezionato
+                $expiry = time() + (30 * 24 * 60 * 60); 
+            } else {
+                // Scadenza breve (1 ora) di default
+                $expiry = time() + 3600;
+            }
+            $data_ora_formattata = date('Y-m-d H:i:s', $expiry);
+
             // Salva il token e la sua scadenza nel database per l'utente
-            // Assicurati di avere una colonna 'token' e 'token_expiry' nella tua tabella 'users'
-            
             $sql_update_token = "UPDATE `fillea-app`.users SET token = ?, token_expiry = ? WHERE email = ?";
             $stmt_update_token = $pdo1->prepare($sql_update_token);
             $stmt_update_token->execute([$token, $data_ora_formattata, $username]);
             
+            // Se "Ricordami" è selezionato, imposta un cookie persistente
+            if ($remember_me) {
+                $cookie_name = "auth_token";
+                $cookie_value = $token;
+                setcookie($cookie_name, $cookie_value, [
+                    'expires' => $expiry, // Usa la stessa scadenza del token DB (30 giorni)
+                    'path' => '/',
+                    'secure' => isset($_SERVER['HTTPS']), // Invia solo su HTTPS
+                    'httponly' => true, // Non accessibile da JavaScript
+                    'samesite' => 'Lax' // Protezione CSRF
+                ]);
+            }
+
 
             // Reindirizza alla pagina principale dei servizi.
             header("Location: servizi.php?token=" . $token);
@@ -136,6 +156,13 @@ end_login_logic:; // Etichetta per il goto
                     <i class="fas fa-eye"></i>
                 </button>
             </div>
+        </div>
+
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="remember_me" name="remember_me">
+            <label class="form-check-label" for="remember_me">
+                Ricordami su questo dispositivo
+            </label>
         </div>
         
         <div class="d-grid gap-2">

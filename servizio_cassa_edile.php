@@ -125,7 +125,7 @@ function get_status_attributes($prestazione_key, $user_forms) {
             case 'bozza': $label = 'IN COMPILAZIONE'; break;
             case 'ricevuta': $label = 'INVIATA'; break;
             case 'inviato_in_cassa_edile': $label = 'INOLTRATA A CASSA EDILE'; break;
-            case 'letto_da_cassa_edile': $label = 'PRESA IN CARICO'; break;
+            case 'letto_da_cassa_edile': $label = 'LETTA DA CASSA EDILE'; break;
             default: $label = ''; // Nessun badge per altri stati
         }
 

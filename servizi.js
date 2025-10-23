@@ -141,10 +141,8 @@ $(document).ready(function() {
                 showToast(`Il servizio "${serviceName}" non è ancora disponibile.`, 'warning');
             }
         } else {
-            showToast(`Utente non riconosciuto, reindirizzato al Login...`, 'error', 5000, 'modal'); // Usa lo stile 'modal'
-            setTimeout(() => {
-                window.location.href = `login.php?redirect_service_id=${serviceId}`;
-            }, 5000); // Reindirizza dopo 5 secondi
+            // Se l'utente non è riconosciuto, reindirizza immediatamente al login.
+            window.location.href = `login.php?redirect_service_id=${serviceId}`;
         }
     }
 

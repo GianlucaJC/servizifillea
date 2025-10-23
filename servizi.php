@@ -1,7 +1,12 @@
 
 <?php
     session_start();
-    $token = $_GET['token'] ?? '';
+
+    // Logica di autenticazione migliorata:
+    // 1. Controlla il token nell'URL (priorità alta per link diretti).
+    // 2. Se non c'è, controlla il cookie "auth_token" per la sessione persistente.
+    $token = $_GET['token'] ?? ($_COOKIE['auth_token'] ?? '');
+
     $is_user_logged_in = false;
     $unread_notifications = [];
     $unread_notifications_count = 0;
