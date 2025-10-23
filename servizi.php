@@ -62,7 +62,15 @@
             $unread_notifications_count = count($unread_notifications);
 
         } else {
-            header("Location: servizi.php");
+            // Token non valido o scaduto.
+            // 1. Elimina il cookie "Ricordami" non valido per rompere il loop.
+            if (isset($_COOKIE['auth_token'])) {
+                unset($_COOKIE['auth_token']);
+                setcookie('auth_token', '', time() - 3600, '/'); // Imposta una data di scadenza nel passato
+            }
+            // 2. Reindirizza alla pagina di login con un messaggio di errore.
+            header("Location: login.php?error=session_expired");
+            exit; // Interrompi l'esecuzione per assicurare il reindirizzamento.
         }
         $pdo1 = null; // Chiudi la connessione
     }    
