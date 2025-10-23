@@ -531,6 +531,7 @@ function e($value) {
             <p class="text-gray-600 mb-6">Carica qui i documenti necessari per le prestazioni che hai selezionato. I formati consentiti sono PDF, JPG, PNG. Dimensione massima 5MB.</p>
 
             <div id="upload-container" class="space-y-8">
+
                 <!-- I box di upload verranno inseriti qui da JavaScript -->
                 <?php
                 function render_upload_box($doc_type, $title, $description, $token, $saved_files = []) {
@@ -921,7 +922,7 @@ function e($value) {
             });
             
             // Mostra sempre il box del documento d'identità
-            $('#container-for-documento_identita').removeClass('hidden');
+            document.getElementById('container-for-documento_identita').classList.remove('hidden');
 
             const requiredDocs = uploadRequirements[prestazione];
             

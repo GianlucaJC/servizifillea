@@ -134,7 +134,7 @@ $sql_base = "
         u.cognome, 
         COALESCE(m1.prestazioni, m2.prestazioni) AS prestazioni,
         COALESCE(m1.privacy_consent, m2.privacy_consent) AS privacy_consent,
-        (SELECT COUNT(ra.id) FROM `fillea-app`.richieste_allegati ra WHERE ra.form_name = rm.form_name COLLATE utf8mb4_unicode_ci AND ra.document_type != 'autocertificazione_famiglia') AS allegati_count,
+        (SELECT COUNT(ra.id) FROM `fillea-app`.richieste_allegati ra WHERE ra.form_name = rm.form_name COLLATE utf8mb4_unicode_ci AND ra.document_type NOT IN ('autocertificazione_famiglia', 'dichiarazione_frequenza')) AS allegati_count,
         (SELECT COUNT(rac.id) FROM `fillea-app`.richieste_allegati rac WHERE rac.form_name = rm.form_name COLLATE utf8mb4_unicode_ci AND rac.document_type = 'autocertificazione_famiglia') AS autocert_presente
     FROM `fillea-app`.richieste_master AS rm
     JOIN `fillea-app`.users AS u ON rm.user_id = u.id

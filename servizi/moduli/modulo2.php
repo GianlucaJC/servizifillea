@@ -432,6 +432,7 @@ function e($value) {
             <h2 class="form-section-title">Allegati Richiesti</h2>
             <p class="text-gray-600 mb-6">Carica qui i documenti necessari per le prestazioni che hai selezionato. I formati consentiti sono PDF, JPG, PNG. Dimensione massima 5MB.</p>
             <div id="upload-container" class="space-y-8">
+
                 <?php
                 function render_upload_box($doc_type, $title, $description, $token_user, $saved_files = []) {
                     ob_start();
@@ -744,7 +745,11 @@ function e($value) {
             });
             
             // Mostra sempre il box del documento d'identità
-            $('#container-for-documento_identita').removeClass('hidden');
+            // CORREZIONE: Assicuriamoci che il contenitore esista prima di provare a modificarlo
+            const docIdContainer = document.getElementById('container-for-documento_identita');
+            if (docIdContainer) {
+                docIdContainer.classList.remove('hidden');
+            }
 
             if (requiredDocs) {
                 requiredDocs.forEach(docType => {
