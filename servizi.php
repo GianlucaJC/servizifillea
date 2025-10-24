@@ -44,6 +44,9 @@
             $is_user_logged_in = true;
             $user_id = $user['id'];
 
+            // CORREZIONE CRITICA: Salva il token nella sessione per mantenerla attiva durante la navigazione.
+            $_SESSION['user_token'] = $token;
+
             // Recupera le notifiche non lette per l'utente
             $stmt_notifications = $pdo1->prepare("
                 SELECT 
