@@ -50,12 +50,6 @@ $stmt_files = $pdo1->prepare("
 $stmt_files->execute([$form_name, $funzionario_id]);
 $files_to_zip = $stmt_files->fetchAll(PDO::FETCH_ASSOC);
 
-if (empty($files_to_zip)) {
-    // Anche se l'avviso è già nella modale, questo è un controllo di sicurezza lato server.
-    // Non blocchiamo l'invio ma procediamo senza creare uno ZIP vuoto.
-    // La logica di creazione dello ZIP e del link verrà saltata.
-}
-
 // 5. Crea il file ZIP
 // --- INIZIO LOGICA PDF DINAMICO ---
 // Determina la tabella del modulo specifico per recuperare i dati
@@ -180,33 +174,26 @@ try {
         $htmlBody .= '<p>Lavoratore: <strong>'.htmlspecialchars($worker_name).'</strong>.</p>';
     }
 
-    if (!empty($files_to_zip)) {
-        // Genera un link di download sicuro solo se ci sono file
-        $download_token = bin2hex(random_bytes(32));
-        $expires_at = date('Y-m-d H:i:s', strtotime('+7 days'));
-        $stmt_link = $pdo1->prepare("INSERT INTO `fillea-app`.`download_links` (token, file_path, expires_at) VALUES (?, ?, ?)");
-        $stmt_link->execute([$download_token, $zip_filename, $expires_at]);
+    // Genera un link di download sicuro. Lo ZIP conterrà sempre almeno il PDF riepilogativo.
+    $download_token = bin2hex(random_bytes(32));
+    $expires_at = date('Y-m-d H:i:s', strtotime('+7 days'));
+    $stmt_link = $pdo1->prepare("INSERT INTO `fillea-app`.`download_links` (token, file_path, expires_at) VALUES (?, ?, ?)");
+    $stmt_link->execute([$download_token, $zip_filename, $expires_at]);
 
-        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
-        $host = $_SERVER['HTTP_HOST'];
-        $download_link = $protocol . $host . dirname($_SERVER['PHP_SELF']) . '/download.php?token=' . $download_token;
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+    $host = $_SERVER['HTTP_HOST'];
+    $download_link = $protocol . $host . dirname($_SERVER['PHP_SELF']) . '/download.php?token=' . $download_token;
 
-        $htmlBody .= '
+    $htmlBody .= '
                             <p>Puoi scaricare tutta la documentazione cliccando sul pulsante qui sotto. Il link scadrà tra 7 giorni.</p>
                             <table border="0" cellpadding="0" cellspacing="0" width="100%">
                                 <tr><td align="center" style="padding: 20px 0;">
                                     <a href="'.$download_link.'" style="background-color: '.$primary_color.'; color: #ffffff; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Scarica Documenti</a>
                                 </td></tr>
                             </table>';
-        $altBody = "È stata inviata la pratica {$form_name}.\n";
-        if (!empty($worker_name)) {
-            $altBody .= "Lavoratore: " . htmlspecialchars($worker_name) . ".\n";
-        }
-        $altBody .= "\nPuoi scaricare tutta la documentazione visitando il seguente link:\n" . $download_link;
-    } else {
-        $htmlBody .= '<p>Non sono stati allegati nuovi documenti a questo invio.</p>';
-        $altBody = "È stata inviata la pratica {$form_name}.\n\nNon sono stati allegati nuovi documenti a questo invio.";
-    }
+    $altBody = "È stata inviata la pratica {$form_name}.\n";
+    if (!empty($worker_name)) { $altBody .= "Lavoratore: " . htmlspecialchars($worker_name) . ".\n"; }
+    $altBody .= "\nPuoi scaricare tutta la documentazione visitando il seguente link:\n" . $download_link;
 
     $htmlBody .= '
                             <p style="margin-top: 30px; font-size: 12px; color: #888888;">Questa è una mail generata automaticamente. Per favore, non rispondere.</p>
