@@ -184,6 +184,11 @@ try {
     $host = $_SERVER['HTTP_HOST'];
     $download_link = $protocol . $host . dirname($_SERVER['PHP_SELF']) . '/download.php?token=' . $download_token;
 
+    // Aggiungi il parametro di tracciamento se la checkbox è stata selezionata nel form
+    if (isset($_POST['track_download']) && $_POST['track_download'] == '1') {
+        $download_link .= '&track=1';
+    }
+
     $htmlBody .= '
                             <p>Puoi scaricare tutta la documentazione cliccando sul pulsante qui sotto. Il link scadrà tra 7 giorni.</p>
                             <table border="0" cellpadding="0" cellspacing="0" width="100%">
