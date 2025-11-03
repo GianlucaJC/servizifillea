@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Se il selettore è visibile, valida la scelta
             if (funzionarioSelectorContainer && window.getComputedStyle(funzionarioSelectorContainer).display !== 'none') {
-                funzionarioId = funzionarioModalSelect.value;
+                funzionarioId = document.querySelector('input[name="id_funzionario"]:checked')?.value;
                 if (!funzionarioId) {
                     toggleError('id_funzionario_modal', 'Per favore, seleziona un funzionario.');
                     isValid = false;

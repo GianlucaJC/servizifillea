@@ -163,8 +163,8 @@ $(document).ready(function() {
     $('#modal-confirm-btn').on('click', function() {
         let funzionarioId = null;
         // Se il selettore è visibile, valida la scelta e prendi il valore
-        if ($('#funzionario-selector-container').is(':visible')) {
-            funzionarioId = $('#id_funzionario_modal').val();
+        if ($('#funzionario-selector-container').is(':visible')) { // Cerca il radio button selezionato
+            funzionarioId = $('input[name="id_funzionario"]:checked').val();
             if (!funzionarioId) {
                 toggleError('id_funzionario_modal', 'Per favore, seleziona un funzionario.');
                 return; // Blocca l'invio

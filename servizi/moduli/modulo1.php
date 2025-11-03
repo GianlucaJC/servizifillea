@@ -284,6 +284,29 @@ function e($value) {
             border-radius: 0.375rem;
             margin-top: 0.5rem;
         }
+        /* Stili per la selezione del funzionario con foto */
+        .funzionario-option {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .funzionario-option:hover {
+            background-color: #f9fafb;
+            border-color: #d1d5db;
+        }
+        input[type="radio"]:checked + .funzionario-option {
+            border-color: #d0112b;
+            background-color: #fef2f2;
+            box-shadow: 0 0 0 2px rgba(208, 17, 43, 0.2);
+        }
+        .funzionario-avatar {
+            width: 50px;
+            height: 50px;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -760,16 +783,29 @@ function e($value) {
             </p>
             <!-- Contenitore per il selettore del funzionario, visibile solo al primo invio -->
             <div id="funzionario-selector-container" class="mb-6">
-                <label for="id_funzionario_modal" class="form-label">Assegna a un Funzionario</label>
-                <select id="id_funzionario_modal" name="id_funzionario" class="form-input mt-1">
-                    <option value="" disabled selected>-- Seleziona un funzionario --</option>
+                <label class="form-label">Assegna a un Funzionario</label>
+                <div id="funzionario-list" class="mt-2 space-y-3 max-h-64 overflow-y-auto">
                     <?php foreach ($funzionari_list as $funzionario): ?>
-                        <option value="<?php echo $funzionario['id']; ?>" <?php if ($funzionario['id'] == $default_funzionario_id) echo 'selected'; ?>>
-                            <?php echo htmlspecialchars($funzionario['funzionario'] . ' (' . $funzionario['zona'] . ')'); ?>
-                        </option>
+                        <?php
+                            // Cerca la foto basandosi solo sull'ID, ignorando il nome.
+                            $photo_pattern = '../../funzionari/' . $funzionario['id'] . '_*.png';
+                            $matching_files = glob($photo_pattern);
+                            $photo_path = !empty($matching_files) ? $matching_files[0] : null;
+                            $photo_url = $photo_path ? $photo_path : 'https://placehold.co/100x100/e2e8f0/64748b?text=N/A';
+                        ?>
+                        <div class="relative">
+                            <input type="radio" id="funz-<?php echo $funzionario['id']; ?>" name="id_funzionario" value="<?php echo $funzionario['id']; ?>" class="hidden" <?php if ($funzionario['id'] == $default_funzionario_id) echo 'checked'; ?>>
+                            <label for="funz-<?php echo $funzionario['id']; ?>" class="funzionario-option">
+                                <img src="<?php echo $photo_url; ?>" alt="Foto di <?php echo htmlspecialchars($funzionario['funzionario']); ?>" class="funzionario-avatar rounded-full mr-4 object-cover">
+                                <div>
+                                    <span class="font-bold text-gray-800"><?php echo htmlspecialchars($funzionario['funzionario']); ?></span>
+                                    <span class="block text-sm text-gray-500"><?php echo htmlspecialchars($funzionario['zona']); ?></span>
+                                </div>
+                            </label>
+                        </div>
                     <?php endforeach; ?>
-                </select>
-                <p id="error-id_funzionario_modal" class="text-red-500 text-xs mt-1 hidden"></p>
+                </div>
+                <p id="error-id_funzionario_modal" class="text-red-500 text-xs mt-1 hidden">Per favore, seleziona un funzionario.</p>
             </div>
         </div>
 
