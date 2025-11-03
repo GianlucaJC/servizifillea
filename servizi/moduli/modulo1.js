@@ -151,12 +151,14 @@ $(document).ready(function() {
         }
 
         modal.removeClass('hidden');
+        $('body').css('overflow', 'hidden'); // Blocca lo scroll della pagina di sfondo
     });
 
     // Nascondi la modale se si clicca "Annulla" o il tasto chiudi
     $('#modal-cancel-btn, #modal-close-btn').on('click', function() {
         modal.addClass('hidden');
         toggleError('id_funzionario_modal', null); // Pulisci eventuali errori
+        $('body').css('overflow', 'auto'); // Ripristina lo scroll della pagina di sfondo
     });
 
     // Invia il form quando si clicca "Sì, invia" nella modale
@@ -193,6 +195,7 @@ $(document).ready(function() {
             $('<input>').attr({ type: 'hidden', name: 'id_funzionario', value: funzionarioId }).appendTo('#modulo1-form');
         }
 
+        $('body').css('overflow', 'auto'); // Ripristina lo scroll prima di inviare
         $('#modulo1-form').submit();
     });
 

@@ -72,6 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     funzionarioSelectorContainer.style.display = isFunzionarioAssigned ? 'none' : 'block';
 
                     confirmationModal.classList.remove('hidden');
+                    document.body.style.overflow = 'hidden'; // Blocca lo scroll della pagina di sfondo
                 }
             } else {
                 // Se non è valido, scrolla al campo con errore
@@ -121,6 +122,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 hiddenFunzionarioInput.value = funzionarioId;
                 form.appendChild(hiddenFunzionarioInput);
 
+                document.body.style.overflow = 'auto'; // Ripristina lo scroll prima di inviare
                 form.submit();
             }
         });
@@ -128,6 +130,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function closeModal() {
         if (confirmationModal) confirmationModal.classList.add('hidden');
+        document.body.style.overflow = 'auto'; // Ripristina lo scroll della pagina di sfondo
     }
 
     if (modalCancelBtn) modalCancelBtn.addEventListener('click', closeModal);
